@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html class="has-navbar-fixed-top">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Erkan Göçmen</title>
+    <meta name="title" content="Erkan Göçmen" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kalanakt.github.io/" />
+    <meta property="og:title" content="Erkan Göçmen" />
+    <meta property="og:image" content="images/profile-banner.jpg" />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://twitter.com/erkangcmn" />
+    <meta property="twitter:title" content="Erkan Göçmen" />
+    <meta property="twitter:image" content="images/profile-banner.jpg" />
+
+    <link rel="icon" href="https://img.icons8.com/cotton/150/000000/administrator-male.png" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@3.6.12/dist/js/splide.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@3.6.12/dist/css/splide.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar is-light is-fixed-top">
+        <div class="container">
+            <div class="navbar-brand">
+                <a class="navbar-item is-size-4 has-text-weight-bold animate__animated animate__tada animate__delay-2s">Erkan Göçmen</a>
+            </div>
+
+            <div id="navbarMenuHero" class="navbar-menu">
+                <div id="tab-menu" class="navbar-end">
+                    <a href="#works-section" class="navbar-item has-text-weight-bold">Projeler</a>
+                    <a href="#open-source-section" class="navbar-item has-text-weight-bold">Açık Kaynak</a>
+                    <a href="#contact-section" class="navbar-item has-text-weight-bold">İletişim</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section class="hero is-fullheight">
+        <div class="hero-body" data-aos="zoom-in-down" data-aos-duration="1500">
+            <div id="display" class="container">
+                <div id="github-info">
+                    <button class="button is-fullwidth is-loading">Loading...</button>
+                </div>
+                <div class="tags">
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="hero" id="works-section">
+        <div class="hero-body">
+            <p class="title">Projeler</p>
+            <p class="subtitle is-6" data-aos="fade-right">Benim tarafımdan yapılan projeler.</p>
+
+            <div id="image-slider" class="splide">
+                <div class="splide__track">
+                    <div class="splide__list">
+
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- Sowfware Library -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/homework.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">Sowfware Library</p>
+                                            <p class="subtitle is-6"><a href="https://developerlibs.vercel.app/" target="blank">Web Uygulamasına Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">Farklı programlama dillerinde kullanılan kütüphanelerini bir
+                                        araya toplayan, kodlama yaparken işinizi kolaylaştıracak bir uygulamadır.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- To Do  -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/todo-list.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">ToDo Web App</p>
+                                            <p class="subtitle is-6"><a href="https://github.com/erkangcmn/ToDoWithReact" target="blank">Web Uygulamasına Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">React ve NodeJS ile kodladığım bir React web uygulamasıdır.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- QR Web -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/qr-code.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">QR Restoran App</p>
+                                            <p class="subtitle is-6"><a href="" target="blank">Web Uygulamasına Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">React ve NodeJS ile kodladığımız bir web projesidir. Uygulamayı yakında yayınlayacağız.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- ArtWall -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/wallpaper.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">ArtWall</p>
+                                            <p class="subtitle is-6"><a href="" target="blank">Mobil Uygulamaya Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">React Native ve NodeJS kodladığım bir wallpaper mobil uygulamasıdır. Uygulamayı daha iyi kontrol edebilmek için React ile admin paneli yaptım. Uygulama yakında yayında.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- Wordpress Theme  -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/application-window.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">Rollback Wordpress Theme</p>
+                                            <p class="subtitle is-6"><a href="https://github.com/erkangcmn/Rollback-Wordpress-Theme" target="blank">Temaya Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">Php ile kodladığım Wordpress temasıdır.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- Treding Movies  -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/movie.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">Treding Movies</p>
+                                            <p class="subtitle is-6"><a href="https://github.com/erkangcmn/Using-API-With-JQuery" target="blank">Projeye Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">JavaScript ile kodladığım trend dizi ve filmleri gösteren bir web sitesidir.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="m-3 splide__slide" data-aos="flip-up"><!-- İlanver  -->
+                            <div class="card">
+                                <div class="card-content">
+                                    <div class="media">
+                                        <div class="media-left">
+                                            <figure class="image is-48x48">
+                                                <img src="https://img.icons8.com/color/144/000000/price-tag.png"
+                                                    alt="image" />
+                                            </figure>
+                                        </div>
+                                        <div class="media-content">
+                                            <p class="title is-4">Ilanver.com</p>
+                                            <p class="subtitle is-6"><a href="https://github.com/erkangcmn/PHP-Ilanver.com" target="blank">Projeye Git</a></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content">İlan verme web uygulamasıdır. Php ile kodladığım okul projem.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="hero" id="open-source-section">
+        <div class="hero-body" data-aos="fade-right">
+            <p class="title">Açık Kaynak Projeleri</p>
+
+            <div id="repo-slider" class="splide">
+                <div class="splide__track">
+                    <div id="repo_list" class="splide__list">
+                        <div class="column is-3" data-aos="zoom-in">
+                            <nav class="level is-mobile">
+                                <div class="level-left">
+                                    <span class="level-item" aria-label="reply"> <i class="fas fa-code"
+                                            style="color: #1877f2"></i>&nbsp;Reply </span>
+                                    <span class="level-item" aria-label="reply"> <i class="fas fa-star"
+                                            style="color: #ff7300"></i>&nbsp;254 </span>
+                                    <span class="level-item" aria-label="reply"> <i class="fas fa-code-branch"
+                                            style="color: #6000df"></i>&nbsp;15 </span>
+                                </div>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </section>
+
+
+
+    <section class="hero" id="contact-section flex-d">
+        <div class="hero-body" data-aos="fade-up">
+            <p class="title">Sosyal Medya Hesaplarım</p>
+            <p class="subtitle is-6">Projelerinizi geliştirmek için yardım edebilirim bunun için iletişime geçin.</p>
+            <div class="tags">
+                <a href="https://www.instagram.com/erkangcmn" target="_blank" class="tag is-medium"
+                    style="background-color: #e4405f"><i class="fab fa-instagram"></i>&nbsp;Instagram</a>
+                <a href="https://twitter.com/erkangcmn" target="_blank" class="tag is-medium"
+                    style="background-color: #1da1f2"><i class="fab fa-twitter"></i>&nbsp;Twitter</a>
+                <a href="https://github.com/erkangcmn" target="_blank" class="tag is-medium"
+                    style="background-color: #181717"><i class="fab fa-github"></i>&nbsp;Github</a>
+                <a href="https://www.linkedin.com/in/erkangcmn/" target="_blank" class="tag is-medium"
+                    style="background-color: #0a66c2"><i class="fab fa-linkedin"></i>&nbsp;Linkedin</a>
+
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p class="is-size-7">
+                Copyright &copy; 2023 &mdash; All rights reserved
+                <br />
+                <b>Erkan Göçmen</b>
+            </p>
+        </div>
+    </footer>
+
+    <span id="scroll-up" class="icon icon is-large" onclick="scrollToTop()"><i class="fas fa-angle-up fa-2x"></i></span>
+    <script src="app/font-awesome.js"></script>
+    <script src="app/index.js"></script>
+    <script src="dist/canvas-nest.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>KT</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    </head>
+
+    <body>
+        <script src="" async defer></script>
+    </body>
+
+</html>
