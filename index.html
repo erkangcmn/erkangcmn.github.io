@@ -169,6 +169,23 @@ button { font: inherit; color: inherit; }
 #error p { color: var(--muted); max-width: 440px; line-height: 1.6; margin: 0 auto 16px; }
 #error a { color: var(--amber); }
 
+/* Oyun makinesi: üst çubuk ve dokunmatik kumanda */
+#gameBar { left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 12px; align-items: center; transition: opacity .3s; }
+#gameHint { font: 600 12px "Chakra Petch", sans-serif; letter-spacing: .06em; color: var(--muted); background: rgba(10,10,18,.86); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; white-space: nowrap; }
+#gamepad { left: 0; right: 0; bottom: calc(18px + var(--safe-b)); display: none; justify-content: space-between; align-items: flex-end; padding: 0 calc(18px + var(--safe-r)) 0 calc(18px + var(--safe-l)); pointer-events: none; }
+body.touch #gamepad.on { display: flex; }
+#gamepad .dpad { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(3, 56px); pointer-events: auto; }
+#gamepad button { border: 1px solid rgba(255,255,255,.2); background: rgba(20,20,34,.88); color: #fff; font: 700 18px "Chakra Petch", sans-serif; border-radius: 12px; touch-action: none; user-select: none; -webkit-user-select: none; }
+#gamepad button.on { background: rgba(255,210,63,.35); }
+#gamepad .ab { display: flex; gap: 16px; align-items: flex-end; pointer-events: auto; }
+#gamepad .ab button { width: 72px; height: 72px; border-radius: 50%; font: 400 20px Bungee, sans-serif; box-shadow: inset 0 -4px 0 rgba(0,0,0,.3); }
+#gamepad .ab .a { background: #e3242b; }
+#gamepad .ab .b { background: #1e6cff; margin-bottom: 40px; }
+body.touch #gameBar { top: calc(14px + var(--safe-t)); bottom: auto; left: calc(14px + var(--safe-l)); transform: none; }
+body.touch #gameHint { display: none; }
+body.gaming #chips, body.gaming #help, body.gaming #stick { display: none; }
+@media (max-width: 720px) { body.gaming #brand { display: none; } }
+
 /* Yardım ve dokunmatik çubuk */
 #help { left: calc(18px + var(--safe-l)); bottom: calc(70px + var(--safe-b)); font: 600 11px/1.7 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; pointer-events: none; transition: opacity .6s; }
 #help kbd { font: inherit; color: var(--ink); padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; }
@@ -225,6 +242,19 @@ body.touch #help { bottom: calc(196px + var(--safe-b)); }
   <button class="btn" id="backBtn" type="button" title="Salona dön (Esc)">Salona dön</button>
 </div>
 
+<div id="gameBar" class="hud hidden">
+  <span id="gameHint"></span>
+  <button class="btn" id="gameExit" type="button" title="Oyundan çık">Oyundan çık</button>
+</div>
+<div id="gamepad" class="hud" aria-hidden="true">
+  <div class="dpad">
+    <span></span><button data-k="up">▲</button><span></span>
+    <button data-k="left">◀</button><span></span><button data-k="right">▶</button>
+    <span></span><button data-k="down">▼</button><span></span>
+  </div>
+  <div class="ab"><button class="b" data-k="b">B</button><button class="a" data-k="a">A</button></div>
+</div>
+
 <aside class="panel" id="panel" aria-live="polite">
   <div class="strip" id="pStrip"></div>
   <button class="close" id="pClose" type="button" aria-label="Paneli kapat">✕</button>
@@ -266,6 +296,7 @@ body.touch #help { bottom: calc(196px + var(--safe-b)); }
       <li>Burada web ve mobil uygulamalar üretilir. Yapay zekâ entegrasyonları serbesttir.</li>
       <li>Her makine bir projedir. Ayrıntıları görmek için <b>jeton atmak zorunludur</b>.</li>
       <li>Arızalı makinelere jeton atmayınız. Atarsanız sorumluluk size aittir.</li>
+      <li>Sol arka köşedeki <b>Oyun Köşesi</b> gerçekten çalışır: jeton at, oyna, rekor kır.</li>
       <li>İşletme yeni projelere açıktır. Birlikte iş yapmak isteyenler <a href="https://github.com/erkangcmn" target="_blank" rel="noopener noreferrer">GitHub</a> ya da <a href="https://www.linkedin.com/in/erkangcmn/" target="_blank" rel="noopener noreferrer">LinkedIn</a> kasasına uğrasın.</li>
     </ol>
     <div class="ctl" id="ctlText"></div>
@@ -294,6 +325,7 @@ body.touch #help { bottom: calc(196px + var(--safe-b)); }
    paint: gövde rengi · trim: T-molding rengi · c1/c2: vurgu renkleri
    scr: ekran ışığı · demo/github: link ya da null · note: küçük etiket
    secret: true ise ekranda "ARIZALI" notu olan gizli makine
+   arcade: true ise gerçekten oynanan oyun makinesi (corner ile köşeye konur)
    ═══════════════════════════════════════════════════════════════════ */
 const PROJECTS = [
   { name: "Mistik", scene: "tarot", paint: "#1b2a5c", trim: "chrome", c1: "#b26bff", c2: "#ffd166", scr: "#9b6bff",
@@ -325,6 +357,9 @@ const PROJECTS = [
     tags: ["React Native", "Node.js", "React"], demo: null, github: null, note: "Yakında" },
   { name: "???", scene: "glitch", paint: "#15151a", trim: "black", c1: "#ff2a2a", c2: "#ffb000", scr: "#ff3030",
     desc: "", tags: ["Sürpriz", "Gizli köşe", "+1 kredi"], demo: null, github: null, secret: true },
+  // Oynanabilir makine (proje değil): sol arka köşede, jeton atınca oyun menüsü açılır
+  { name: "Oyun Köşesi", arcade: true, corner: "backLeft", scene: "arcade", paint: "#15151a", trim: "yellow", c1: "#ffd23f", c2: "#ff3fa4", scr: "#ffd23f",
+    desc: "", tags: [], demo: null, github: null },
 ];
 
 /* GitHub Achievements — sağ duvardaki "Başarımlar" panosu. GitHub bunun için API sunmadığından
@@ -1009,7 +1044,7 @@ const doorMeshes = [];
 
 function buildMachine(p, i, n) {
   const g = new THREE.Group();
-  const slot = slotFor(i);
+  const slot = p.corner === "backLeft" ? { x: -ROOM_X + 0.8, z: 0, ry: 0.45 } : slotFor(i);
   g.position.set(slot.x, 0, slot.z); g.rotation.y = slot.ry; g.updateMatrixWorld();
   const m = { p, i, group: g, mode: "attract", modeT: 0 };
 
@@ -1064,7 +1099,7 @@ function buildMachine(p, i, n) {
   const bezel = new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, F.screen.L), shared.bezelMat);
   g.add(onEdge(bezel, F.screen, 0.5, 0.002));
   const scrGroup = new THREE.Group(); onEdge(scrGroup, F.screen, 0.5 + SCREEN.cy / F.screen.L, 0.003); g.add(scrGroup);
-  const [sc, sx] = mkCanvas(SW, SH);
+  const [sc, sx] = p.arcade ? mkCanvas(ARC_W, ARC_H) : mkCanvas(SW, SH);
   const sTex = mkTex(sc, { nearest: true });
   scrGroup.add(new THREE.Mesh(shared.screenGeo, new THREE.MeshBasicMaterial({ map: sTex, toneMapped: false })));
   const scan = new THREE.Mesh(shared.screenGeo, shared.scanMat); scan.position.z = 0.0012; scrGroup.add(scan);
@@ -1227,8 +1262,8 @@ function makeFrame(w, h, art, badge) {
 }
 function buildBadges(roomX) {
   const panoArt = { W: 1200, H: 600, draw: (x, imgs) => drawPanoArt(x, 1200, 600, imgs || []), load: () => Promise.all(BADGES.map(loadBadgeImage)) };
-  const pano = makeFrame(2.6, 1.3, panoArt, { name: "Başarımlar", color: "#ffb000", lang: "tr", url: `https://github.com/${GITHUB_USER}?tab=achievements` });
-  pano.position.set(-4.75, 2.25, -0.79); scene.add(pano);
+  const pano = makeFrame(2.2, 1.1, panoArt, { name: "Başarımlar", color: "#ffb000", lang: "tr", url: `https://github.com/${GITHUB_USER}?tab=achievements` });
+  pano.position.set(-4.15, 2.3, -0.79); scene.add(pano);
 }
 
 /* ─────────────────────────── dekor ─────────────────────────── */
@@ -1486,8 +1521,8 @@ function buildDecor(roomX) {
   jpool.rotation.x = -Math.PI / 2; jpool.position.set(0, 0.005, D / 2 + 0.6); jb.add(jpool);
   const jhit = new THREE.Mesh(new THREE.BoxGeometry(W + 0.1, BH + W / 2 + 0.1, D + 0.1), new THREE.MeshBasicMaterial({ visible: false }));
   jhit.position.y = (BH + W / 2) / 2; jhit.userData.badge = { name: "Müzik kutusu · çal / durdur", color: "#ff7ad9", lang: "tr", jukebox: true }; jb.add(jhit); frameMeshes.push(jhit);
-  jb.position.set(-roomX + 0.65, 0, 0.0); jb.rotation.y = 0.55; scene.add(jb);
-  obstacles.push({ x: -roomX + 0.65, z: 0.0, r: 0.75 });
+  jb.position.set(-roomX + 0.6, 0, FRONT_Z - 0.8); jb.rotation.y = Math.PI / 2 + 0.5; scene.add(jb); // girişte sol köşe
+  obstacles.push({ x: -roomX + 0.6, z: FRONT_Z - 0.8, r: 0.75 });
 }
 
 // Müzik kutusu: WebAudio ile sentezlenen kısa, özgün bir chiptune döngüsü
@@ -1514,8 +1549,657 @@ const Jukebox = {
   stop() { this.playing = false; clearTimeout(this.timer); },
 };
 
+/* ─────────────────────────── oyun köşesi: oynanabilir makine ─────────────────────────── */
+// Makinenin ekranında gerçekten oynanan iki özgün oyun: "Blok Yağmuru" (düşen bloklar) ve
+// "Bug Avcısı" (platform). Tüm görseller ve sesler burada üretilir; dış dosya yok.
+const ARC_W = 256, ARC_H = 192;
+const pad = { left: false, right: false, up: false, down: false, a: false, b: false, start: false };
+const padHit = new Set(); // bu karede yeni basılan tuşlar
+function padPress(k) { if (!pad[k]) padHit.add(k); pad[k] = true; }
+function padRelease(k) { pad[k] = false; }
+const hit = (k) => padHit.has(k);
+const KEYMAP = {
+  ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down",
+  Space: "a", KeyZ: "a", KeyK: "a", KeyX: "b", KeyJ: "b", ShiftLeft: "b", ShiftRight: "b", Enter: "start", NumpadEnter: "start",
+};
+const hiGet = (k) => +(store("js-hi-" + k) || 0);
+const hiSet = (k, v) => { if (v > hiGet(k)) store("js-hi-" + k, String(v)); };
+const pad6 = (n) => String(Math.max(0, n | 0)).padStart(6, "0");
+
+// Piksel sprite: her satır bir string, her harf paletteki bir renk ("." saydam)
+function drawSprite(x, rows, pal, px, py, flip = false, sy = 1) {
+  const w = rows[0].length;
+  for (let r = 0; r < rows.length; r++) for (let c = 0; c < w; c++) {
+    const ch = rows[r][flip ? w - 1 - c : c];
+    if (ch !== ".") { x.fillStyle = pal[ch]; x.fillRect((px + c) | 0, (py + r * sy) | 0, 1, Math.ceil(sy)); }
+  }
+}
+// Kahraman: kapüşonlu, kısa siyah saçlı geliştirici (Erkan'ın piksel hali)
+const HERO_PAL = { K: "#1a1410", S: "#f0c08a", E: "#111111", H: "#7a3cff", L: "#ffd23f", N: "#20305a", W: "#f2f2f2" };
+const HERO_PAL_DEBUG = Object.assign({}, HERO_PAL, { H: "#22b35a", L: "#ffffff" }); // debugger gücü: yeşil kapüşon
+const HERO_TOP = [
+  "....KKKKK...", "...KKKKKKK..", "...KKSSSSK..", "...KSSESES..", "...KSSSSSS..", "....SSSSS...",
+  "...HHHHHHH..", "..HHHHLHHHH.", "..HHHHHHHHH.", "..SHHHHHHHS.", "...HHHHHHH..", "...NNNNNNN..",
+];
+const HERO = {
+  stand: HERO_TOP.concat(["...NNN.NNN..", "...NN...NN..", "..WWW...WWW.", "............"]),
+  walk1: HERO_TOP.concat(["...NNN.NN...", "..NN....NN..", ".WWW.....WW.", "............"]),
+  walk2: HERO_TOP.concat(["....NNNNN...", "....NN.NN...", "...WWW.WWW..", "............"]),
+  jump: HERO_TOP.slice(0, 9).concat(["S.HHHHHHH.S.", "...HHHHHHH..", "...NNNNNNN..", "..NNN..NNN..", "..NN....NN..", ".WW......WW.", "............"]),
+};
+const BUG_PAL = { A: "#222222", G: "#ff4d6d", D: "#a01830", E: "#ffffff", L: "#222222" };
+const BUG_TOP = ["...A......A...", "....A....A....", "...GGGGGGGG...", "..GGEGGGGEGG..", ".GGGGGGGGGGGG.", ".GGDGGDGGDGGG.", ".GGGGGGGGGGGG.", "..GGGGGGGGGG.."];
+const BUG = [BUG_TOP.concat([".L.L..L..L.L..", "L.L..L..L..L.."]), BUG_TOP.concat(["..L.L..L.L.L..", ".L..L..L..L.L."])];
+
+/* ── Blok Yağmuru ── */
+function BlockGame() {
+  const W = 10, H = 20, C = 8, OX = 88, OY = 16;
+  const SHAPES = { I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[0, 0], [1, 0], [0, 1], [1, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]], S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]] };
+  const COL = { I: "#18e0ff", O: "#ffd23f", T: "#b26bff", S: "#3dff7a", Z: "#ff4d6d", J: "#3f7bff", L: "#ff8a3d" };
+  const BOX = { I: 4, O: 2, T: 3, S: 3, Z: 3, J: 3, L: 3 };
+  const g = { over: false, hint: "← → kaydır · ↑ / Boşluk döndür · ↓ hızlandır · X bırak · Esc menü" };
+  let grid, cur, next, bag, score, lines, level, fallT, lockT, dasT, clearRows, clearT;
+  const take = () => { if (!bag.length) bag = Object.keys(SHAPES).sort(() => Math.random() - 0.5); return bag.pop(); };
+  const piece = (k) => ({ k, cells: SHAPES[k].map((c) => c.slice()), x: k === "O" ? 4 : 3, y: k === "I" ? -1 : 0 });
+  const fits = (cells, px, py) => cells.every(([cx, cy]) => { const x = px + cx, y = py + cy; return x >= 0 && x < W && y < H && (y < 0 || !grid[y * W + x]); });
+  const rot = (p) => (p.k === "O" ? p.cells : p.cells.map(([x, y]) => [BOX[p.k] - 1 - y, x]));
+  function reset() { grid = Array(W * H).fill(null); bag = []; cur = piece(take()); next = take(); score = 0; lines = 0; level = 1; fallT = 0; lockT = 0; dasT = 0; clearRows = []; clearT = 0; g.over = false; }
+  function end() { g.over = true; hiSet("blok", score); Sound.fall(); }
+  function spawn() { cur = piece(next); next = take(); if (!fits(cur.cells, cur.x, cur.y)) end(); }
+  function lock() {
+    for (const [cx, cy] of cur.cells) { const y = cur.y + cy; if (y < 0) { end(); return; } grid[y * W + cur.x + cx] = COL[cur.k]; }
+    clearRows = [];
+    for (let r = 0; r < H; r++) if (grid.slice(r * W, r * W + W).every(Boolean)) clearRows.push(r);
+    if (clearRows.length) { clearT = 0.25; [523, 659, 784, 1047].slice(0, clearRows.length + 1).forEach((f, i) => Sound.tone(f, i * 0.05, 0.1, "square", 0.04)); }
+    else { Sound.tone(110, 0, 0.06, "triangle", 0.06); spawn(); }
+  }
+  function finishClear() {
+    const n = clearRows.length;
+    for (const r of clearRows) { grid.splice(r * W, W); grid.unshift(...Array(W).fill(null)); }
+    score += [0, 100, 300, 500, 800][n] * level; lines += n; level = 1 + Math.floor(lines / 10);
+    clearRows = []; spawn();
+  }
+  function tryMove(d) { if (fits(cur.cells, cur.x + d, cur.y)) { cur.x += d; lockT = 0; Sound.tone(300, 0, 0.02, "square", 0.012); } }
+  reset();
+  g.update = (dt) => {
+    if (g.over) { if (hit("a") || hit("start")) reset(); return; }
+    if (clearT > 0) { clearT -= dt; if (clearT <= 0) finishClear(); return; }
+    const dir = (pad.left ? -1 : 0) + (pad.right ? 1 : 0);
+    if (hit("left") || hit("right")) { tryMove(hit("left") ? -1 : 1); dasT = 0.17; }
+    else if (dir) { dasT -= dt; if (dasT <= 0) { tryMove(dir); dasT = 0.05; } }
+    if (hit("up") || hit("a")) {
+      const rc = rot(cur);
+      for (const k of [0, -1, 1, -2, 2]) if (fits(rc, cur.x + k, cur.y)) { cur.cells = rc; cur.x += k; lockT = 0; Sound.tone(660, 0, 0.03, "square", 0.02); break; }
+    }
+    if (hit("b")) { let d = 0; while (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; d++; } score += d * 2; lock(); return; }
+    fallT += dt;
+    const interval = pad.down ? 0.035 : Math.max(0.07, 0.8 - (level - 1) * 0.07);
+    if (fallT >= interval) { fallT = 0; if (fits(cur.cells, cur.x, cur.y + 1)) { cur.y++; lockT = 0; if (pad.down) score += 1; } }
+    if (!fits(cur.cells, cur.x, cur.y + 1)) { lockT += dt; if (lockT > 0.45) { lockT = 0; lock(); } }
+  };
+  const cell = (x, px, py, col) => {
+    x.fillStyle = col; x.fillRect(px, py, C - 1, C - 1);
+    x.fillStyle = "rgba(255,255,255,.4)"; x.fillRect(px, py, C - 1, 1);
+    x.fillStyle = "rgba(0,0,0,.35)"; x.fillRect(px, py + C - 2, C - 1, 1);
+  };
+  g.draw = (x, t) => {
+    x.fillStyle = "#070712"; x.fillRect(0, 0, ARC_W, ARC_H);
+    x.fillStyle = "#0e0e24"; for (let i = 0; i < ARC_W; i += 16) x.fillRect(i, 0, 1, ARC_H);
+    pxText(x, "BLOK YAĞMURU", 128, 4, "#ffd23f", 8, "center");
+    x.fillStyle = "#2a2a55"; x.fillRect(OX - 2, OY - 2, W * C + 3, H * C + 3);
+    x.fillStyle = "#04040a"; x.fillRect(OX, OY, W * C - 1, H * C - 1);
+    const flash = clearT > 0 && ((t * 20) | 0) % 2;
+    for (let i = 0; i < W * H; i++) {
+      const r = (i / W) | 0, c = i % W;
+      if (grid[i]) cell(x, OX + c * C, OY + r * C, flash && clearRows.includes(r) ? "#ffffff" : grid[i]);
+    }
+    if (!g.over && clearT <= 0) {
+      let gy = cur.y; while (fits(cur.cells, cur.x, gy + 1)) gy++;
+      x.strokeStyle = hexA(COL[cur.k], 0.45); x.lineWidth = 1;
+      for (const [cx, cy] of cur.cells) if (gy + cy >= 0) x.strokeRect(OX + (cur.x + cx) * C + 0.5, OY + (gy + cy) * C + 0.5, C - 2, C - 2);
+      for (const [cx, cy] of cur.cells) if (cur.y + cy >= 0) cell(x, OX + (cur.x + cx) * C, OY + (cur.y + cy) * C, COL[cur.k]);
+    }
+    [["SKOR", pad6(score)], ["SATIR", String(lines)], ["SEVİYE", String(level)], ["REKOR", pad6(Math.max(hiGet("blok"), score))]].forEach(([k, v], i) => {
+      pxText(x, k, 8, 22 + i * 36, "#8a8aa8", 8); pxText(x, v, 8, 34 + i * 36, "#ffffff", 8);
+    });
+    pxText(x, "SIRADAKİ", 176, 22, "#8a8aa8", 8);
+    x.fillStyle = "#04040a"; x.fillRect(182, 36, 48, 32);
+    for (const [cx, cy] of SHAPES[next]) cell(x, 190 + cx * C, 44 + cy * C, COL[next]);
+    pxText(x, "X: BIRAK", 176, 150, "#55557a", 8); pxText(x, "↑: DÖNDÜR".replace("↑", "^"), 176, 164, "#55557a", 8);
+    if (g.over) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
+      pxText(x, "OYUN BİTTİ", 128, 74, "#ff4d6d", 16, "center");
+      pxText(x, "SKOR " + pad6(score), 128, 98, "#fff", 8, "center");
+      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 112, "#ffd23f", 8, "center");
+    }
+  };
+  return g;
+}
+
+/* ── Bug Avcısı (platform) ── */
+// Dört bölüm (Şehir, Yer Altı, Bulutlar, Veri Merkezi) ve 1-1'de gizli bonus odası.
+// Tile kodları: 1 zemin · 2 tuğla · 3 jeton bloğu · 4 boş blok · 5/6 sunucu rafı (gövde/üst)
+//               7 güç bloğu (kahve/debugger) · 9 disket bloğu (+1 can) · 10 bulut · 11 eriyik (öldürür)
+const BUG_THEMES = {
+  sehir: { sky: ["#090c26", "#2a1850"], stars: true, skyline: "#151a3c", ground: ["#2b1d4a", "#3a2864", "#ff3fa4"], brick: ["#b5532c", "#6b2a12"], bug: BUG_PAL },
+  yeralti: { sky: ["#000000", "#04050c"], stars: false, ground: ["#0f2a4a", "#173a63", "#18e0ff"], brick: ["#2a5a9a", "#0f2a4a"], bug: Object.assign({}, BUG_PAL, { G: "#5aa0ff", D: "#1d4a8a" }) },
+  bulut: { sky: ["#1a1050", "#7a3a9a"], stars: true, clouds: true, ground: ["#3a2864", "#4a3878", "#ffd23f"], brick: ["#c06bff", "#5a2a8a"], bug: BUG_PAL },
+  merkez: { sky: ["#0a0a0e", "#2a0e0a"], stars: false, ground: ["#2a2a32", "#3a3a44", "#ff6a3d"], brick: ["#4a4a55", "#22222a"], bug: Object.assign({}, BUG_PAL, { G: "#ffb000", D: "#8a5a00" }) },
+};
+function bugLevel(w, theme, label) {
+  const ROWS = 12;
+  const L = { w, theme, label, map: Array.from({ length: ROWS }, () => new Uint8Array(w)), coins: new Set(), foes: [], warps: [], flag: w - 10, mid: Math.floor(w / 2), midRow: 10, time: 200 };
+  L.set = (c, r, v) => { if (c >= 0 && c < w && r >= 0 && r < ROWS) L.map[r][c] = v; };
+  L.row = (c0, c1, r, v) => { for (let c = c0; c <= c1; c++) L.set(c, r, v); };
+  L.ground = (gaps = [], from = 0, to = w, v = 1) => { for (let c = from; c < to; c++) if (!gaps.some(([a, b]) => c >= a && c <= b)) { L.set(c, 10, v); L.set(c, 11, v); } };
+  L.coin = (c, r) => L.coins.add(c + "," + r);
+  L.coinRow = (c0, c1, r) => { for (let c = c0; c <= c1; c++) L.coin(c, r); };
+  L.rack = (c, h, warp) => { for (let k = 0; k < h; k++) { const v = k === h - 1 ? 6 : 5; L.set(c, 9 - k, v); L.set(c + 1, 9 - k, v); } if (warp) L.warps.push(Object.assign({ c, top: 10 - h }, warp)); };
+  L.stairs = (c, n, up = true) => { for (let k = 0; k < n; k++) for (let h = 0; h <= k; h++) L.set(up ? c + k : c + n - 1 - k, 9 - h, 1); };
+  L.foe = (c, r = 10) => L.foes.push({ c, r });
+  return L;
+}
+const BUG_LEVELS = [
+  () => { // 1-1 Şehir
+    const L = bugLevel(214, "sehir", "1-1");
+    const gaps = [[38, 40], [74, 76], [118, 121], [158, 160]];
+    L.ground(gaps);
+    L.set(12, 6, 3); [15, 17, 19].forEach((c) => L.set(c, 6, 2)); L.set(16, 6, 7); L.set(18, 6, 3); L.set(17, 2, 3);
+    [[26, 2], [34, 3], [46, 4], [64, 2], [108, 3], [146, 2], [166, 3]].forEach(([c, h]) => L.rack(c, h));
+    L.rack(56, 4, { to: "bonus" }); // ↓ ile gizli bonus odasına
+    L.row(80, 87, 6, 2); L.set(84, 6, 7); L.row(90, 97, 3, 2); L.set(93, 3, 9);
+    L.coinRow(91, 96, 2); L.coinRow(81, 86, 5);
+    L.row(124, 128, 6, 2); L.set(126, 6, 7); L.set(126, 2, 3); L.row(134, 136, 6, 3);
+    gaps.forEach(([a, b]) => { for (let c = a - 1; c <= b + 1; c++) L.coin(c, c === a - 1 || c === b + 1 ? 7 : 6); });
+    L.coinRow(20, 22, 8); L.coinRow(50, 52, 7); L.coinRow(100, 103, 8); L.coinRow(140, 142, 8); L.coinRow(196, 198, 8);
+    L.stairs(182, 8);
+    [22, 44, 52, 60, 70, 100, 104, 130, 138, 142, 150, 170, 176].forEach((c) => L.foe(c)); L.foe(84, 6);
+    L.flag = 204; L.mid = 100;
+    return L;
+  },
+  () => { // 1-2 Yer Altı
+    const L = bugLevel(196, "yeralti", "1-2");
+    const gaps = [[40, 42], [96, 98], [140, 143]];
+    L.ground(gaps);
+    L.row(8, 175, 0, 2); L.row(8, 175, 1, 2); // tavan
+    L.row(14, 18, 6, 3); L.set(16, 6, 7);
+    L.row(24, 25, 7, 2); L.row(24, 25, 8, 2); L.row(24, 25, 9, 2);
+    L.row(30, 36, 5, 2); L.coinRow(30, 36, 4);
+    L.row(48, 53, 7, 2); L.coinRow(48, 53, 6); L.foe(50, 7);
+    L.rack(58, 2); L.rack(66, 3); L.rack(74, 2);
+    for (let c = 82; c <= 90; c += 2) { L.set(c, 6, 2); L.coin(c, 5); }
+    L.set(86, 6, 7);
+    L.row(102, 110, 4, 2); L.row(102, 102, 5, 2); L.row(110, 110, 5, 2); L.coinRow(103, 109, 6); L.coinRow(103, 109, 7);
+    L.row(118, 122, 7, 2); L.set(120, 3, 9); L.row(119, 121, 3, 2); L.set(120, 3, 9);
+    gaps.forEach(([a, b]) => L.coinRow(a, b, 6));
+    L.row(150, 156, 6, 2); L.set(153, 6, 3);
+    L.stairs(164, 6);
+    [20, 28, 34, 46, 62, 70, 78, 88, 106, 114, 126, 132, 136, 148, 154, 158].forEach((c) => L.foe(c));
+    L.flag = 184; L.mid = 92;
+    return L;
+  },
+  () => { // 1-3 Bulutlar
+    const L = bugLevel(190, "bulut", "1-3");
+    L.ground([], 0, 14); L.ground([], 170, 190);
+    const plats = [[16, 21, 9], [25, 29, 8], [33, 36, 7], [40, 47, 8], [51, 54, 6], [58, 66, 7], [70, 73, 9], [77, 83, 8], [87, 90, 6], [94, 103, 7],
+      [107, 111, 9], [115, 118, 7], [122, 130, 6], [134, 137, 8], [141, 148, 7], [152, 155, 9], [159, 166, 8]];
+    plats.forEach(([a, b, r]) => { L.row(a, b, r, 10); L.coinRow(a, b, r - 2); });
+    L.set(43, 4, 7); L.set(98, 3, 3); L.set(126, 2, 7); L.set(62, 3, 9);
+    [[44, 8], [62, 7], [80, 8], [99, 7], [126, 6], [145, 7], [163, 8]].forEach(([c, r]) => L.foe(c, r));
+    L.flag = 180; L.mid = 98; L.midRow = 7; L.time = 220;
+    return L;
+  },
+  () => { // 1-4 Veri Merkezi (eriyik çukurları)
+    const L = bugLevel(200, "merkez", "1-4");
+    const pits = [[30, 33], [60, 64], [95, 99], [130, 135], [160, 163]];
+    L.ground(pits); pits.forEach(([a, b]) => { L.row(a, b, 10, 11); L.row(a, b, 11, 11); });
+    L.row(0, 199, 0, 2);
+    L.row(12, 16, 6, 3); L.set(14, 6, 7);
+    L.row(29, 34, 6, 2); L.coinRow(29, 34, 5);
+    L.rack(44, 3); L.rack(52, 4);
+    L.row(59, 61, 7, 2); L.row(63, 65, 5, 2); L.coinRow(63, 65, 4);
+    L.row(76, 82, 6, 2); L.set(79, 6, 7); L.row(76, 82, 2, 2);
+    L.row(94, 95, 7, 2); L.row(99, 100, 7, 2); L.coinRow(96, 98, 6);
+    L.rack(110, 3); L.rack(118, 2);
+    L.row(129, 131, 6, 2); L.row(134, 136, 6, 2); L.set(135, 2, 9);
+    L.row(144, 150, 6, 2); L.set(147, 6, 3);
+    L.row(159, 164, 7, 2); L.coinRow(159, 164, 6);
+    L.stairs(172, 7);
+    [20, 26, 40, 48, 56, 70, 74, 86, 90, 104, 114, 124, 140, 150, 154, 168].forEach((c) => L.foe(c));
+    L.flag = 190; L.mid = 104;
+    return L;
+  },
+];
+const BUG_SUBS = {
+  bonus: () => { // 1-1 gizli bonus odası: jeton dolu yer altı odası
+    const L = bugLevel(18, "yeralti", "BONUS");
+    L.ground(); L.row(0, 17, 0, 2); L.row(0, 17, 1, 2);
+    for (let r = 2; r < 10; r++) L.set(0, r, 2);
+    for (let r = 4; r <= 8; r++) L.coinRow(3, 12, r);
+    L.row(3, 12, 9, 2);
+    L.rack(15, 3); L.exit = { c: 15, toLevel: 0, col: 163 };
+    L.flag = -99; L.time = 0;
+    return L;
+  },
+};
+
+function BugGame() {
+  const T = 16, ROWS = 12, SMALL_H = 15, BIG_H = 23;
+  const g = { over: false, hint: "← → yürü · ↑ / Boşluk zıpla · X koş (debugger ile fırlat) · ↓ rafa gir · Esc menü" };
+  let L, li, map, coins, enemies, p, camX, score, coinCount, lives, timeLeft, state, stateT, checkpoint, bumps, popups, items, shots, debris, warpTo, savedMain = null;
+  const stars = Array.from({ length: 50 }, () => [Math.random() * ARC_W * 3, Math.random() * 110, Math.random()]);
+  const skyline = []; for (let sx = 0; sx < 220 * T * 0.35 + ARC_W; ) { const w = 18 + Math.random() * 30, h = 30 + Math.random() * 70; skyline.push([sx, w, h]); sx += w + 2; }
+  const cloudsBg = Array.from({ length: 14 }, (_, i) => [i * 140 + Math.random() * 60, 20 + Math.random() * 90, 30 + Math.random() * 30]);
+  const solidCode = (v) => v > 0 && v !== 11;
+  const isQ = (v) => v === 3 || v === 7 || v === 9;
+  const th = () => BUG_THEMES[L.theme];
+  function at(c, r) { if (r < 0 || r >= ROWS) return 0; if (c < 0 || c >= L.w) return 1; return map[r][c]; }
+
+  // Bölümü (ya da bonus odasını) baştan kurar: bloklar, jetonlar, düşmanlar sıfırlanır
+  function load(def, col, row) {
+    L = def(); map = L.map; coins = new Set(L.coins);
+    enemies = L.foes.map(({ c, r }) => ({ x: c * T, y: r * T - 10, w: 14, h: 10, vx: -32, vy: 0, dead: false, t: 0 }));
+    items = []; shots = []; debris = []; bumps = []; popups = [];
+    const keepPower = p ? p.power : 0;
+    p = { x: col * T, y: (row ?? 10) * T - SMALL_H, w: 12, h: SMALL_H, vx: 0, vy: 0, face: 1, onGround: false, anim: 0, inv: 0, power: 0 };
+    if (L.label === "BONUS" || warpTo) { if (keepPower) { p.power = keepPower; p.h = BIG_H; p.y -= BIG_H - SMALL_H; } }
+    camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+  }
+  function startLevel(i, fromCheckpoint) {
+    li = i; warpTo = null; savedMain = null;
+    const col = fromCheckpoint && checkpoint ? checkpoint.col : 2, row = fromCheckpoint && checkpoint ? checkpoint.row : 10;
+    const keep = p && !fromCheckpoint ? p.power : 0; // bölüm geçişinde güç korunur, ölünce sıfırlanır
+    load(BUG_LEVELS[i], col, row);
+    if (keep) setPower(keep);
+    if (!fromCheckpoint) checkpoint = null;
+    timeLeft = L.time; state = "intro"; stateT = 0;
+  }
+  function reset() { score = 0; coinCount = 0; lives = 3; p = null; checkpoint = null; g.over = false; startLevel(0, false); }
+  function setPower(n) {
+    if (n > 0 && p.power === 0) { p.y -= BIG_H - SMALL_H; p.h = BIG_H; }
+    if (n === 0 && p.power > 0) { p.y += BIG_H - SMALL_H; p.h = SMALL_H; }
+    p.power = n;
+  }
+  function hurt() { // büyükken ölmez, küçülür
+    if (p.power > 0) { setPower(0); p.inv = 1.6; Sound.tone(600, 0, 0.35, "square", 0.05, 200); }
+    else die();
+  }
+  function die() {
+    if (state !== "play") return;
+    state = "dead"; stateT = 0; lives--; p.vy = -330;
+    Sound.tone(700, 0, 0.9, "square", 0.05, 90);
+  }
+  function forTiles(b, fn) {
+    const c0 = Math.floor(b.x / T), c1 = Math.floor((b.x + b.w - 0.01) / T), r0 = Math.floor(b.y / T), r1 = Math.floor((b.y + b.h - 0.01) / T);
+    for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) fn(c, r);
+  }
+  const boxHitsSolid = (b) => { let s = false; forTiles(b, (c, r) => { if (solidCode(at(c, r))) s = true; }); return s; };
+  const touchesLava = (b) => { let s = false; forTiles(b, (c, r) => { if (at(c, r) === 11) s = true; }); return s; };
+  // dikey çarpışmada sadece altındaki satıra oturt (yan duvara değil)
+  function landOn(b) { b.y = Math.floor((b.y + b.h) / T) * T - b.h - 0.001; }
+  function bump(c, r) {
+    const v = at(c, r);
+    bumps.push({ c, r, t: 0 });
+    if (v === 3) {
+      map[r][c] = 4; score += 100; coinCount++;
+      popups.push({ x: c * T + 4, y: r * T - 6, t: 0, txt: "+100" });
+      Sound.tone(988, 0, 0.07, "square", 0.04); Sound.tone(1319, 0.07, 0.2, "square", 0.04);
+    } else if (v === 7 || v === 9) { // güçlendirme bloktan yükselir
+      map[r][c] = 4;
+      const type = v === 9 ? "disk" : p.power === 0 ? "kahve" : "debug";
+      items.push({ type, x: c * T + 1, y: r * T, w: 14, h: 14, vx: type === "debug" ? 0 : 55, vy: 0, rise: r * T - 14, out: false, t: 0 });
+      [262, 330, 392, 523].forEach((f, i) => Sound.tone(f, i * 0.05, 0.08, "square", 0.035));
+    } else if (v === 2 && p.power > 0) { // büyükken tuğla kırılır
+      map[r][c] = 0; score += 50;
+      for (let i = 0; i < 4; i++) debris.push({ x: c * T + 8, y: r * T + 8, vx: (i % 2 ? 1 : -1) * 60, vy: -220 + (i > 1 ? 80 : 0), t: 0 });
+      Sound.noise(0, 0.15, 0.1, 900, 0.8);
+    } else Sound.tone(150, 0, 0.08, "triangle", 0.06);
+    for (const e of enemies) if (!e.dead && Math.abs(e.x + 7 - (c * T + 8)) < 14 && Math.abs(e.y + e.h - r * T) < 3) { e.dead = true; e.t = 0; score += 200; }
+  }
+  function stepPlayer(h) {
+    const run = pad.b ? 165 : 110;
+    const dir = (pad.left ? -1 : 0) + (pad.right ? 1 : 0);
+    if (dir) { p.vx += dir * 900 * h; p.face = dir; }
+    else { const f = 1000 * h; p.vx = Math.abs(p.vx) <= f ? 0 : p.vx - Math.sign(p.vx) * f; }
+    p.vx = clamp(p.vx, -run, run);
+    if ((hit("a") || hit("up")) && p.onGround) { p.vy = p.power ? -420 : -400; p.onGround = false; Sound.tone(320, 0, 0.15, "square", 0.035, 640); }
+    if (hit("b") && p.power === 2 && shots.length < 2) {
+      shots.push({ x: p.x + (p.face > 0 ? p.w : -6), y: p.y + 6, w: 6, h: 6, vx: p.face * 210, vy: 60, t: 0 });
+      Sound.tone(880, 0, 0.06, "square", 0.03, 440);
+    }
+    const holding = pad.a || pad.up;
+    p.vy = Math.min(520, p.vy + (p.vy < 0 && holding ? 950 : 1700) * h);
+    p.x += p.vx * h;
+    let hx = false;
+    forTiles(p, (c, r) => { if (!solidCode(at(c, r))) return; hx = true; if (p.vx > 0) p.x = Math.min(p.x, c * T - p.w - 0.001); else if (p.vx < 0) p.x = Math.max(p.x, (c + 1) * T + 0.001); });
+    if (hx) p.vx = 0;
+    p.x = Math.max(p.x, camX);
+    p.y += p.vy * h; p.onGround = false;
+    let hy = false, head = null;
+    forTiles(p, (c, r) => {
+      if (!solidCode(at(c, r))) return; hy = true;
+      if (p.vy > 0) { p.y = Math.min(p.y, r * T - p.h - 0.001); p.onGround = true; }
+      else if (p.vy < 0) { p.y = Math.max(p.y, (r + 1) * T + 0.001); if (!head) head = [c, r]; }
+    });
+    if (hy) {
+      if (p.vy < 0 && head) { const cc = Math.floor((p.x + p.w / 2) / T); bump(solidCode(at(cc, head[1])) ? cc : head[0], head[1]); }
+      p.vy = 0;
+    }
+  }
+  reset();
+  g.update = (dt) => {
+    stateT += dt;
+    bumps = bumps.filter((b) => (b.t += dt) < 0.18);
+    popups = popups.filter((q) => (q.t += dt) < 0.8);
+    debris = debris.filter((d) => { d.t += dt; d.vy += 900 * dt; d.x += d.vx * dt; d.y += d.vy * dt; return d.t < 1.2; });
+    if (state === "over" || state === "win") { if (stateT > 0.8 && (hit("a") || hit("start"))) reset(); return; }
+    if (state === "intro") { if (stateT > 1.6) { state = "play"; stateT = 0; } return; }
+    if (state === "clear") { if (stateT > 2.6) { if (li + 1 < BUG_LEVELS.length) startLevel(li + 1, false); else { state = "win"; stateT = 0; g.over = true; hiSet("bug", score); Sound.fanfare(); } } return; }
+    if (state === "warp") { // rafa girme / raftan çıkma animasyonu
+      p.y += (warpTo.dir === "down" ? 30 : 0) * dt; p.x += (warpTo.dir === "right" ? 30 : 0) * dt;
+      if (stateT > 0.9) {
+        const w = warpTo;
+        if (w.sub) { savedMain = { L, map, coins, enemies }; load(BUG_SUBS[w.sub], 2, 3); state = "play"; }
+        else { // bonus odasından çık: ana bölüm kaldığı gibi (toplanan jetonlar, ezilen bug'lar) geri gelir
+          const keep = p.power;
+          ({ L, map, coins, enemies } = savedMain); savedMain = null;
+          items = []; shots = []; bumps = []; popups = [];
+          p.x = w.col * T; p.y = 10 * T - p.h; p.vx = 0; p.vy = 0; p.power = keep;
+          camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+          warpTo = null; state = "play";
+        }
+        stateT = 0; p.inv = 0.6;
+      }
+      return;
+    }
+    if (state === "dead") {
+      p.vy += 900 * dt; p.y += p.vy * dt;
+      if (stateT > 1.8) { if (lives <= 0) { state = "over"; stateT = 0; g.over = true; hiSet("bug", score); } else startLevel(li, true); }
+      return;
+    }
+    if (L.time) { timeLeft -= dt; if (timeLeft <= 0) { timeLeft = 0; die(); return; } }
+    p.inv = Math.max(0, p.inv - dt);
+    const steps = dt > 0.017 ? 2 : 1;
+    for (let s = 0; s < steps; s++) stepPlayer(dt / steps);
+    p.anim += Math.abs(p.vx) * dt;
+    if (L.label !== "BONUS" && p.x > L.mid * T && !(checkpoint && checkpoint.col === L.mid)) checkpoint = { col: L.mid, row: L.midRow };
+    // raflar: üstünde ↓ ile bonus odasına; bonus odasında sağdaki rafa → ile çıkış
+    if (p.onGround && pad.down) for (const w of L.warps) {
+      if (p.x + p.w / 2 > w.c * T + 2 && p.x + p.w / 2 < (w.c + 2) * T - 2 && Math.abs(p.y + p.h - w.top * T) < 2) {
+        warpTo = { sub: w.to, dir: "down" }; state = "warp"; stateT = 0; p.vx = 0; Sound.tone(400, 0, 0.6, "square", 0.04, 90);
+      }
+    }
+    if (L.exit && p.onGround && pad.right && p.x + p.w >= L.exit.c * T - 1) {
+      warpTo = { level: L.exit.toLevel, col: L.exit.col, dir: "right" }; state = "warp"; stateT = 0; p.vx = 0; Sound.tone(400, 0, 0.6, "square", 0.04, 90);
+    }
+    for (const e of enemies) {
+      if (e.dead) { e.t += dt; continue; }
+      if (Math.abs(e.x - p.x) > ARC_W * 1.3) continue;
+      e.x += e.vx * dt; if (boxHitsSolid(e)) { e.x -= e.vx * dt; e.vx *= -1; }
+      e.vy = Math.min(500, e.vy + 1400 * dt); e.y += e.vy * dt;
+      if (boxHitsSolid(e)) { landOn(e); e.vy = 0; }
+      if (e.y > ROWS * T + 30) { e.dead = true; e.t = 9; continue; }
+      if (p.x < e.x + e.w && p.x + p.w > e.x && p.y < e.y + e.h && p.y + p.h > e.y) {
+        if (p.vy > 40 && p.y + p.h - e.y < 9) {
+          e.dead = true; e.t = 0; p.vy = -260; score += 200;
+          popups.push({ x: e.x, y: e.y - 8, t: 0, txt: "+200" });
+          Sound.noise(0, 0.08, 0.08, 1200, 1); Sound.tone(220, 0, 0.1, "square", 0.04, 110);
+        } else if (p.inv <= 0) hurt();
+      }
+    }
+    for (const it of items) {
+      it.t += dt;
+      if (!it.out) { it.y -= 30 * dt; if (it.y <= it.rise) { it.y = it.rise; it.out = true; } continue; } // bloktan çıkış
+      it.x += it.vx * dt; if (boxHitsSolid(it)) { it.x -= it.vx * dt; it.vx *= -1; }
+      it.vy = Math.min(500, it.vy + 1200 * dt); it.y += it.vy * dt;
+      if (boxHitsSolid(it)) { landOn(it); it.vy = 0; }
+      if (p.x < it.x + it.w && p.x + p.w > it.x && p.y < it.y + it.h && p.y + p.h > it.y) {
+        it.got = true;
+        if (it.type === "disk") { lives++; popups.push({ x: it.x, y: it.y - 6, t: 0, txt: "+1 CAN" }); }
+        else { setPower(it.type === "debug" ? 2 : Math.max(1, p.power)); score += 1000; popups.push({ x: it.x, y: it.y - 6, t: 0, txt: "+1000" }); }
+        [523, 659, 784, 1047, 1319].forEach((f, i) => Sound.tone(f, i * 0.05, 0.09, "square", 0.04));
+      }
+    }
+    items = items.filter((it) => !it.got && it.y < ROWS * T + 30);
+    for (const sh of shots) {
+      sh.t += dt; sh.x += sh.vx * dt;
+      if (boxHitsSolid(sh)) { sh.dead = true; continue; }
+      sh.vy = Math.min(400, sh.vy + 1100 * dt); sh.y += sh.vy * dt;
+      if (boxHitsSolid(sh)) { landOn(sh); sh.vy = -170; }
+      for (const e of enemies) if (!e.dead && sh.x < e.x + e.w && sh.x + sh.w > e.x && sh.y < e.y + e.h && sh.y + sh.h > e.y) {
+        e.dead = true; e.t = 0; sh.dead = true; score += 200; popups.push({ x: e.x, y: e.y - 8, t: 0, txt: "+200" });
+        Sound.noise(0, 0.08, 0.08, 1500, 1);
+      }
+      if (sh.t > 1.6 || Math.abs(sh.x - p.x) > ARC_W || sh.y > ROWS * T) sh.dead = true;
+    }
+    shots = shots.filter((sh) => !sh.dead);
+    forTiles(p, (c, r) => {
+      const k = c + "," + r;
+      if (coins.has(k)) { coins.delete(k); score += 100; coinCount++; Sound.tone(988, 0, 0.06, "square", 0.035); Sound.tone(1319, 0.06, 0.15, "square", 0.035); }
+    });
+    if (touchesLava(p)) { p.power = 0; die(); return; }
+    if (p.y > ROWS * T + 8) die();
+    if (L.flag > 0 && p.x + p.w >= L.flag * T + 6) {
+      state = "clear"; stateT = 0; score += Math.floor(timeLeft) * 10; Sound.fanfare();
+    }
+    camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+  };
+  function drawTile(x, v, px, py, c, r, t) {
+    const TH = th();
+    if (v === 1) {
+      x.fillStyle = TH.ground[0]; x.fillRect(px, py, T, T);
+      x.fillStyle = TH.ground[1]; x.fillRect(px + 1, py + 1, 6, 6); x.fillRect(px + 9, py + 9, 6, 6);
+      if (!solidCode(at(c, r - 1))) { x.fillStyle = TH.ground[2]; x.fillRect(px, py, T, 2); }
+    } else if (v === 2) {
+      x.fillStyle = TH.brick[0]; x.fillRect(px, py, T, T);
+      x.fillStyle = TH.brick[1]; x.fillRect(px, py + 7, T, 1); x.fillRect(px, py + 15, T, 1); x.fillRect(px + 7, py, 1, 7); x.fillRect(px + 3, py + 8, 1, 7); x.fillRect(px + 12, py + 8, 1, 7);
+    } else if (isQ(v) || v === 4) {
+      const q = isQ(v), lit = q && ((t * 3) | 0) % 3 !== 0;
+      x.fillStyle = q ? (lit ? "#ffc23d" : "#e8a020") : "#6a4a2a"; x.fillRect(px, py, T, T);
+      x.fillStyle = q ? "#7a4a00" : "#3a2a18"; x.strokeStyle = x.fillStyle; x.strokeRect(px + 0.5, py + 0.5, T - 1, T - 1);
+      if (q) pxText(x, "?", px + 4, py + 4, "#7a4a00", 8);
+    } else if (v === 5 || v === 6) { // sunucu rafı (giriş rafı mavi ışıklı)
+      const warp = L.warps.some((w) => c >= w.c && c <= w.c + 1) || (L.exit && c >= L.exit.c && c <= L.exit.c + 1);
+      x.fillStyle = v === 6 ? "#5a6075" : "#3a3f4f"; x.fillRect(px, py, T, T);
+      x.fillStyle = "#23262f"; x.fillRect(px + 2, py + 4, T - 4, 2); x.fillRect(px + 2, py + 10, T - 4, 2);
+      x.fillStyle = warp ? (((t * 4) | 0) % 2 ? "#18e0ff" : "#0a5a7a") : ((t * 4 + c + r) | 0) % 3 ? "#3dff7a" : "#ff4d6d"; x.fillRect(px + 12, py + 4, 2, 2);
+    } else if (v === 10) { // bulut
+      x.fillStyle = "#e9dcff"; x.fillRect(px, py + 2, T, T - 4);
+      x.fillStyle = "#ffffff"; x.fillRect(px + 2, py, T - 4, 6);
+      x.fillStyle = "#b9a6e6"; x.fillRect(px, py + T - 4, T, 2);
+    } else if (v === 11) { // eriyik
+      x.fillStyle = "#ff5a1a"; x.fillRect(px, py, T, T);
+      if (at(c, r - 1) !== 11) { x.fillStyle = "#ffd23f"; const o = Math.sin(t * 4 + c) * 2; x.fillRect(px, py + 2 + o, T, 2); }
+    }
+  }
+  g.draw = (x, t) => {
+    const TH = th();
+    const sky = x.createLinearGradient(0, 0, 0, ARC_H); sky.addColorStop(0, TH.sky[0]); sky.addColorStop(1, TH.sky[1]);
+    x.fillStyle = sky; x.fillRect(0, 0, ARC_W, ARC_H);
+    if (TH.stars) for (const [sx, sy, ph] of stars) { const px = ((sx - camX * 0.1) % (ARC_W * 3) + ARC_W * 3) % (ARC_W * 3); if (px < ARC_W) { x.fillStyle = Math.sin(t * 3 + ph * 9) > 0 ? "#fff" : "#555a8a"; x.fillRect(px | 0, sy | 0, 1, 1); } }
+    if (TH.skyline) { x.fillStyle = TH.skyline; for (const [sx, w, h] of skyline) { const px = sx - camX * 0.35; if (px > -w && px < ARC_W) x.fillRect(px | 0, ARC_H - 32 - h, w | 0, h); } }
+    if (TH.clouds) { x.fillStyle = "rgba(255,255,255,.12)"; for (const [cx, cy, r] of cloudsBg) { const px = ((cx - camX * 0.25) % 1960 + 1960) % 1960 - 60; if (px < ARC_W + 60) { x.beginPath(); x.ellipse(px, cy, r * 1.6, r * 0.6, 0, 0, 7); x.fill(); } } }
+    const c0 = Math.floor(camX / T), ox = -(camX % T);
+    for (let r = 0; r < ROWS; r++) for (let k = 0; k <= ARC_W / T + 1; k++) {
+      const c = c0 + k, v = at(c, r); if (!v || c >= L.w) continue;
+      const b = bumps.find((q) => q.c === c && q.r === r);
+      drawTile(x, v, (ox + k * T) | 0, r * T - (b ? Math.sin(b.t / 0.18 * Math.PI) * 4 : 0), c, r, t);
+    }
+    for (const k of coins) {
+      const [c, r] = k.split(",").map(Number), px = c * T - camX; if (px < -T || px > ARC_W) continue;
+      const w = Math.max(1, Math.abs(Math.cos(t * 4 + c)) * 8);
+      x.fillStyle = "#ffd23f"; x.fillRect((px + 8 - w / 2) | 0, r * T + 3, w | 0, 10);
+      x.fillStyle = "#a87b00"; x.fillRect((px + 8) | 0, r * T + 5, 1, 6);
+    }
+    const fx = L.flag * T - camX;
+    if (L.flag > 0 && fx > -40 && fx < ARC_W + 10) {
+      x.fillStyle = "#cfd3d8"; x.fillRect(fx + 7, 2 * T, 2, 8 * T);
+      x.fillStyle = "#3dff7a"; x.fillRect(fx + 9, 2 * T + 2, 30, 14);
+      x.font = '6px "Press Start 2P"'; x.fillStyle = "#08300f"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("DEPLOY", fx + 11, 2 * T + 6);
+    }
+    for (const it of items) {
+      const px = (it.x - camX) | 0, py = it.y | 0;
+      if (px < -16 || px > ARC_W) continue;
+      if (it.type === "kahve") { // buharı tüten kahve fincanı
+        x.fillStyle = "#f2f2f2"; x.fillRect(px + 2, py + 5, 9, 9); x.fillRect(px + 11, py + 7, 2, 4);
+        x.fillStyle = "#6b3a1a"; x.fillRect(px + 3, py + 5, 7, 2);
+        x.fillStyle = "rgba(255,255,255,.7)"; const s = ((t * 6) | 0) % 2; x.fillRect(px + 4 + s, py, 1, 3); x.fillRect(px + 7 - s, py + 1, 1, 3);
+      } else if (it.type === "debug") { // debugger çipi
+        x.fillStyle = "#22b35a"; x.fillRect(px + 1, py + 1, 12, 12);
+        x.fillStyle = "#0b3a1c"; for (let k = 0; k < 4; k++) { x.fillRect(px + 2 + k * 3, py - 1, 1, 2); x.fillRect(px + 2 + k * 3, py + 13, 1, 2); }
+        x.font = '6px "Press Start 2P"'; x.fillStyle = "#fff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("{}", px + 2, py + 4);
+      } else { // disket: +1 can
+        x.fillStyle = "#2f6bff"; x.fillRect(px + 1, py + 1, 12, 12);
+        x.fillStyle = "#cfd3d8"; x.fillRect(px + 4, py + 1, 6, 4);
+        x.fillStyle = "#f2f2f2"; x.fillRect(px + 3, py + 8, 8, 5);
+        x.fillStyle = "#ff4d6d"; x.fillRect(px + 5, py + 9, 4, 1);
+      }
+    }
+    for (const e of enemies) {
+      const px = e.x - camX; if (px < -20 || px > ARC_W + 20 || e.t > 0.5) continue;
+      if (e.dead) { x.fillStyle = TH.bug.D; x.fillRect(px | 0, (e.y + e.h - 3) | 0, 14, 3); }
+      else drawSprite(x, BUG[((t * 6) | 0) % 2], TH.bug, px, e.y, e.vx > 0);
+    }
+    for (const sh of shots) { const px = (sh.x - camX) | 0; x.font = '6px "Press Start 2P"'; x.fillStyle = ((t * 12) | 0) % 2 ? "#3dff7a" : "#ffffff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("{}", px - 2, sh.y | 0); }
+    for (const d of debris) { x.fillStyle = TH.brick[0]; x.fillRect((d.x - camX) | 0, d.y | 0, 4, 4); }
+    if (state !== "over" && state !== "win" && !(p.inv > 0 && ((t * 16) | 0) % 2)) {
+      const fr = !p.onGround || state === "dead" ? HERO.jump : Math.abs(p.vx) > 5 ? ((p.anim / 10) | 0) % 2 ? HERO.walk1 : HERO.walk2 : HERO.stand;
+      x.save();
+      if (state === "warp") { // rafın içine girerken rafın arkasında kalsın
+        const w = warpTo.dir === "down" ? L.warps.find((q) => Math.abs(p.x - q.c * T) < 3 * T) : null;
+        x.beginPath(); x.rect(0, 0, warpTo.dir === "right" && L.exit ? L.exit.c * T - camX : ARC_W, w ? w.top * T : ARC_H); x.clip();
+      }
+      drawSprite(x, fr, p.power === 2 ? HERO_PAL_DEBUG : HERO_PAL, p.x - camX, p.y - 1, p.face < 0, p.power > 0 ? (BIG_H + 1) / 16 : 1);
+      x.restore();
+    }
+    for (const q of popups) pxText(x, q.txt, q.x - camX, q.y - q.t * 20, "#fff", 6);
+    // üst bilgi çubuğu
+    x.fillStyle = "rgba(0,0,0,.5)"; x.fillRect(0, 0, ARC_W, 12);
+    pxText(x, pad6(score), 4, 2, "#fff", 8);
+    x.fillStyle = "#ffd23f"; x.fillRect(58, 3, 5, 7); pxText(x, "x" + String(coinCount).padStart(2, "0"), 65, 2, "#fff", 8);
+    pxText(x, L.label, 112, 2, "#9ad0ff", 8);
+    if (L.time) pxText(x, String(Math.ceil(timeLeft)).padStart(3, "0"), 252, 2, timeLeft < 30 ? "#ff4d6d" : "#fff", 8, "right");
+    for (let i = 0; i < Math.min(lives, 5); i++) { x.fillStyle = "#ff4d6d"; x.fillRect(166 + i * 9, 3, 7, 6); }
+    const names = ["ŞEHİR", "YER ALTI", "BULUTLAR", "VERİ MERKEZİ"];
+    if (state === "intro") {
+      x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(0, 62, ARC_W, 60);
+      pxText(x, "BÖLÜM " + L.label, 128, 70, "#ffd23f", 16, "center");
+      pxText(x, names[li], 128, 92, "#9ad0ff", 8, "center");
+      pxText(x, "CAN x" + lives, 128, 106, "#fff", 8, "center");
+    }
+    if (state === "clear") {
+      x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(0, 66, ARC_W, 48);
+      pxText(x, "DEPLOY BAŞARILI!", 128, 74, "#3dff7a", 12, "center");
+      pxText(x, li + 1 < BUG_LEVELS.length ? "SIRADAKİ: BÖLÜM 1-" + (li + 2) : "SON BÖLÜM BİTTİ", 128, 96, "#fff", 8, "center");
+    }
+    if (state === "over" || state === "win") {
+      x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 56, ARC_W, 80);
+      pxText(x, state === "win" ? "TEBRİKLER!" : "OYUN BİTTİ", 128, 64, state === "win" ? "#3dff7a" : "#ff4d6d", 16, "center");
+      if (state === "win") pxText(x, "TÜM BÖLÜMLER CANLIDA", 128, 86, "#fff", 8, "center");
+      pxText(x, "SKOR " + pad6(score) + "  REKOR " + pad6(hiGet("bug")), 128, 102, "#fff", 8, "center");
+      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
+    }
+  };
+  g._test = { // test kancası (konsoldan bölüm atlamak için de işe yarar)
+    level: (i) => startLevel(i, false), st: () => ({ state, li, label: L.label, x: p.x | 0, y: p.y | 0, power: p.power, lives, foes: enemies.filter((e) => !e.dead).length, coins: coins.size }),
+    put: (x, y) => { p.x = x; p.y = y; p.vy = 0; }, bump: (c, r) => bump(c, r), items: () => items.map((i) => i.type + "@" + (i.x | 0) + "," + (i.y | 0)), kill: () => { state = "play"; die(); },
+  };
+  return g;
+}
+
+/* ── menü, bekleme ekranı ve makine kontrolü ── */
+const ARC_GAMES = [{ name: "BLOK YAĞMURU", make: BlockGame, hi: "blok" }, { name: "BUG AVCISI", make: BugGame, hi: "bug" }];
+function Arcade() {
+  const a = { sel: 0, game: null, t: 0 };
+  a.hint = () => (a.game ? a.game.hint : "↑ ↓ oyun seç · Enter / Boşluk başla · Esc çık");
+  a.update = (dt) => {
+    a.t += dt;
+    if (a.game) { a.game.update(dt); return; }
+    if (hit("up") || hit("down") || hit("left") || hit("right")) { a.sel = (a.sel + 1) % ARC_GAMES.length; Sound.blip(); }
+    if (hit("a") || hit("start")) { a.game = ARC_GAMES[a.sel].make(); Sound.credit(); updateGameHint(); }
+  };
+  a.draw = (x) => (a.game ? a.game.draw(x, a.t) : arcadeMenu(x, a.t, a.sel));
+  a.back = () => { if (!a.game) return false; a.game = null; updateGameHint(); return true; };
+  return a;
+}
+function arcadeBackdrop(x, t) {
+  x.fillStyle = "#06061a"; x.fillRect(0, 0, ARC_W, ARC_H);
+  const cols = ["#18e0ff", "#ffd23f", "#b26bff", "#3dff7a", "#ff4d6d", "#3f7bff", "#ff8a3d"];
+  for (let i = 0; i < 16; i++) {
+    const y = ((t * (14 + (i % 5) * 6) + i * 37) % (ARC_H + 20)) - 20;
+    x.fillStyle = hexA(cols[i % cols.length], 0.35); x.fillRect(i * 16 + 4, y | 0, 7, 7); x.fillRect(i * 16 + 4, (y + 8) | 0, 7, 7);
+  }
+}
+function arcadeMenu(x, t, sel) {
+  arcadeBackdrop(x, t);
+  pxText(x, "OYUN KÖŞESİ", 128, 18, "#ffd23f", 16, "center");
+  pxText(x, "2'Sİ 1 ARADA", 128, 42, "#ff3fa4", 8, "center");
+  ARC_GAMES.forEach((gm, i) => {
+    const y = 76 + i * 30, on = i === sel;
+    x.fillStyle = on ? "rgba(255,210,63,.18)" : "rgba(0,0,0,.45)"; x.fillRect(40, y - 6, 176, 22);
+    if (on && ((t * 3) | 0) % 2) pxText(x, ">", 46, y, "#ffd23f", 8);
+    pxText(x, gm.name, 60, y, on ? "#ffffff" : "#8a8aa8", 8);
+    pxText(x, pad6(hiGet(gm.hi)), 212, y + 2, "#55557a", 6, "right");
+  });
+  drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, 158);
+  x.fillStyle = "#2b1d4a"; x.fillRect(0, 174, ARC_W, 18); x.fillStyle = "#ff3fa4"; x.fillRect(0, 174, ARC_W, 2);
+  pxText(x, "↑↓ SEÇ  ·  A BAŞLA".replace(/↑↓/, "^v"), 128, 180, "#fff", 6, "center");
+}
+function drawArcadeScreen(m, t) {
+  const x = m.sCtx; x.imageSmoothingEnabled = false;
+  if (m.mode === "game" && m.game) { m.game.draw(x); return; }
+  arcadeBackdrop(x, t);
+  if (m.mode === "loading") {
+    x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 0, ARC_W, ARC_H);
+    if (((t * 3) | 0) % 2) pxText(x, "KREDİ 01", 128, 70, "#ffb000", 8, "center");
+    pxText(x, "YÜKLENİYOR" + ".".repeat(((t * 4) | 0) % 4), 128, 96, "#fff", 8, "center");
+    return;
+  }
+  pxText(x, "OYUN KÖŞESİ", 128, 34, "#ffd23f", 16, "center");
+  pxText(x, "2'Sİ 1 ARADA", 128, 60, "#ff3fa4", 8, "center");
+  ARC_GAMES.forEach((gm, i) => pxText(x, "· " + gm.name + " ·", 128, 88 + i * 16, "#e9e7f2", 8, "center"));
+  drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, 150);
+  x.fillStyle = "#2b1d4a"; x.fillRect(0, 166, ARC_W, 26); x.fillStyle = "#ff3fa4"; x.fillRect(0, 166, ARC_W, 2);
+  if (((t * 2) | 0) % 2) pxText(x, "JETON AT", 128, 175, "#fff", 8, "center");
+}
+
+const arcadeActive = () => cam.focus >= 0 && machines[cam.focus] && machines[cam.focus].mode === "game";
+function playPose(m) {
+  const c = m.scrGroup.getWorldPosition(new V3());
+  const n = new V3(0, 0, 1).applyQuaternion(m.scrGroup.getWorldQuaternion(new THREE.Quaternion()));
+  const vf = THREE.MathUtils.degToRad(camera.fov), hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+  const portrait = camera.aspect < 0.85;
+  const d = Math.max((SCREEN.h / (portrait ? 0.5 : 0.66)) / (2 * Math.tan(vf / 2)), (SCREEN.w / 0.94) / (2 * Math.tan(hf / 2)));
+  const look = c.clone(); if (portrait && isTouch) look.y -= SCREEN.h * 0.42; // telefonda ekran üstte, tuşlar altta
+  return { pos: c.clone().addScaledVector(n, d), look };
+}
+function updateGameHint() {
+  const m = cam.focus >= 0 ? machines[cam.focus] : null;
+  $("#gameHint").textContent = m && m.game ? m.game.hint() : "";
+}
+function showGameUI(on) {
+  document.body.classList.toggle("gaming", on);
+  $("#gameBar").classList.toggle("hidden", !on);
+  $("#gamepad").classList.toggle("on", on);
+  $("#focusBar").classList.toggle("hidden", on);
+  for (const k in pad) pad[k] = false;
+  padHit.clear();
+}
+function startArcade(m) {
+  m.game = Arcade(); m.mode = "game";
+  showGameUI(true); updateGameHint();
+  const pp = playPose(m); tweenTo(pp.pos, pp.look, 0.9);
+}
+function exitArcade() {
+  const m = machines[cam.focus]; if (!m) return;
+  m.mode = "attract"; m.game = null;
+  showGameUI(false);
+  const f = focusPose(cam.focus); tweenTo(f.pos, f.look, 0.7);
+}
+
 /* ─────────────────────────── ekran çizimi ─────────────────────────── */
 function drawScreen(m, t, dt) {
+  if (m.p.arcade) { drawArcadeScreen(m, t); return; }
   const x = m.sCtx, p = m.p;
   x.imageSmoothingEnabled = false;
   if (m.mode === "loading") {
@@ -1570,7 +2254,7 @@ function layout() {
   const w = window.innerWidth, h = window.innerHeight, a = w / h;
   renderer.setSize(w, h);
   camera.aspect = a; camera.fov = a < 0.85 ? 60 : 50; camera.updateProjectionMatrix();
-  if (cam.mode === "focus" && !cam.tween) { const f = focusPose(cam.focus); cam.pos.copy(f.pos); cam.look.copy(f.look); }
+  if (cam.mode === "focus" && !cam.tween) { const f = arcadeActive() ? playPose(machines[cam.focus]) : focusPose(cam.focus); cam.pos.copy(f.pos); cam.look.copy(f.look); }
 }
 
 function focusPose(i) {
@@ -1735,6 +2419,7 @@ function coinEntered(m) {
   if (m.p.secret && m.note && !m.noteFall) dropNote(m);
   setTimeout(() => {
     Sound.arp();
+    if (m.p.arcade) { ui.busy = false; if (cam.mode === "focus" && cam.focus === m.i) startArcade(m); else m.mode = "attract"; return; }
     m.mode = "info"; m.modeT = 0; ui.busy = false;
     if (cam.mode !== "focus" || cam.focus !== m.i) { m.mode = "attract"; return; }
     if (m.p.secret) { unlockSecret(); openSecret(); }
@@ -1821,7 +2506,7 @@ cv.addEventListener("pointermove", (e) => {
 cv.addEventListener("pointerup", (e) => {
   if (!drag || drag.id !== e.pointerId) return;
   const wasDrag = drag.moved; drag = null;
-  if (wasDrag || cam.mode === "paper" || cam.mode === "intro") return;
+  if (wasDrag || cam.mode === "paper" || cam.mode === "intro" || arcadeActive()) return;
   Sound.init();
   const h = pick3D(e.clientX, e.clientY);
   if (!h) return;
@@ -1854,6 +2539,11 @@ function stickMove(e) {
 window.addEventListener("keydown", (e) => {
   const rulesOpen = !$("#rules").classList.contains("out");
   if (rulesOpen) { if (e.key === "Escape") { closeRules(); e.preventDefault(); } return; }
+  if (arcadeActive()) { // oyun oynanırken tuşlar sadece oyuna gider
+    if (e.key === "Escape") { if (!machines[cam.focus].game.back()) exitArcade(); e.preventDefault(); return; }
+    const k = KEYMAP[e.code]; if (k) { padPress(k); e.preventDefault(); }
+    return;
+  }
   if (e.target.closest && e.target.closest("a, button") && e.key === "Enter") return;
   if (e.key === "Escape") {
     if (ui.secretOpen) closeSecret();
@@ -1877,7 +2567,7 @@ window.addEventListener("keydown", (e) => {
   const k = e.code;
   if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown"].includes(k)) { keys.add(k); e.preventDefault(); }
 });
-window.addEventListener("keyup", (e) => keys.delete(e.code));
+window.addEventListener("keyup", (e) => { keys.delete(e.code); const k = KEYMAP[e.code]; if (k) padRelease(k); });
 window.addEventListener("blur", () => keys.clear());
 function nearestMachine() {
   let best = 0, bd = Infinity;
@@ -1888,6 +2578,14 @@ $("#prevBtn").addEventListener("click", () => focusMachine(cam.focus + LEFT_STEP
 $("#nextBtn").addEventListener("click", () => focusMachine(cam.focus - LEFT_STEP));
 $("#coinBtn").addEventListener("click", () => { Sound.init(); insertCoin(); });
 $("#backBtn").addEventListener("click", backToHall);
+$("#gameExit").addEventListener("click", () => { Sound.blip(); exitArcade(); });
+document.querySelectorAll("#gamepad button").forEach((b) => {
+  const k = b.dataset.k;
+  const up = (e) => { e.preventDefault(); padRelease(k); b.classList.remove("on"); };
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); padPress(k); b.classList.add("on"); });
+  b.addEventListener("pointerup", up); b.addEventListener("pointercancel", up); b.addEventListener("lostpointercapture", up);
+  b.addEventListener("contextmenu", (e) => e.preventDefault());
+});
 $("#pClose").addEventListener("click", closePanel);
 $("#sClose").addEventListener("click", closeSecret);
 
@@ -1947,7 +2645,7 @@ function frame() {
     if (k >= 1) { cam.tween = null; tw.done && tw.done(); }
   }
   camera.position.copy(cam.pos);
-  if (!reduceMotion && cam.mode !== "paper") { // nefes alma
+  if (!reduceMotion && cam.mode !== "paper" && !arcadeActive()) { // nefes alma
     const a = cam.mode === "focus" ? 0.35 : 1;
     camera.position.y += Math.sin(elapsed * 0.7) * 0.025 * a;
     camera.position.x += Math.sin(elapsed * 0.37) * 0.02 * a;
@@ -1970,6 +2668,10 @@ function frame() {
     if (u >= 1) { scene.remove(c.mesh); c.mesh.geometry.dispose(); coins.splice(k, 1); coinEntered(c.m); }
   }
 
+  // oyun makinesi: girdiyi işle (her kare)
+  if (arcadeActive()) machines[cam.focus].game.update(dt);
+  padHit.clear();
+
   // makineler: ekranlar ~25 fps (odaktaki) ya da sırayla (diğerleri); görünmeyenler hiç çizilmez
   projM.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); frustum.setFromProjectionMatrix(projM);
   const budget = cam.mode === "focus" ? 1 : 3;
@@ -1983,7 +2685,7 @@ function frame() {
     drawScreen(m, elapsed, Math.min(0.08, elapsed - (m.lastDraw || elapsed))); m.sTex.needsUpdate = true; m.lastDraw = elapsed; drawn++;
   }
   rr = (rr + Math.max(1, drawn)) % machines.length;
-  if (cam.focus >= 0) { const m = machines[cam.focus]; if (elapsed - (m.lastDraw || 0) >= 0.04) { drawScreen(m, elapsed, Math.min(0.08, elapsed - (m.lastDraw || elapsed))); m.sTex.needsUpdate = true; m.lastDraw = elapsed; } }
+  if (cam.focus >= 0) { const m = machines[cam.focus]; if (m.mode === "game" || elapsed - (m.lastDraw || 0) >= 0.04) { drawScreen(m, elapsed, Math.min(0.08, elapsed - (m.lastDraw || elapsed))); m.sTex.needsUpdate = true; m.lastDraw = elapsed; } }
   for (const m of machines) {
     m.modeT += dt;
     const hov = (ui.hover === m.i && !ui.hoverDoor) || cam.focus === m.i;
