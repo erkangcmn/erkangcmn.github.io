@@ -951,6 +951,8 @@ const PROFILE = [[-0.42, 0], [0.24, 0], [0.24, 0.86], [0.50, 0.94], [0.50, 1.03]
 const BODY_W = 0.70, SIDE_T = 0.035, INNER_W = BODY_W - 2 * SIDE_T, SPACING = 1.35;
 const ROOM_X = 6.9;     // salonun yarı genişliği (yan duvarlar x = ±ROOM_X)
 const RIGHT_RUN = 4;    // sağ duvara dizilen makine sayısı; kalanlar arka duvara
+// Makinenin önünde dururken i+1. makine izleyicinin SOLUNDA kalır (iki sırada da), o yüzden ◀/← = +1
+const LEFT_STEP = 1;
 // i. makinenin yeri: sağ duvarda önden arkaya, köşeden sonra arka duvarda sağdan sola
 function slotFor(i) {
   if (i < RIGHT_RUN) return { x: ROOM_X - 0.47, z: 1.25 + (RIGHT_RUN - 1 - i) * SPACING, ry: -Math.PI / 2 };
@@ -1861,7 +1863,7 @@ window.addEventListener("keydown", (e) => {
   }
   if (cam.mode === "paper" || cam.mode === "intro") return;
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-    const dir = e.key === "ArrowLeft" ? -1 : 1;
+    const dir = e.key === "ArrowLeft" ? LEFT_STEP : -LEFT_STEP;
     if (cam.mode === "focus" && cam.focus >= 0) focusMachine(cam.focus + dir);
     else focusMachine(ui.hover >= 0 ? ui.hover : nearestMachine());
     e.preventDefault(); return;
@@ -1882,8 +1884,8 @@ function nearestMachine() {
   machines.forEach((m, i) => { const d = m.group.position.distanceTo(new V3(cam.pos.x, 0, cam.pos.z)); if (d < bd) { bd = d; best = i; } });
   return best;
 }
-$("#prevBtn").addEventListener("click", () => focusMachine(cam.focus - 1));
-$("#nextBtn").addEventListener("click", () => focusMachine(cam.focus + 1));
+$("#prevBtn").addEventListener("click", () => focusMachine(cam.focus + LEFT_STEP));
+$("#nextBtn").addEventListener("click", () => focusMachine(cam.focus - LEFT_STEP));
 $("#coinBtn").addEventListener("click", () => { Sound.init(); insertCoin(); });
 $("#backBtn").addEventListener("click", backToHall);
 $("#pClose").addEventListener("click", closePanel);
