@@ -1,87 +1,1642 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
-
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Erkan Göçmen — Yazılım Geliştirici</title>
-    <meta name="description" content="Erkan Göçmen — yazılım geliştirici portfolyosu: projeler, açık kaynak çalışmalar ve iletişim." />
-    <meta name="theme-color" content="#0b0d12" />
-    <link rel="canonical" href="https://erkangcmn.github.io/" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jeton Salonu — Erkan Göçmen</title>
+<meta name="description" content="Erkan Göçmen'in projeleri: 80'ler/90'lar Türk atari salonunda her proje bir atari makinesi.">
+<meta name="theme-color" content="#06070b">
+<link rel="canonical" href="https://erkangcmn.github.io/">
+<meta property="og:title" content="Jeton Salonu — Erkan Göçmen">
+<meta property="og:description" content="Her proje bir atari makinesi. Jeton at, projeyi gör.">
+<meta property="og:url" content="https://erkangcmn.github.io/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@500;600;700&family=Karla:wght@400;500;700&family=Permanent+Marker&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06070b;
+  --amber: #ffb000;
+  --ink: #e9e7f2;
+  --muted: #9a97ad;
+  --glass: rgba(14, 14, 24, .72);
+  --line: rgba(255, 255, 255, .1);
+  --pink: #ff3fa4;
+  --cyan: #18e0ff;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; width: 100%; overflow: hidden;
+  background: var(--bg); color: var(--ink);
+  font-family: Karla, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+#stage { position: fixed; inset: 0; touch-action: none; }
+#stage canvas { display: block; width: 100%; height: 100%; outline: none; }
 
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://erkangcmn.github.io/" />
-    <meta property="og:title" content="Erkan Göçmen — Yazılım Geliştirici" />
-    <meta property="og:description" content="Projelerim, açık kaynak çalışmalarım ve iletişim." />
-    <meta property="og:image" content="https://github.com/erkangcmn.png?size=600" />
-    <meta property="og:locale" content="tr_TR" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Erkan Göçmen — Yazılım Geliştirici" />
-    <meta name="twitter:image" content="https://github.com/erkangcmn.png?size=600" />
+/* Vinyet ve film greni */
+#vignette { position: fixed; inset: 0; pointer-events: none; z-index: 2;
+  background: radial-gradient(ellipse at 50% 55%, transparent 45%, rgba(0,0,0,.55) 85%, rgba(0,0,0,.85) 100%); }
+#grain { position: fixed; inset: -50%; pointer-events: none; z-index: 3; opacity: .07; mix-blend-mode: overlay;
+  animation: grain 1s steps(6) infinite; }
+@keyframes grain {
+  0% { transform: translate(0, 0); } 20% { transform: translate(-4%, 3%); } 40% { transform: translate(3%, -5%); }
+  60% { transform: translate(-6%, -2%); } 80% { transform: translate(5%, 4%); } 100% { transform: translate(0, 0); }
+}
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👨‍💻</text></svg>" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="css/style.css" />
+/* Üst arayüz */
+.hud { position: fixed; z-index: 10; }
+#brand { top: calc(18px + var(--safe-t)); left: calc(18px + var(--safe-l)); pointer-events: none; }
+#brand h1 { margin: 0; font: 400 clamp(14px, 2.2vw, 20px)/1.2 "Press Start 2P", monospace; color: var(--amber);
+  text-shadow: 0 0 6px rgba(255,176,0,.65), 0 0 18px rgba(255,120,0,.35); letter-spacing: .04em; }
+#brand p { margin: 8px 0 0; font: 600 12px/1.3 "Chakra Petch", sans-serif; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+#topright { top: calc(14px + var(--safe-t)); right: calc(14px + var(--safe-r)); display: flex; gap: 8px; }
+.iconbtn { height: 40px; min-width: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(10,10,18,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer;
+  font: 600 12px "Chakra Petch", sans-serif; letter-spacing: .1em; text-transform: uppercase; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.iconbtn:hover { border-color: rgba(255,176,0,.55); color: var(--amber); }
+.iconbtn:focus-visible, .btn:focus-visible, .chip:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.iconbtn svg { width: 18px; height: 18px; }
+
+/* Hover etiketi */
+#hoverLabel { left: 50%; bottom: calc(96px + var(--safe-b)); transform: translateX(-50%) translateY(6px); opacity: 0;
+  transition: opacity .18s, transform .18s; pointer-events: none; padding: 8px 14px; border-radius: 8px;
+  background: rgba(8,8,14,.78); border: 1px solid var(--line); font: 700 13px "Chakra Petch", sans-serif; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+#hoverLabel.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#hoverLabel i { font-style: normal; color: var(--amber); margin-right: 8px; }
+
+/* Makine çipleri */
+#chips { left: 0; right: 0; bottom: calc(14px + var(--safe-b)); display: flex; gap: 8px; justify-content: center; flex-wrap: nowrap;
+  overflow-x: auto; padding: 4px calc(14px + var(--safe-r)) 4px calc(14px + var(--safe-l)); scrollbar-width: none; transition: opacity .3s, transform .3s; }
+#chips::-webkit-scrollbar { display: none; }
+.chip { flex: 0 0 auto; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: rgba(10,10,18,.66);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer; font: 600 12px "Chakra Petch", sans-serif; letter-spacing: .08em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; }
+.chip b { width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px currentColor; }
+.chip:hover, .chip.on { border-color: rgba(255,255,255,.35); background: rgba(30,28,44,.8); }
+@media (max-width: 900px) { #chips { justify-content: flex-start; } }
+
+/* Odak çubuğu */
+#focusBar { left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 8px; align-items: center; transition: opacity .3s; }
+.btn { height: 46px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--line); background: rgba(10,10,18,.72);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer; font: 700 13px "Chakra Petch", sans-serif; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: var(--ink); }
+.btn:hover { border-color: rgba(255,255,255,.4); }
+.btn.coin { background: linear-gradient(180deg, #ffcf4a, #e89a00); color: #2a1600; border-color: #ffd970; box-shadow: 0 0 18px rgba(255,176,0,.35), inset 0 -3px 0 rgba(0,0,0,.2); }
+.btn.coin:hover { filter: brightness(1.08); }
+.btn.sq { width: 46px; padding: 0; font-size: 16px; }
+.btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.coinIcon { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3b0, #d08a00 70%); box-shadow: inset 0 0 0 2px #a86c00; }
+
+.hidden { opacity: 0 !important; pointer-events: none !important; visibility: hidden; }
+
+/* Proje paneli */
+.panel { position: fixed; z-index: 20; right: calc(24px + var(--safe-r)); top: 50%; width: min(400px, 92vw);
+  transform: translate(30px, -50%); opacity: 0; pointer-events: none; transition: opacity .35s, transform .35s;
+  background: var(--glass); backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.55); max-height: calc(100vh - 140px); overflow-y: auto; }
+.panel.show { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
+.panel .strip { height: 6px; }
+.panel .inner { padding: 20px 22px 22px; }
+.panel .kicker { font: 600 11px "Chakra Petch", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--amber); display: flex; align-items: center; gap: 8px; }
+.panel .kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.panel h2 { margin: 10px 0 10px; font: 400 clamp(24px, 4vw, 30px)/1.05 Bungee, sans-serif; letter-spacing: .01em; }
+.panel p.desc { margin: 0 0 16px; color: #cfccdc; line-height: 1.55; font-size: 15px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.tag { padding: 5px 9px; border-radius: 6px; font: 600 11px "Chakra Petch", sans-serif; letter-spacing: .08em; text-transform: uppercase; background: rgba(255,255,255,.06); border: 1px solid var(--line); }
+.tag.note { color: var(--amber); border-color: rgba(255,176,0,.35); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.actions .btn { height: 42px; font-size: 12px; padding: 0 14px; }
+.actions .btn.primary { background: var(--ink); color: #0b0b12; border-color: var(--ink); }
+.panel .close { position: absolute; top: 14px; right: 12px; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: rgba(0,0,0,.3); cursor: pointer; font-size: 16px; line-height: 1; }
+.secret h2 { color: #7dff9b; text-shadow: 0 0 14px rgba(80,255,140,.45); }
+.secret .links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.secret .links .btn { width: 100%; }
+
+/* Salon kuralları (hakkımda) kâğıdı */
+#rules { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: calc(20px + var(--safe-t)) calc(16px + var(--safe-r)) calc(20px + var(--safe-b)) calc(16px + var(--safe-l));
+  background: radial-gradient(ellipse at center, rgba(6,7,11,.35), rgba(6,7,11,.86)); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  transition: opacity .5s; overflow-y: auto; }
+#rules.out { opacity: 0; pointer-events: none; }
+.paper { position: relative; width: min(560px, 100%); padding: 38px 34px 28px; color: #26221a; transform: rotate(-1.2deg);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 29px, rgba(70,110,170,.16) 29px 30px),
+    radial-gradient(ellipse at 20% 10%, rgba(255,255,255,.55), transparent 55%),
+    radial-gradient(ellipse at 90% 100%, rgba(150,110,40,.22), transparent 60%),
+    #efe6cc;
+  box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 2px 0 rgba(0,0,0,.2);
+  animation: paperIn .7s cubic-bezier(.2,.9,.25,1.2) both; }
+#rules.out .paper { transform: rotate(4deg) translateY(40px) scale(.96); transition: transform .5s; }
+@keyframes paperIn { from { opacity: 0; transform: rotate(-6deg) translateY(-50px) scale(.95); } }
+.paper::before { content: ""; position: absolute; left: 54px; top: 0; bottom: 0; width: 2px; background: rgba(210,60,60,.35); }
+.tape { position: absolute; width: 120px; height: 34px; top: -14px; background: rgba(238,232,206,.7); box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  backdrop-filter: blur(1px); border-left: 2px dashed rgba(0,0,0,.05); border-right: 2px dashed rgba(0,0,0,.05); }
+.tape.l { left: -18px; transform: rotate(-24deg); }
+.tape.r { right: -18px; transform: rotate(20deg); }
+.paper h2 { margin: 0 0 2px 30px; font: 400 clamp(32px, 7vw, 46px)/1 "Permanent Marker", cursive; color: #b3122c; transform: rotate(-1.5deg); }
+.paper .sub { margin: 4px 0 18px 30px; font: 700 11px "Chakra Petch", sans-serif; letter-spacing: .2em; text-transform: uppercase; color: #6d6450; }
+.paper ol { margin: 0; padding: 0 0 0 30px; counter-reset: r; list-style: none; }
+.paper li { counter-increment: r; position: relative; padding-left: 34px; margin: 0 0 11px; font-size: 15.5px; line-height: 1.45; }
+.paper li::before { content: counter(r) "."; position: absolute; left: 0; top: -2px; font: 400 20px "Permanent Marker", cursive; color: #1f3f86; }
+.paper li b { font-weight: 700; }
+.paper li a { color: #1f3f86; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.paper .ctl { margin: 16px 0 0 30px; padding: 10px 12px; border: 2px dashed rgba(40,35,25,.35); border-radius: 4px; font: 600 12.5px/1.6 "Chakra Petch", sans-serif; color: #4a4232; }
+.paper .ctl kbd { font: 700 11px "Chakra Petch", sans-serif; padding: 1px 6px; border: 1px solid rgba(40,35,25,.45); border-bottom-width: 2px; border-radius: 4px; background: rgba(255,255,255,.4); }
+.paper .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 20px 0 0 30px; flex-wrap: wrap; }
+.sign { font: 400 26px "Permanent Marker", cursive; color: #1f3f86; transform: rotate(-4deg); }
+.sign small { display: block; font: 700 10px "Chakra Petch", sans-serif; letter-spacing: .18em; color: #6d6450; transform: none; }
+.stamp { position: absolute; right: 26px; top: 26px; width: 92px; height: 92px; border-radius: 50%; border: 3px solid rgba(179,18,44,.55); color: rgba(179,18,44,.6);
+  display: grid; place-items: center; text-align: center; font: 700 10px/1.25 "Chakra Petch", sans-serif; letter-spacing: .14em; transform: rotate(14deg); pointer-events: none; }
+.stamp::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; border: 1px dashed rgba(179,18,44,.45); }
+.okbtn { height: 52px; padding: 0 22px; border: 0; border-radius: 10px; cursor: pointer; font: 400 15px Bungee, sans-serif; letter-spacing: .04em; color: #fff;
+  background: linear-gradient(180deg, #ff4a5e, #c4102c); box-shadow: 0 5px 0 #7d0a1c, 0 10px 20px rgba(0,0,0,.3); transition: transform .08s, box-shadow .08s; }
+.okbtn:hover { filter: brightness(1.07); }
+.okbtn:active { transform: translateY(4px); box-shadow: 0 1px 0 #7d0a1c, 0 4px 10px rgba(0,0,0,.3); }
+.okbtn:focus-visible { outline: 3px solid #1f3f86; outline-offset: 3px; }
+
+/* Yükleniyor / hata */
+#boot { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: var(--bg); transition: opacity .5s; }
+#boot.out { opacity: 0; pointer-events: none; }
+#boot p { font: 400 12px/2 "Press Start 2P", monospace; color: var(--amber); text-align: center; animation: blink 1s steps(2) infinite; }
+#error { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; padding: 24px; background: var(--bg); text-align: center; }
+#error.show { display: grid; }
+#error h2 { font: 400 14px/1.8 "Press Start 2P", monospace; color: #ff4a5e; margin: 0 0 14px; }
+#error p { color: var(--muted); max-width: 440px; line-height: 1.6; margin: 0 auto 16px; }
+#error a { color: var(--amber); }
+
+/* Yardım ve dokunmatik çubuk */
+#help { left: calc(18px + var(--safe-l)); bottom: calc(70px + var(--safe-b)); font: 600 11px/1.7 "Chakra Petch", sans-serif; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; pointer-events: none; transition: opacity .6s; }
+#help kbd { font: inherit; color: var(--ink); padding: 0 5px; border: 1px solid var(--line); border-radius: 4px; }
+#stick { left: calc(22px + var(--safe-l)); bottom: calc(76px + var(--safe-b)); width: 108px; height: 108px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18);
+  background: radial-gradient(circle, rgba(255,255,255,.06), rgba(10,10,18,.45)); touch-action: none; display: none; }
+#stick i { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b, #b5121b 70%); box-shadow: 0 4px 10px rgba(0,0,0,.5); }
+body.touch #stick { display: block; }
+body.touch #help { bottom: calc(196px + var(--safe-b)); }
+
+@media (max-width: 720px) {
+  .panel { left: 0; right: 0; top: auto; bottom: 0; width: 100%; border-radius: 18px 18px 0 0; transform: translateY(30px); max-height: 64vh;
+    padding-bottom: var(--safe-b); }
+  .panel.show { transform: translateY(0); }
+  #brand p { display: none; }
+  #focusBar.panelOpen { opacity: 0; pointer-events: none; }
+  .btn { height: 44px; padding: 0 14px; font-size: 12px; }
+  .btn.sq { width: 44px; }
+  .paper { padding: 32px 18px 22px 14px; }
+  .paper::before { left: 34px; }
+  .paper h2, .paper .sub, .paper ol, .paper .ctl, .paper .foot { margin-left: 18px; }
+  .paper ol { padding-left: 18px; }
+  .stamp { width: 70px; height: 70px; right: 12px; top: 14px; font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
 </head>
-
 <body>
-    <header class="nav">
-        <div class="wrap nav-inner">
-            <a href="#top" class="brand">Erkan Göçmen</a>
-            <nav aria-label="Ana menü">
-                <a href="#projects">Projeler</a>
-                <a href="#contact">İletişim</a>
-            </nav>
-        </div>
-    </header>
+<div id="stage" aria-label="3D atari salonu"></div>
+<div id="vignette"></div>
+<div id="grain"></div>
 
-    <main id="top">
-        <section class="hero wrap">
-            <div class="hero-text">
-                <p class="eyebrow"><span class="dot"></span> Yeni projelere açığım</p>
-                <h1>Merhaba, ben <span class="grad">Erkan Göçmen</span></h1>
-                <p id="bio" class="lead">JavaScript, Python, React, React Native, Node.js ve C# ile web ve mobil uygulamalar geliştiriyorum.</p>
-                <div class="actions">
-                    <a class="btn primary" href="#projects">Projelerimi gör</a>
-                    <a class="btn" href="#contact">İletişime geç</a>
-                </div>
-                <div class="achievements">
-                    <p class="label" lang="en">GitHub Achievements</p>
-                    <ul id="badges" class="badges"></ul>
-                </div>
-            </div>
-            <img id="avatar" class="avatar" src="https://github.com/erkangcmn.png?size=480" width="200" height="200" alt="Erkan Göçmen profil fotoğrafı" />
-        </section>
+<header id="brand" class="hud">
+  <h1>JETON SALONU</h1>
+  <p>Erkan Göçmen · her makine bir proje</p>
+</header>
 
-        <section id="projects" class="wrap section">
-            <h2>Projeler</h2>
-            <p class="sub">Geliştirdiğim projelerden bir seçki.</p>
-            <div id="projects-grid" class="grid"></div>
-            <div class="more-links">
-                <a class="more" href="https://github.com/erkangcmn" target="_blank" rel="noopener noreferrer">Daha fazlası için GitHub profilim →</a>
-            </div>
-        </section>
+<div id="topright" class="hud">
+  <button class="iconbtn" id="rulesBtn" type="button" title="Salon kuralları (hakkımda)">Kurallar</button>
+  <button class="iconbtn" id="soundBtn" type="button" aria-pressed="true" title="Sesi aç/kapat"></button>
+</div>
 
-        <section id="contact" class="wrap section">
-            <div class="cta">
-                <h2>Birlikte bir şey yapalım</h2>
-                <p class="sub">Projeni geliştirmek için yardım edebilirim. Aşağıdan bana ulaşabilirsin.</p>
-                <div class="socials">
-                    <a class="btn" href="https://github.com/erkangcmn" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a class="btn" href="https://www.linkedin.com/in/erkangcmn/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                    <a class="btn" href="https://x.com/erkangcmn" target="_blank" rel="noopener noreferrer">X</a>
-                    <a class="btn" href="https://www.instagram.com/erkangcmn" target="_blank" rel="noopener noreferrer">Instagram</a>
-                </div>
-            </div>
-        </section>
-    </main>
+<div id="hoverLabel" class="hud"></div>
+<div id="help" class="hud hidden"></div>
+<div id="stick" class="hud hidden" aria-hidden="true"><i></i></div>
+<nav id="chips" class="hud hidden" aria-label="Makineler"></nav>
 
-    <footer class="wrap footer">© <span id="year">2026</span> Erkan Göçmen</footer>
+<div id="focusBar" class="hud hidden">
+  <button class="btn sq" id="prevBtn" type="button" title="Önceki makine (←)" aria-label="Önceki makine">◀</button>
+  <button class="btn coin" id="coinBtn" type="button" title="Jeton at (Enter)"><span class="coinIcon"></span>Jeton at</button>
+  <button class="btn sq" id="nextBtn" type="button" title="Sonraki makine (→)" aria-label="Sonraki makine">▶</button>
+  <button class="btn" id="backBtn" type="button" title="Salona dön (Esc)">Salona dön</button>
+</div>
 
-    <script src="app/bg.js"></script>
-    <script src="app/index.js"></script>
+<aside class="panel" id="panel" aria-live="polite">
+  <div class="strip" id="pStrip"></div>
+  <button class="close" id="pClose" type="button" aria-label="Paneli kapat">✕</button>
+  <div class="inner">
+    <div class="kicker">Kredi 01 · oyun başladı</div>
+    <h2 id="pName"></h2>
+    <p class="desc" id="pDesc"></p>
+    <div class="tags" id="pTags"></div>
+    <div class="actions" id="pActions"></div>
+  </div>
+</aside>
+
+<aside class="panel secret" id="secret" aria-live="polite">
+  <div class="strip" style="background:linear-gradient(90deg,#7dff9b,#18e0ff,#ff3fa4)"></div>
+  <button class="close" id="sClose" type="button" aria-label="Kapat">✕</button>
+  <div class="inner">
+    <div class="kicker">Gizli köşe açıldı</div>
+    <h2>Makine jetonu yutmadı!</h2>
+    <p class="desc">Kâğıttaki uyarıya rağmen jeton attın, demek ki merakın kurallardan ağır basıyor. Tam aradığım ekip arkadaşı. Yeni projelere açığım, birlikte bir şey yapalım:</p>
+    <div class="links" lang="en">
+      <a class="btn" href="https://github.com/erkangcmn" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a class="btn" href="https://www.linkedin.com/in/erkangcmn/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a class="btn" href="https://x.com/erkangcmn" target="_blank" rel="noopener noreferrer">X</a>
+      <a class="btn" href="https://www.instagram.com/erkangcmn" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </div>
+    <p class="desc" style="margin:16px 0 0;font-size:13px;color:var(--muted)">Ödül: +1 kredi ve salonun sağ duvarındaki neon. Sade versiyonu tercih edenler için <a href="klasik/" style="color:var(--amber)">klasik site</a>.</p>
+  </div>
+</aside>
+
+<section id="rules" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+  <div class="paper">
+    <span class="tape l"></span><span class="tape r"></span>
+    <div class="stamp">JETON<br>SALONU<br>· 1987 ·</div>
+    <h2 id="rulesTitle">Salon Kuralları</h2>
+    <div class="sub">Lütfen içeri girmeden okuyunuz</div>
+    <ol>
+      <li>Bu salonun işletmecisi <b>Erkan Göçmen</b>'dir. Mesleği: yazılım geliştirici.</li>
+      <li>Salonda <b>JavaScript, Python, React, React Native, Node.js ve C#</b> konuşulur. Tercüman gerekmez.</li>
+      <li>Burada web ve mobil uygulamalar üretilir. Yapay zekâ entegrasyonları serbesttir.</li>
+      <li>Her makine bir projedir. Ayrıntıları görmek için <b>jeton atmak zorunludur</b>.</li>
+      <li>Arızalı makinelere jeton atmayınız. Atarsanız sorumluluk size aittir.</li>
+      <li>İşletme yeni projelere açıktır. Birlikte iş yapmak isteyenler <a href="https://github.com/erkangcmn" target="_blank" rel="noopener noreferrer">GitHub</a> ya da <a href="https://www.linkedin.com/in/erkangcmn/" target="_blank" rel="noopener noreferrer">LinkedIn</a> kasasına uğrasın.</li>
+    </ol>
+    <div class="ctl" id="ctlText"></div>
+    <div class="foot">
+      <div class="sign">Erkan G.<small>İşletme sahibi</small></div>
+      <button class="okbtn" id="okBtn" type="button">Tamam, içeri gir</button>
+    </div>
+  </div>
+</section>
+
+<div id="boot"><p>SALON HAZIRLANIYOR<br>LÜTFEN BEKLEYİN</p></div>
+<div id="error" role="alert"><div>
+  <h2>MAKİNE ÇALIŞMIYOR</h2>
+  <p id="errorMsg">Tarayıcın 3D grafikleri (WebGL) çalıştıramadı ya da gerekli kütüphane yüklenemedi.</p>
+  <p>Projelerimi <a href="klasik/">klasik sitede</a> görebilirsin.</p>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+
+/* ═══════════════════════════════════════════════════════════════════
+   PROJELER — salondaki makineler soldan sağa bu sırayla dizilir.
+   scene: ekranda oynayan sahne (stars, synth, bricks, snake, glitch,
+          tarot, chart, blocks, code, qr)
+   paint: gövde rengi · trim: T-molding rengi · c1/c2: vurgu renkleri
+   scr: ekran ışığı · demo/github: link ya da null · note: küçük etiket
+   secret: true ise ekranda "ARIZALI" notu olan gizli makine
+   ═══════════════════════════════════════════════════════════════════ */
+const PROJECTS = [
+  { name: "Mistik", scene: "tarot", paint: "#1b2a5c", trim: "chrome", c1: "#b26bff", c2: "#ffd166", scr: "#9b6bff",
+    desc: "Tarot, günlük burç, doğum haritası ve fal yorumu sunan, kredi/abonelik tabanlı yapay zekâ destekli mobil uygulama. Google Play Billing entegrasyonu ve modüler mimari.",
+    tags: ["React Native", "TypeScript", "Claude API", "Zustand"], demo: null, github: null, note: "Özel depo" },
+  { name: "Kapi", scene: "chart", paint: "#0f4a4a", trim: "yellow", c1: "#2ee6a6", c2: "#ffd23f", scr: "#39ffb0",
+    desc: "Türkiye odaklı bireysel ve ticari finans takip uygulaması: borç, gelir-gider, altın/döviz/kripto/BIST birikimleri. Veriler cihazda tutulur, backend gerektirmez.",
+    tags: ["Expo", "React Native", "TypeScript", "Zustand"], demo: null, github: null, note: "Özel depo" },
+  { name: "EduFlow", scene: "snake", paint: "#55585f", trim: "black", c1: "#3fa9ff", c2: "#ff8a3d", scr: "#4fb8ff",
+    desc: "Öğretmen ve veliler için eğitim yönetim uygulaması: ders programı, öğrenci listesi, kazanç raporları ve ödeme takibi.",
+    tags: ["Expo", "TypeScript", "NativeWind"], demo: null, github: null, note: "Özel depo" },
+  { name: "vitrAI", scene: "stars", paint: "#15151a", trim: "chrome", c1: "#ff3fa4", c2: "#00e5ff", scr: "#ff4fb0",
+    desc: "E-ticaret satıcıları için yapay zekâ destekli ürün açıklaması, Instagram metni, hashtag ve görsel üretici. Trendyol, Hepsiburada, Amazon ve daha fazlası için ton ayarlı içerik.",
+    tags: ["React", "Claude API", "Fal.ai"], demo: null, github: null, note: "Özel depo" },
+  { name: "Software Library", scene: "bricks", paint: "#1b2a5c", trim: "yellow", c1: "#61dafb", c2: "#ffe066", scr: "#61dafb",
+    desc: "Farklı programlama dillerindeki kütüphaneleri tek yerde toplayan, kod yazarken işinizi kolaylaştıran uygulama.",
+    tags: ["React", "Vercel"], demo: "https://developerlibs.vercel.app/", github: "https://github.com/erkangcmn/Software-Library-With-React" },
+  { name: "BlockBlast", scene: "blocks", paint: "#5c1424", trim: "chrome", c1: "#ff4d4d", c2: "#ffd23f", scr: "#ff6a3d",
+    desc: "10x10 ızgarada sürükle-bırak blok oyunu: Zen ve Blitz modları, bombalar, kombo sistemi ve koyu/açık tema.",
+    tags: ["React", "Tailwind CSS"], demo: null, github: null, note: "Özel depo" },
+  { name: "Live Editör", scene: "code", paint: "#15151a", trim: "yellow", c1: "#a8ff3e", c2: "#00e5ff", scr: "#8aff5a",
+    desc: "Önizlemede bir elemente tıklayınca kaynak koduna giden, tarayıcıdaki 'incele' mantığıyla çalışan yerel HTML/CSS/JS editörü.",
+    tags: ["Node.js", "JavaScript"], demo: null, github: null, note: "Özel depo" },
+  { name: "QR Restoran", scene: "qr", paint: "#0f4a4a", trim: "chrome", c1: "#ffb000", c2: "#ff3fa4", scr: "#ffc04d",
+    desc: "Restoranlar için QR menü web uygulaması.",
+    tags: ["React", "Node.js"], demo: null, github: null, note: "Yakında" },
+  { name: "ArtWall", scene: "synth", paint: "#55585f", trim: "chrome", c1: "#ff7ad9", c2: "#7a5cff", scr: "#c06bff",
+    desc: "Duvar kâğıdı mobil uygulaması ve React ile yazılmış yönetim paneli.",
+    tags: ["React Native", "Node.js", "React"], demo: null, github: null, note: "Yakında" },
+  { name: "???", scene: "glitch", paint: "#15151a", trim: "black", c1: "#ff2a2a", c2: "#ffb000", scr: "#ff3030",
+    desc: "", tags: ["Sürpriz", "Gizli köşe", "+1 kredi"], demo: null, github: null, secret: true },
+];
+
+/* ─────────────────────────── yardımcılar ─────────────────────────── */
+const $ = (s) => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isTouch = window.matchMedia("(pointer: coarse)").matches;
+if (isTouch) document.body.classList.add("touch");
+
+function store(key, val) {
+  try { if (val === undefined) return localStorage.getItem(key); localStorage.setItem(key, val); } catch (e) { return null; }
+}
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function shade(hex, f) { // f<1 koyulaştır, f>1 aç
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (v) => clamp(Math.round(f < 1 ? v * f : v + (255 - v) * (f - 1)), 0, 255);
+  return `rgb(${ch((n >> 16) & 255)},${ch((n >> 8) & 255)},${ch(n & 255)})`;
+}
+function fail(msg) {
+  if (msg) $("#errorMsg").textContent = msg;
+  $("#error").classList.add("show");
+  $("#boot").classList.add("out");
+}
+
+/* ─────────────────────────── ses (WebAudio) ─────────────────────────── */
+const Sound = {
+  ctx: null, master: null, on: store("js-sound") !== "0",
+  init() {
+    if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = this.on ? 0.7 : 0;
+    this.master.connect(this.ctx.destination);
+  },
+  set(on) {
+    this.on = on; store("js-sound", on ? "1" : "0");
+    if (this.master) this.master.gain.setTargetAtTime(on ? 0.7 : 0, this.ctx.currentTime, 0.02);
+  },
+  tone(freq, at, dur, type = "square", vol = 0.06, slideTo) {
+    if (!this.ctx || !this.on) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(at, dur, vol = 0.05, freq = 3000, q = 1, type = "bandpass", sweepTo) {
+    if (!this.ctx || !this.on) return;
+    const t = this.ctx.currentTime + at;
+    const len = Math.max(1, Math.floor(this.ctx.sampleRate * dur));
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t); f.Q.value = q;
+    if (sweepTo) f.frequency.exponentialRampToValueAtTime(sweepTo, t + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.master); src.start(t);
+  },
+  blip() { this.tone(1400, 0, 0.04, "square", 0.018); },
+  whoosh() { this.noise(0, 0.6, 0.05, 400, 0.8, "bandpass", 2400); },
+  clink() {
+    [[2637, 0], [3520, 0], [4699, 0.002], [2793, 0.11], [3729, 0.112], [2349, 0.2]].forEach(([f, at]) =>
+      this.tone(f, at, at > 0.1 ? 0.18 : 0.32, "sine", at > 0.1 ? 0.04 : 0.07));
+    this.noise(0, 0.03, 0.12, 6000, 2);
+    this.noise(0.11, 0.025, 0.07, 5000, 2);
+    this.noise(0.24, 0.25, 0.03, 900, 0.7, "lowpass"); // içeride yuvarlanma
+  },
+  credit() { this.tone(988, 0.32, 0.09, "square", 0.06); this.tone(1319, 0.42, 0.32, "square", 0.06); },
+  arp() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, i * 0.07, 0.12, "square", 0.045)); },
+  fall() { this.tone(900, 0, 0.6, "triangle", 0.05, 160); this.noise(0.55, 0.2, 0.05, 700, 0.6, "lowpass"); },
+  fanfare() { [392, 523, 659, 784, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.15 + i * 0.1, i === 6 ? 0.5 : 0.14, "square", 0.05)); },
+};
+
+/* ─────────────────────────── başlangıç kontrolü ─────────────────────────── */
+if (!window.THREE) {
+  fail("Three.js kütüphanesi yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.");
+  throw new Error("THREE yok");
+}
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+} catch (e) {
+  fail("Tarayıcın WebGL'i başlatamadı. Donanım hızlandırmayı açmayı ya da başka bir tarayıcı denemeyi öneririm.");
+  throw e;
+}
+const V3 = THREE.Vector3;
+
+/* ─────────────────────────── canvas dokuları ─────────────────────────── */
+function mkCanvas(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return [c, c.getContext("2d")]; }
+function mkTex(c, { repeat, nearest = false, srgb = true, aniso = 4 } = {}) {
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.encoding = THREE.sRGBEncoding;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+  if (nearest) { t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; }
+  t.anisotropy = Math.min(aniso, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+function grain(ctx, w, h, amt, alpha = 1) {
+  const img = ctx.getImageData(0, 0, w, h), d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * amt;
+    d[i] += n; d[i + 1] += n; d[i + 2] += n; d[i + 3] = d[i + 3] * alpha;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+const NEON = ["#ff3fa4", "#18e0ff", "#ffd23f", "#9b5cff", "#3dff7a"];
+
+function carpetTexture() {
+  const S = 512, [c, x] = mkCanvas(S, S);
+  x.fillStyle = "#0b0912"; x.fillRect(0, 0, S, S);
+  const shapes = [];
+  for (let i = 0; i < 70; i++) shapes.push({ k: (Math.random() * 4) | 0, x: rand(0, S), y: rand(0, S), r: rand(9, 26), a: rand(0, 6.28), col: pick(NEON), fill: Math.random() < 0.4 });
+  for (const s of shapes) for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) {
+    x.save(); x.translate(s.x + dx, s.y + dy); x.rotate(s.a);
+    x.strokeStyle = s.col; x.fillStyle = s.col; x.lineWidth = 4; x.lineJoin = "round"; x.lineCap = "round";
+    x.beginPath();
+    if (s.k === 0) { x.moveTo(0, -s.r); x.lineTo(s.r * 0.9, s.r * 0.6); x.lineTo(-s.r * 0.9, s.r * 0.6); x.closePath(); s.fill ? x.fill() : x.stroke(); }
+    else if (s.k === 1) { x.moveTo(-s.r * 1.4, 0); for (let j = 1; j <= 6; j++) x.lineTo(-s.r * 1.4 + j * s.r * 0.47, j % 2 ? -s.r * 0.35 : s.r * 0.35); x.stroke(); }
+    else if (s.k === 2) { x.arc(0, 0, s.r * 0.7, 0, Math.PI * 2); x.stroke(); }
+    else { x.moveTo(-s.r, 0); x.bezierCurveTo(-s.r * 0.4, -s.r, s.r * 0.4, s.r, s.r, 0); x.stroke(); }
+    x.restore();
+  }
+  for (let i = 0; i < 1400; i++) { x.fillStyle = `rgba(255,255,255,${rand(0.02, 0.08)})`; x.fillRect(rand(0, S), rand(0, S), 1.5, 1.5); }
+  grain(x, S, S, 26);
+  return c;
+}
+
+function wallTexture() {
+  const S = 512, [c, x] = mkCanvas(S, S);
+  const g = x.createLinearGradient(0, 0, 0, S); g.addColorStop(0, "#0a0f24"); g.addColorStop(1, "#111a3a");
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  const wy = S * 0.72; // lambri başlangıcı
+  x.fillStyle = "#070a16"; x.fillRect(0, wy, S, S - wy);
+  for (let px = 0; px < S; px += 64) {
+    x.fillStyle = "rgba(0,0,0,.55)"; x.fillRect(px, wy, 3, S - wy);
+    x.fillStyle = "rgba(120,140,220,.06)"; x.fillRect(px + 3, wy, 2, S - wy);
+  }
+  x.fillStyle = "#1b2550"; x.fillRect(0, wy - 8, S, 8);
+  x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(0, wy - 8, S, 2);
+  grain(x, S, S, 14);
+  return c;
+}
+
+function glowTexture() {
+  const [c, x] = mkCanvas(128, 128);
+  const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(0.25, "rgba(255,255,255,.45)"); g.addColorStop(1, "rgba(255,255,255,0)");
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  return c;
+}
+
+function vinylTexture(p) {
+  // UV = profil koordinatı: u=(z+0.42)/0.92, v=y/1.84
+  const W = 512, H = 1024, [c, x] = mkCanvas(W, H);
+  const g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, shade(p.paint, 0.8)); g.addColorStop(1, shade(p.paint, 1.12));
+  x.fillStyle = g; x.fillRect(0, 0, W, H / 2);
+  x.fillStyle = "#170a2a"; x.fillRect(0, H / 2, W, H / 2);
+  x.save(); x.beginPath(); x.rect(0, H / 2, W, H / 2); x.clip();
+  const ox = W * 0.95, oy = H * 1.02;
+  for (let i = 0; i < 16; i++) {
+    const a = Math.PI + 0.12 + i * 0.085, col = [p.c1, p.c2, "#ff3fa4"][i % 3];
+    x.strokeStyle = col; x.lineWidth = 2.5 + (i % 2) * 2; x.shadowColor = col; x.shadowBlur = 18;
+    x.beginPath(); x.moveTo(ox, oy); x.lineTo(ox + Math.cos(a) * 1400, oy + Math.sin(a) * 1400); x.stroke();
+  }
+  x.shadowBlur = 0;
+  for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(255,255,255,${rand(0.3, 0.9)})`; x.fillRect(rand(0, W), rand(H / 2, H), 2, 2); }
+  x.restore();
+  x.fillStyle = p.c1; x.fillRect(0, H / 2 - 10, W, 10);
+  x.fillStyle = p.c2; x.fillRect(0, H / 2, W, 6);
+  grain(x, W, H, 10);
+  return c;
+}
+
+function marqueeTexture(p) {
+  const W = 1024, H = 424, [c, x] = mkCanvas(W, H);
+  const cx = W / 2, cy = H * 0.46;
+  x.fillStyle = shade(p.c1, 0.18); x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 28; i++) { // ışın patlaması
+    const a0 = (i / 28) * Math.PI * 2, a1 = ((i + 0.5) / 28) * Math.PI * 2;
+    x.fillStyle = i % 2 ? hexA(p.c2, 0.22) : hexA(p.c1, 0.42);
+    x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.cos(a0) * 900, cy + Math.sin(a0) * 900); x.lineTo(cx + Math.cos(a1) * 900, cy + Math.sin(a1) * 900); x.fill();
+  }
+  const v = x.createRadialGradient(cx, cy, 60, cx, cy, 560); v.addColorStop(0, "rgba(255,255,255,.25)"); v.addColorStop(0.5, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(0,0,0,.7)");
+  x.fillStyle = v; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 16; i++) { // yıldızlar
+    const sx = rand(30, W - 30), sy = rand(20, H - 80), r = rand(6, 16);
+    x.fillStyle = i % 3 ? "#fff" : p.c2; x.beginPath();
+    x.moveTo(sx, sy - r); x.quadraticCurveTo(sx, sy, sx + r, sy); x.quadraticCurveTo(sx, sy, sx, sy + r); x.quadraticCurveTo(sx, sy, sx - r, sy); x.quadraticCurveTo(sx, sy, sx, sy - r); x.fill();
+  }
+  const name = p.name.toUpperCase();
+  let fs = 170; x.font = `${fs}px Bungee`;
+  while (x.measureText(name).width > 880 && fs > 40) { fs -= 4; x.font = `${fs}px Bungee`; }
+  x.textAlign = "center"; x.textBaseline = "middle";
+  const ty = cy - 6;
+  for (let i = 12; i > 0; i--) { x.fillStyle = i > 9 ? "#000" : shade(p.c1, 0.22); x.fillText(name, cx + i * 1.1, ty + i * 1.5); }
+  x.lineJoin = "round"; x.strokeStyle = "#fff"; x.lineWidth = Math.max(6, fs * 0.07); x.strokeText(name, cx, ty);
+  const tg = x.createLinearGradient(0, ty - fs / 2, 0, ty + fs / 2);
+  tg.addColorStop(0, p.c2); tg.addColorStop(0.5, "#ffffff"); tg.addColorStop(0.52, p.c1); tg.addColorStop(1, shade(p.c1, 0.6));
+  x.fillStyle = tg; x.fillText(name, cx, ty);
+  x.font = '22px "Press Start 2P"';
+  const sub = "1 OYUNCU · 1 JETON", sw = x.measureText(sub).width + 40;
+  x.fillStyle = "rgba(0,0,0,.75)"; x.fillRect(cx - sw / 2, H - 70, sw, 40);
+  x.fillStyle = "#fff"; x.fillText(sub, cx, H - 48);
+  x.strokeStyle = "rgba(255,255,255,.35)"; x.lineWidth = 6; x.strokeRect(8, 8, W - 16, H - 16);
+  return c;
+}
+
+// kontrol paneli: lokal (x: -0.315..0.315, y: -0.125..0.125) → piksel
+const PANEL_W = 0.63;
+const panelPx = (lx, ly, PL) => [(lx + PANEL_W / 2) / PANEL_W * 1024, (1 - (ly + PL / 2) / PL) * 406];
+const CTRL = { stick: [-0.17, 0.0], start: [0.245, 0.075], buttons: [[-0.02, 0.03], [0.055, 0.042], [0.13, 0.042], [-0.02, -0.04], [0.055, -0.028], [0.13, -0.028]] };
+const BTN_COLORS = ["#e3242b", "#f5c400", "#1e6cff", "#e3242b", "#f5c400", "#1e6cff"];
+
+function panelTexture(p, PL) {
+  const W = 1024, H = 406, [c, x] = mkCanvas(W, H);
+  x.fillStyle = "#121219"; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 260; i++) { x.fillStyle = `rgba(255,255,255,${rand(0.01, 0.035)})`; x.fillRect(0, rand(0, H), W, 1); }
+  x.save(); x.globalAlpha = 0.18;
+  for (let i = -4; i < 14; i++) { x.fillStyle = i % 2 ? p.c1 : p.c2; x.beginPath(); x.moveTo(i * 90, H); x.lineTo(i * 90 + 30, H); x.lineTo(i * 90 + 230, 0); x.lineTo(i * 90 + 200, 0); x.fill(); }
+  x.restore();
+  x.fillStyle = p.c1; x.fillRect(0, H - 46, W, 22);
+  x.fillStyle = p.c2; x.fillRect(0, H - 24, W, 24);
+  const [sx, sy] = panelPx(CTRL.stick[0], CTRL.stick[1], PL);
+  x.fillStyle = "rgba(0,0,0,.6)"; x.beginPath(); x.arc(sx, sy, 70, 0, Math.PI * 2); x.fill();
+  x.strokeStyle = hexA(p.c1, 0.6); x.lineWidth = 4; x.stroke();
+  for (const [bx, by] of CTRL.buttons) { const [px, py] = panelPx(bx, by, PL); x.fillStyle = "rgba(0,0,0,.55)"; x.beginPath(); x.arc(px, py, 44, 0, Math.PI * 2); x.fill(); }
+  x.font = "28px Bungee"; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#fff";
+  const [lx, ly] = panelPx(CTRL.stick[0] - 0.115, CTRL.stick[1] + 0.06, PL); x.fillText("1P", lx, ly);
+  const [stx, sty] = panelPx(CTRL.start[0], CTRL.start[1] - 0.045, PL); x.font = '18px "Press Start 2P"'; x.fillText("START", stx, sty);
+  return c;
+}
+
+function bezelTexture(L) {
+  const W = 512, H = Math.round(512 * L / 0.63), [c, x] = mkCanvas(W, H);
+  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#1a1a20"); g.addColorStop(0.45, "#050506"); g.addColorStop(1, "#111116");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = "rgba(255,255,255,.05)"; x.beginPath(); x.moveTo(0, 0); x.lineTo(W * 0.55, 0); x.lineTo(W * 0.25, H); x.lineTo(0, H); x.fill();
+  const toPx = (lx, ly) => [(lx + 0.315) / 0.63 * W, (1 - (ly + L / 2) / L) * H];
+  const [x0, y0] = toPx(-0.245, SCREEN.cy + SCREEN.h / 2 + 0.015), [x1, y1] = toPx(0.245, SCREEN.cy - SCREEN.h / 2 - 0.015);
+  x.fillStyle = "#000"; x.fillRect(x0, y0, x1 - x0, y1 - y0);
+  x.strokeStyle = "rgba(255,255,255,.12)"; x.lineWidth = 2; x.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  x.font = '700 22px "Chakra Petch"'; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#c8c6d6";
+  x.fillText("JETON AT · OYUNA BAŞLA", W / 2, (y1 + H) / 2);
+  return c;
+}
+
+function coinDoorTexture() {
+  const W = 340, H = 400, [c, x] = mkCanvas(W, H);
+  x.fillStyle = "#8d9299"; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 700; i++) { x.fillStyle = Math.random() < 0.5 ? `rgba(255,255,255,${rand(0.03, 0.12)})` : `rgba(0,0,0,${rand(0.03, 0.1)})`; x.fillRect(rand(-40, W), rand(0, H), rand(40, 200), 1); }
+  x.strokeStyle = "rgba(255,255,255,.5)"; x.lineWidth = 4; x.strokeRect(4, 4, W - 8, H - 8);
+  x.strokeStyle = "rgba(0,0,0,.45)"; x.lineWidth = 3; x.strokeRect(10, 10, W - 20, H - 20);
+  for (const [sx, sy] of [[22, 22], [W - 22, 22], [22, H - 22], [W - 22, H - 22]]) {
+    x.fillStyle = "#555a60"; x.beginPath(); x.arc(sx, sy, 7, 0, 7); x.fill();
+    x.strokeStyle = "#2a2d31"; x.lineWidth = 2; x.beginPath(); x.moveTo(sx - 5, sy); x.lineTo(sx + 5, sy); x.stroke();
+  }
+  for (const sx of [100, 240]) {
+    x.fillStyle = "#2a2d31"; x.beginPath(); x.arc(sx, 45, 15, 0, 7); x.fill(); // ışık yuvası
+    x.fillStyle = "#5c6168"; x.fillRect(sx - 30, 72, 60, 76);
+    x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(sx - 30, 72, 60, 3);
+    x.fillStyle = "#050505"; x.fillRect(sx - 5, 88, 10, 44);
+    x.font = '10px "Press Start 2P"'; x.textAlign = "center"; x.fillStyle = "#1b1d20"; x.fillText("1 JETON", sx, 170);
+  }
+  x.fillStyle = "#c7cbd1"; x.beginPath(); x.arc(170, 250, 20, 0, 7); x.fill();
+  x.strokeStyle = "#555"; x.lineWidth = 3; x.stroke();
+  x.fillStyle = "#222"; x.beginPath(); x.arc(170, 246, 5, 0, 7); x.fill(); x.fillRect(168, 246, 4, 14);
+  x.font = "38px Bungee"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillStyle = "rgba(0,0,0,.45)"; x.fillText("JETON", 172, 332); x.fillStyle = "#e8ebef"; x.fillText("JETON", 170, 330);
+  return c;
+}
+
+function scanlineTexture() {
+  const [c, x] = mkCanvas(4, 4);
+  x.fillStyle = "rgba(0,0,0,.55)"; x.fillRect(0, 2, 4, 2);
+  return c;
+}
+function glassTexture() {
+  const S = 256, [c, x] = mkCanvas(S, S);
+  const g = x.createLinearGradient(0, 0, S, S); g.addColorStop(0, "rgba(255,255,255,.75)"); g.addColorStop(0.32, "rgba(255,255,255,.08)"); g.addColorStop(0.5, "rgba(255,255,255,0)");
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  const v = x.createRadialGradient(S / 2, S / 2, S * 0.3, S / 2, S / 2, S * 0.75); v.addColorStop(0, "rgba(255,255,255,0)"); v.addColorStop(1, "rgba(255,255,255,.25)");
+  x.fillStyle = v; x.fillRect(0, 0, S, S);
+  return c;
+}
+
+function noteTexture() {
+  const W = 512, H = 360, [c, x] = mkCanvas(W, H);
+  x.save(); x.translate(W / 2, H / 2); x.rotate(-0.02);
+  x.fillStyle = "#f3ecc0"; x.fillRect(-220, -150, 440, 300);
+  x.strokeStyle = "rgba(80,120,200,.25)"; x.lineWidth = 2;
+  for (let y = -110; y < 150; y += 34) { x.beginPath(); x.moveTo(-220, y); x.lineTo(220, y); x.stroke(); }
+  x.fillStyle = "rgba(0,0,0,.06)"; x.fillRect(-220, 140, 440, 10);
+  x.textAlign = "center"; x.textBaseline = "middle";
+  x.font = '96px "Permanent Marker"'; x.fillStyle = "#c0162e"; x.fillText("ARIZALI", 0, -40);
+  x.strokeStyle = "#c0162e"; x.lineWidth = 6; x.lineCap = "round";
+  x.beginPath(); x.moveTo(-170, 22); x.quadraticCurveTo(0, 8, 170, 26); x.stroke();
+  x.font = '44px "Permanent Marker"'; x.fillStyle = "#1c1c22"; x.fillText("jeton yutuyor!", 0, 78);
+  x.restore();
+  for (const [tx, ty, a] of [[70, 40, -0.6], [W - 70, 40, 0.55]]) {
+    x.save(); x.translate(tx, ty); x.rotate(a);
+    x.fillStyle = "rgba(235,228,196,.82)"; x.fillRect(-60, -16, 120, 32);
+    x.fillStyle = "rgba(0,0,0,.06)"; for (let i = -60; i < 60; i += 8) x.fillRect(i, -16, 1, 32);
+    x.restore();
+  }
+  return c;
+}
+
+function neonSignTexture(text, color, w = 1024, h = 256, fontPx = 150) {
+  const [c, x] = mkCanvas(w, h);
+  x.font = `${fontPx}px Bungee`;
+  let fs = fontPx; while (x.measureText(text).width > w - 100) { fs -= 4; x.font = `${fs}px Bungee`; }
+  x.textAlign = "center"; x.textBaseline = "middle";
+  for (const [blur, col, lw] of [[60, color, 10], [34, color, 8], [16, color, 6], [6, "#fff", 4]]) {
+    x.shadowColor = col; x.shadowBlur = blur; x.strokeStyle = col; x.lineWidth = lw; x.strokeText(text, w / 2, h / 2);
+  }
+  x.shadowBlur = 8; x.shadowColor = color; x.fillStyle = "#fff6fb"; x.fillText(text, w / 2, h / 2);
+  return c;
+}
+
+/* ─────────────────────────── ekran sahneleri (160x120) ─────────────────────────── */
+const SW = 160, SH = 120;
+function pxText(x, s, px, py, col, size = 8, align = "left") {
+  s = s.replace(/İ/g, "I"); x.font = `${size}px "Press Start 2P"`; x.fillStyle = col; x.textAlign = align; x.textBaseline = "top"; x.fillText(s, px, py);
+}
+function spacedText(x, s, cx, py, col, size = 8, gap = 2) {
+  s = s.replace(/İ/g, "I"); x.font = `${size}px "Press Start 2P"`; x.textBaseline = "top"; x.textAlign = "left"; x.fillStyle = col;
+  const chars = [...s], ws = chars.map((ch) => x.measureText(ch).width);
+  let total = ws.reduce((a, b) => a + b, 0) + gap * (chars.length - 1), px = cx - total / 2;
+  chars.forEach((ch, i) => { x.fillText(ch, px, py); px += ws[i] + gap; });
+}
+
+const SCENES = {
+  stars(p) {
+    const stars = Array.from({ length: 70 }, () => ({ x: rand(0, SW), y: rand(0, SH), s: rand(8, 70) }));
+    const SHIP = ["...#...", "..###..", "..#.#..", ".#####.", "##.#.##", "#..#..#"];
+    let bullets = [], foes = [], parts = [], fire = 0, spawn = 0;
+    return (x, t, dt) => {
+      x.fillStyle = "#03030c"; x.fillRect(0, 0, SW, SH);
+      for (const s of stars) { s.y += s.s * dt; if (s.y > SH) { s.y = 0; s.x = rand(0, SW); } x.fillStyle = s.s > 45 ? "#fff" : "#6a6a9a"; x.fillRect(s.x | 0, s.y | 0, 1, s.s > 45 ? 2 : 1); }
+      const sx = 80 + Math.sin(t * 1.3) * 52, sy = 92;
+      if ((fire -= dt) < 0) { fire = 0.3; bullets.push({ x: sx, y: sy - 2 }); }
+      if ((spawn -= dt) < 0) { spawn = rand(0.5, 1.1); foes.push({ x: rand(16, 144), y: 12, ph: rand(0, 6) }); }
+      x.fillStyle = p.c2; bullets = bullets.filter((b) => (b.y -= 130 * dt) > 0);
+      bullets.forEach((b) => x.fillRect(b.x | 0, b.y | 0, 1, 4));
+      foes = foes.filter((f) => {
+        f.y += 22 * dt; f.x += Math.sin(t * 2 + f.ph) * 0.6;
+        const hit = bullets.findIndex((b) => Math.abs(b.x - f.x) < 6 && Math.abs(b.y - f.y) < 6);
+        if (hit >= 0) { bullets.splice(hit, 1); for (let i = 0; i < 10; i++) parts.push({ x: f.x, y: f.y, vx: rand(-40, 40), vy: rand(-40, 40), l: 0.5 }); return false; }
+        x.fillStyle = p.c1; x.beginPath(); x.moveTo(f.x, f.y - 5); x.lineTo(f.x + 5, f.y); x.lineTo(f.x, f.y + 5); x.lineTo(f.x - 5, f.y); x.fill();
+        x.fillStyle = "#fff"; x.fillRect((f.x - 1) | 0, (f.y - 1) | 0, 2, 2);
+        return f.y < SH;
+      });
+      parts = parts.filter((q) => { q.x += q.vx * dt; q.y += q.vy * dt; q.l -= dt; x.fillStyle = q.l > 0.25 ? "#fff" : p.c2; x.fillRect(q.x | 0, q.y | 0, 1, 1); return q.l > 0; });
+      SHIP.forEach((row, r) => [...row].forEach((ch, cc) => { if (ch === "#") { x.fillStyle = r < 2 ? "#fff" : p.c2; x.fillRect((sx - 7 + cc * 2) | 0, sy + r * 2, 2, 2); } }));
+      x.fillStyle = Math.random() < 0.5 ? "#ff7a00" : "#ffd23f"; x.fillRect((sx - 1) | 0, sy + 12, 2, 2 + ((t * 20) % 3));
+    };
+  },
+  synth(p) {
+    const blds = []; let bx = 0;
+    while (bx < SW) { const w = rand(8, 18) | 0, h = rand(10, 34) | 0; blds.push({ x: bx, w, h, win: Array.from({ length: 10 }, () => [rand(1, w - 2) | 0, rand(2, h - 2) | 0]) }); bx += w + 1; }
+    return (x, t) => {
+      const hz = 74, g = x.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, "#0d0221"); g.addColorStop(0.6, "#4a0b5c"); g.addColorStop(1, "#ff4f8b");
+      x.fillStyle = g; x.fillRect(0, 0, SW, hz);
+      for (let i = 0; i < 20; i++) { x.fillStyle = "rgba(255,255,255,.6)"; x.fillRect((i * 37) % SW, (i * 13) % 40, 1, 1); }
+      const sg = x.createLinearGradient(0, 30, 0, hz); sg.addColorStop(0, "#ffe66d"); sg.addColorStop(1, "#ff3f8e");
+      x.fillStyle = sg; x.beginPath(); x.arc(80, 60, 26, Math.PI, 0); x.lineTo(106, hz); x.lineTo(54, hz); x.fill();
+      for (let i = 0; i < 6; i++) { const y = 50 + i * 4 + ((t * 6) % 4); x.fillStyle = "#6a1060"; x.fillRect(50, y, 60, 1 + i * 0.4); }
+      for (const b of blds) {
+        x.fillStyle = "#12021f"; x.fillRect(b.x, hz - b.h, b.w, b.h);
+        for (const [wx, wy] of b.win) if ((wx * 7 + wy * 3 + ((t * 0.5) | 0)) % 5) { x.fillStyle = "#ffd23f"; x.fillRect(b.x + wx, hz - b.h + wy, 1, 1); }
+      }
+      x.fillStyle = "#14001f"; x.fillRect(0, hz, SW, SH - hz);
+      x.strokeStyle = p.c1; x.lineWidth = 1;
+      for (let i = 0; i < 8; i++) { const k = ((i + (t * 1.2) % 1) / 8), y = hz + (SH - hz) * k * k; x.globalAlpha = 0.3 + k * 0.7; x.beginPath(); x.moveTo(0, y | 0); x.lineTo(SW, y | 0); x.stroke(); }
+      x.globalAlpha = 0.8;
+      for (let i = -10; i <= 10; i++) { x.beginPath(); x.moveTo(80 + i * 4, hz); x.lineTo(80 + i * 26, SH); x.stroke(); }
+      x.globalAlpha = 1;
+    };
+  },
+  bricks(p) {
+    const cols = 10, rows = 5, bw = 14, bh = 5, ox = 5, oy = 22;
+    let bricks, ball, padX = 80;
+    const reset = () => { bricks = Array.from({ length: rows * cols }, () => 1); ball = { x: 80, y: 90, vx: 70, vy: -75 }; };
+    reset();
+    const rowCol = [p.c1, "#ff4d4d", p.c2, "#3dff7a", "#9b5cff"];
+    return (x, t, dt) => {
+      x.fillStyle = "#05060f"; x.fillRect(0, 0, SW, SH);
+      x.fillStyle = "#2a2a44"; x.fillRect(0, 14, SW, 2); x.fillRect(0, 14, 2, SH); x.fillRect(SW - 2, 14, 2, SH);
+      const n = 4; for (let s = 0; s < n; s++) {
+        ball.x += ball.vx * dt / n; ball.y += ball.vy * dt / n;
+        if (ball.x < 4 || ball.x > SW - 4) { ball.vx *= -1; ball.x = clamp(ball.x, 4, SW - 4); }
+        if (ball.y < 18) { ball.vy = Math.abs(ball.vy); }
+        if (ball.y > 104 && ball.y < 109 && Math.abs(ball.x - padX) < 14 && ball.vy > 0) { ball.vy = -Math.abs(ball.vy); ball.vx = (ball.x - padX) * 6; }
+        if (ball.y > SH) reset();
+        const cc = Math.floor((ball.x - ox) / (bw + 1)), rr = Math.floor((ball.y - oy) / (bh + 1));
+        if (cc >= 0 && cc < cols && rr >= 0 && rr < rows && bricks[rr * cols + cc]) { bricks[rr * cols + cc] = 0; ball.vy *= -1; }
+      }
+      if (!bricks.some(Boolean)) reset();
+      padX = lerp(padX, ball.x, 0.12);
+      bricks.forEach((b, i) => { if (!b) return; const r = (i / cols) | 0, c = i % cols; x.fillStyle = rowCol[r]; x.fillRect(ox + c * (bw + 1), oy + r * (bh + 1), bw, bh); });
+      x.fillStyle = "#fff"; x.fillRect((padX - 12) | 0, 106, 24, 3); x.fillRect((ball.x - 1) | 0, (ball.y - 1) | 0, 3, 3);
+    };
+  },
+  snake(p) {
+    const C = 6, GW = 26, GH = 15, OX = 2, OY = 16;
+    let body, dir, food, acc = 0;
+    const reset = () => { body = [[6, 7], [5, 7], [4, 7]]; dir = [1, 0]; place(); };
+    const place = () => { do food = [(Math.random() * GW) | 0, (Math.random() * GH) | 0]; while (body.some((b) => b[0] === food[0] && b[1] === food[1])); };
+    reset();
+    return (x, t, dt) => {
+      if ((acc += dt) > 0.085) {
+        acc = 0;
+        const h = body[0], opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].filter((d) => !(d[0] === -dir[0] && d[1] === -dir[1]));
+        const safe = opts.filter((d) => { const nx = h[0] + d[0], ny = h[1] + d[1]; return nx >= 0 && ny >= 0 && nx < GW && ny < GH && !body.slice(0, -1).some((b) => b[0] === nx && b[1] === ny); });
+        if (!safe.length) reset();
+        else {
+          safe.sort((a, b) => (Math.abs(h[0] + a[0] - food[0]) + Math.abs(h[1] + a[1] - food[1])) - (Math.abs(h[0] + b[0] - food[0]) + Math.abs(h[1] + b[1] - food[1])));
+          dir = Math.random() < 0.08 ? pick(safe) : safe[0];
+          const nh = [h[0] + dir[0], h[1] + dir[1]]; body.unshift(nh);
+          if (nh[0] === food[0] && nh[1] === food[1]) { place(); if (body.length > 60) reset(); } else body.pop();
+        }
+      }
+      x.fillStyle = "#04080c"; x.fillRect(0, 0, SW, SH);
+      x.strokeStyle = "#1b2b3a"; x.strokeRect(OX - 0.5, OY - 0.5, GW * C + 1, GH * C + 1);
+      if ((t * 4 | 0) % 2) { x.fillStyle = p.c2; x.fillRect(OX + food[0] * C + 1, OY + food[1] * C + 1, C - 2, C - 2); }
+      body.forEach((b, i) => { x.fillStyle = i === 0 ? "#fff" : (i % 2 ? p.c1 : shade(p.c1, 0.75)); x.fillRect(OX + b[0] * C, OY + b[1] * C, C - 1, C - 1); });
+    };
+  },
+  glitch(p) {
+    const img = new ImageData(SW, SH);
+    return (x, t) => {
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) { const v = Math.random() * 180; d[i] = v; d[i + 1] = v; d[i + 2] = v; d[i + 3] = 255; }
+      x.putImageData(img, 0, 0);
+      const roll = ((t * 40) % (SH + 30)) - 30;
+      x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(0, roll, SW, 20);
+      for (let i = 0; i < 4; i++) { x.fillStyle = pick([p.c1, "#18e0ff", "#3dff7a", "#fff"]); x.globalAlpha = 0.5; x.fillRect(rand(-40, SW), rand(0, SH), rand(20, 90), rand(1, 4)); }
+      x.globalAlpha = 1;
+      if ((t * 2 | 0) % 2) pxText(x, "SİNYAL YOK", 80, 56, "#fff", 8, "center");
+    };
+  },
+  tarot(p) {
+    const stars = Array.from({ length: 40 }, () => [rand(0, SW), rand(0, SH), rand(0, 6)]);
+    const sym = [
+      (x, cx, cy) => { x.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 10, a = -Math.PI / 2 + i * Math.PI / 5; x.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } x.fill(); },
+      (x, cx, cy) => { x.beginPath(); x.arc(cx, cy, 10, 0, 7); x.fill(); x.fillStyle = "#1a0b2e"; x.beginPath(); x.arc(cx + 5, cy - 3, 9, 0, 7); x.fill(); },
+      (x, cx, cy) => { x.beginPath(); x.arc(cx, cy, 7, 0, 7); x.fill(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; x.fillRect(cx + Math.cos(a) * 11 - 1, cy + Math.sin(a) * 11 - 1, 3, 3); } },
+    ];
+    return (x, t) => {
+      x.fillStyle = "#0b0418"; x.fillRect(0, 0, SW, SH);
+      for (const [sx, sy, ph] of stars) { x.fillStyle = Math.sin(t * 3 + ph) > 0.3 ? "#fff" : "#4a3a7a"; x.fillRect(sx | 0, sy | 0, 1, 1); }
+      for (let i = 0; i < 3; i++) {
+        const ph = (t * 0.35 + i * 0.22) % 1, k = Math.cos(ph * Math.PI * 2), w = Math.max(2, Math.abs(k) * 34), cx = 30 + i * 50, cy = 64;
+        x.fillStyle = k > 0 ? shade(p.c1, 0.5) : "#1a0b2e"; x.fillRect(cx - w / 2, cy - 27, w, 54);
+        x.strokeStyle = p.c2; x.lineWidth = 1; x.strokeRect((cx - w / 2) + 0.5, cy - 26.5, w - 1, 53);
+        if (Math.abs(k) > 0.35) {
+          x.save(); x.translate(cx, cy); x.scale(Math.abs(k), 1); x.translate(-cx, -cy);
+          if (k > 0) { x.strokeStyle = p.c2; x.beginPath(); x.moveTo(cx, cy - 18); x.lineTo(cx + 12, cy); x.lineTo(cx, cy + 18); x.lineTo(cx - 12, cy); x.closePath(); x.stroke(); }
+          else { x.fillStyle = p.c2; sym[i](x, cx, cy); }
+          x.restore();
+        }
+      }
+    };
+  },
+  chart(p) {
+    let vals = Array.from({ length: 16 }, (_, i) => 60 - i * 1.5 + rand(-6, 6)), acc = 0, coins = [];
+    return (x, t, dt) => {
+      if ((acc += dt) > 0.45) { acc = 0; const last = vals[vals.length - 1]; vals.push(clamp(last + rand(-9, 5), 22, 96)); vals.shift(); }
+      if (Math.random() < dt * 2) coins.push({ x: rand(20, 140), y: 10, v: 0 });
+      x.fillStyle = "#03120e"; x.fillRect(0, 0, SW, SH);
+      x.strokeStyle = "#0d2f26"; x.lineWidth = 1;
+      for (let gy = 20; gy < 110; gy += 15) { x.beginPath(); x.moveTo(0, gy + 0.5); x.lineTo(SW, gy + 0.5); x.stroke(); }
+      vals.forEach((v, i) => {
+        const prev = vals[i - 1] ?? v, up = v < prev, cx = 8 + i * 9.5;
+        x.fillStyle = up ? p.c1 : "#ff4d6d"; x.fillRect(cx, Math.min(v, prev), 6, Math.max(2, Math.abs(v - prev)));
+        x.fillRect(cx + 2.5, Math.min(v, prev) - 3, 1, Math.abs(v - prev) + 6);
+      });
+      x.strokeStyle = p.c2; x.beginPath(); vals.forEach((v, i) => (i ? x.lineTo(11 + i * 9.5, v - 10) : x.moveTo(11, v - 10))); x.stroke();
+      coins = coins.filter((c) => { c.v += 160 * dt; c.y += c.v * dt; x.fillStyle = p.c2; x.beginPath(); x.arc(c.x, c.y, 3, 0, 7); x.fill(); x.fillStyle = "#a87b00"; x.fillRect(c.x - 0.5, c.y - 2, 1, 4); return c.y < SH; });
+    };
+  },
+  blocks(p) {
+    const N = 8, C = 10, OX = 40, OY = 18, cols = [p.c1, p.c2, "#3dff7a", "#18e0ff", "#9b5cff"];
+    let grid = Array(N * N).fill(null), acc = 0, flash = [], flashT = 0;
+    const shapes = [[[0, 0], [1, 0], [2, 0]], [[0, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [0, 1], [0, 2]], [[0, 0], [1, 0], [2, 0], [3, 0]]];
+    return (x, t, dt) => {
+      if (flashT > 0) { flashT -= dt; if (flashT <= 0) { flash.forEach((i) => (grid[i] = null)); flash = []; } }
+      else if ((acc += dt) > 0.32) {
+        acc = 0; const s = pick(shapes), col = pick(cols);
+        for (let tries = 0; tries < 30; tries++) {
+          const ox = (Math.random() * N) | 0, oy = (Math.random() * N) | 0;
+          if (s.every(([a, b]) => ox + a < N && oy + b < N && !grid[(oy + b) * N + ox + a])) { s.forEach(([a, b]) => (grid[(oy + b) * N + ox + a] = col)); break; }
+          if (tries === 29) grid = Array(N * N).fill(null);
+        }
+        for (let r = 0; r < N; r++) if ([...Array(N)].every((_, c) => grid[r * N + c])) for (let c = 0; c < N; c++) flash.push(r * N + c);
+        for (let c = 0; c < N; c++) if ([...Array(N)].every((_, r) => grid[r * N + c])) for (let r = 0; r < N; r++) flash.push(r * N + c);
+        if (flash.length) flashT = 0.35;
+      }
+      x.fillStyle = "#0a0610"; x.fillRect(0, 0, SW, SH);
+      x.fillStyle = "#1c1428"; x.fillRect(OX - 2, OY - 2, N * C + 3, N * C + 3);
+      for (let i = 0; i < N * N; i++) {
+        const c = i % N, r = (i / N) | 0, v = grid[i];
+        x.fillStyle = flash.includes(i) && (t * 16 | 0) % 2 ? "#fff" : v || "#140e1e";
+        x.fillRect(OX + c * C, OY + r * C, C - 1, C - 1);
+        if (v) { x.fillStyle = "rgba(255,255,255,.35)"; x.fillRect(OX + c * C, OY + r * C, C - 1, 1); }
+      }
+    };
+  },
+  code(p) {
+    const toks = [p.c1, p.c2, "#ff79c6", "#8be9fd", "#f8f8f2", "#6272a4"];
+    const lines = Array.from({ length: 22 }, () => { let pos = rand(0, 3) | 0; const out = []; const n = rand(2, 5) | 0; for (let i = 0; i < n; i++) { const w = rand(4, 16) | 0; out.push([pos, w, pick(toks)]); pos += w + 2; } return out; });
+    return (x, t) => {
+      x.fillStyle = "#0b0c14"; x.fillRect(0, 0, SW, SH);
+      x.fillStyle = "#141626"; x.fillRect(0, 14, 96, SH - 14);
+      const shown = (t * 6) % 30, first = Math.max(0, Math.floor(shown) - 11);
+      for (let i = first; i < Math.min(lines.length, Math.floor(shown) + 1); i++) {
+        const y = 18 + (i - first) * 8;
+        x.fillStyle = "#3a3f5c"; x.fillRect(2, y + 1, 5, 3);
+        const prog = i === Math.floor(shown) ? (shown % 1) : 1;
+        for (const [px, w, col] of lines[i]) { const vis = Math.min(w, Math.max(0, prog * 70 - px)); if (vis > 0) { x.fillStyle = col; x.fillRect(10 + px, y, vis, 4); } }
+        if (i === Math.floor(shown) && (t * 3 | 0) % 2) { x.fillStyle = "#fff"; x.fillRect(10 + Math.min(80, prog * 70), y - 1, 1, 6); }
+      }
+      x.fillStyle = "#f2f2f6"; x.fillRect(100, 18, 56, 96);
+      x.fillStyle = p.c1; x.fillRect(104, 22, 48, 10);
+      x.fillStyle = "#c8c8d6"; x.fillRect(104, 36, 48, 26);
+      x.fillStyle = "#9a9ab0"; for (let i = 0; i < 4; i++) x.fillRect(104, 66 + i * 6, 30 + (i * 7) % 18, 3);
+      x.fillStyle = p.c2; x.fillRect(104, 98, 24, 9);
+      const target = [[104, 22, 48, 10], [104, 36, 48, 26], [104, 98, 24, 9]][(t * 0.7 | 0) % 3];
+      x.strokeStyle = "#18e0ff"; x.lineWidth = 1; x.setLineDash([2, 2]); x.strokeRect(target[0] - 1.5, target[1] - 1.5, target[2] + 3, target[3] + 3); x.setLineDash([]);
+      x.fillStyle = "#fff"; x.beginPath(); const mx = target[0] + target[2] - 4, my = target[1] + target[3] - 2; x.moveTo(mx, my); x.lineTo(mx, my + 8); x.lineTo(mx + 2, my + 6); x.lineTo(mx + 5, my + 9); x.lineTo(mx + 5, my + 6); x.lineTo(mx + 7, my + 6); x.fill();
+    };
+  },
+  qr(p) {
+    const N = 21, M = 3, OX = 49, OY = 22;
+    let mat, gen = -1;
+    const finder = (r, c) => { for (const [fr, fc] of [[0, 0], [0, N - 7], [N - 7, 0]]) { const a = r - fr, b = c - fc; if (a >= 0 && a < 7 && b >= 0 && b < 7) return (a === 0 || a === 6 || b === 0 || b === 6 || (a > 1 && a < 5 && b > 1 && b < 5)) ? 1 : 0; } return -1; };
+    return (x, t) => {
+      const cycle = 5, g = Math.floor(t / cycle), k = (t % cycle) / cycle;
+      if (g !== gen) { gen = g; mat = Array.from({ length: N * N }, (_, i) => { const f = finder((i / N) | 0, i % N); return f >= 0 ? f : Math.random() < 0.48 ? 1 : 0; }); }
+      x.fillStyle = "#120a02"; x.fillRect(0, 0, SW, SH);
+      x.fillStyle = "#fff6e0"; x.fillRect(OX - 4, OY - 4, N * M + 8, N * M + 8);
+      const reveal = clamp(k * 1.6, 0, 1) * N;
+      for (let i = 0; i < N * N; i++) { const r = (i / N) | 0, c = i % N; if (r > reveal) continue; if (mat[i]) { x.fillStyle = "#1a1206"; x.fillRect(OX + c * M, OY + r * M, M, M); } }
+      if (k < 0.65) { const sy = OY + (k / 0.65) * N * M; x.fillStyle = hexA(p.c2, 0.85); x.fillRect(OX - 8, sy, N * M + 16, 2); x.fillStyle = hexA(p.c2, 0.25); x.fillRect(OX - 8, sy - 4, N * M + 16, 10); }
+      else if ((t * 4 | 0) % 2) pxText(x, "MENÜ HAZIR", 80, 96, p.c1, 8, "center");
+    };
+  },
+};
+
+/* ─────────────────────────── sahne kurulumu ─────────────────────────── */
+const stage = $("#stage");
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isTouch ? 1.75 : 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+renderer.domElement.setAttribute("tabindex", "0");
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06070b);
+scene.fog = new THREE.Fog(0x06070b, 5.5, 13);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.05, 60);
+
+// Metal yüzeyler için küçük, sentetik bir ortam haritası
+(function buildEnv() {
+  const env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), new THREE.MeshBasicMaterial({ color: 0x07070c, side: THREE.BackSide })));
+  const panel = (col, pos, sz) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(sz[0], sz[1]), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide })); m.position.set(...pos); m.lookAt(0, 0, 0); env.add(m); };
+  panel(0xff3fa4, [0, 2, -4.9], [4, 1]); panel(0x18e0ff, [-4.9, 3, 0], [3, 0.5]); panel(0xffd9a8, [2, 4.9, 2], [3, 3]); panel(0x6f88ff, [4.9, 1, 2], [2, 2]);
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(env, 0.04).texture;
+  pm.dispose();
+})();
+
+const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ envMapIntensity: 0.3 }, o));
+const TRIM = {
+  chrome: std({ color: 0xd8dde3, metalness: 1, roughness: 0.22, envMapIntensity: 1.2 }),
+  yellow: std({ color: 0xf2c230, metalness: 0.3, roughness: 0.35, envMapIntensity: 0.8 }),
+  black: std({ color: 0x111114, metalness: 0.4, roughness: 0.4, envMapIntensity: 0.8 }),
+};
+let GLOW_TEX;
+function glowSprite(color, sx, sy, opacity) {
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false }));
+  s.scale.set(sx, sy, 1); s.userData.baseOpacity = opacity;
+  return s;
+}
+
+/* Makine geometrisi */
+const PROFILE = [[-0.42, 0], [0.24, 0], [0.24, 0.86], [0.50, 0.94], [0.50, 1.03], [0.26, 1.10], [0.12, 1.56], [0.22, 1.58], [0.22, 1.84], [-0.28, 1.84], [-0.42, 1.62]];
+const BODY_W = 0.70, SIDE_T = 0.035, INNER_W = BODY_W - 2 * SIDE_T, SPACING = 1.02;
+const SCREEN = { w: 0.46, h: 0.345, cy: 0.03 };
+
+function profileGeometry(depth) {
+  const s = new THREE.Shape(); PROFILE.forEach(([z, y], i) => (i ? s.lineTo(z, y) : s.moveTo(z, y)));
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 1 });
+  g.rotateY(-Math.PI / 2); g.translate(depth / 2, 0, 0); // profil x → dünya z, ekstrüzyon → dünya x
+  return g;
+}
+// Profil kenarına (P[i]→P[i+1]) hizalı çerçeve: yerel x = genişlik, y = kenar yönü, z = dış normal
+function edgeFrame(i) {
+  const p1 = PROFILE[i], p2 = PROFILE[i + 1], dz = p2[0] - p1[0], dy = p2[1] - p1[1], L = Math.hypot(dz, dy);
+  const yA = new V3(0, dy / L, dz / L), n = new V3(0, -dz / L, dy / L);
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new V3(1, 0, 0), yA, n));
+  return { L, q, n, at: (t, off = 0) => new V3(0, p1[1] + dy * t, p1[0] + dz * t).addScaledVector(n, off) };
+}
+function onEdge(obj, f, t, off) { obj.position.copy(f.at(t, off)); obj.quaternion.copy(f.q); return obj; }
+
+const F = { front: edgeFrame(1), lip: edgeFrame(3), panel: edgeFrame(4), screen: edgeFrame(5), marquee: edgeFrame(7) };
+
+const shared = {};
+function buildShared() {
+  GLOW_TEX = mkTex(glowTexture(), { srgb: false });
+  const sg = new THREE.PlaneGeometry(SCREEN.w, SCREEN.h, 20, 15), pos = sg.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i) / (SCREEN.w / 2), v = pos.getY(i) / (SCREEN.h / 2);
+    pos.setZ(i, 0.022 * (1 - u * u) * (1 - v * v));
+  }
+  sg.computeVertexNormals();
+  Object.assign(shared, {
+    bodyGeo: profileGeometry(INNER_W),
+    sideGeo: profileGeometry(SIDE_T),
+    screenGeo: sg,
+    bezelMat: std({ map: mkTex(bezelTexture(F.screen.L)), roughness: 0.18, metalness: 0.1, envMapIntensity: 1 }),
+    kickMat: std({ color: 0x0a0a0c, roughness: 0.7 }),
+    doorMat: std({ map: mkTex(coinDoorTexture()), metalness: 0.75, roughness: 0.38, envMapIntensity: 1 }),
+    scanMat: new THREE.MeshBasicMaterial({ map: mkTex(scanlineTexture(), { repeat: [1, 60], nearest: true, srgb: false }), transparent: true, opacity: 0.4, depthWrite: false, toneMapped: false }),
+    glassMat: new THREE.MeshBasicMaterial({ map: mkTex(glassTexture(), { srgb: false }), transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    blackPlastic: std({ color: 0x0c0c0e, roughness: 0.35, envMapIntensity: 0.6 }),
+    metal: std({ color: 0xcfd3d8, metalness: 1, roughness: 0.25, envMapIntensity: 1.2 }),
+    stickBall: std({ color: 0xd6141c, roughness: 0.25, envMapIntensity: 0.9 }),
+    lampOff: new THREE.MeshBasicMaterial({ color: 0x400808 }),
+    coinMat: std({ color: 0xffc94a, metalness: 1, roughness: 0.28, envMapIntensity: 1.6, emissive: 0x3a2400 }),
+  });
+}
+
+const machines = [];
+const hitBoxes = [];
+const doorMeshes = [];
+
+function buildMachine(p, i, n) {
+  const g = new THREE.Group();
+  g.position.x = (i - (n - 1) / 2) * SPACING;
+  const m = { p, i, group: g, mode: "attract", modeT: 0 };
+
+  const body = new THREE.Mesh(shared.bodyGeo, std({ color: p.paint, roughness: 0.5, envMapIntensity: 0.5 }));
+  body.castShadow = body.receiveShadow = true; g.add(body);
+
+  const vt = mkTex(vinylTexture(p)); vt.repeat.set(1 / 0.92, 1 / 1.84); vt.offset.set(0.42 / 0.92, 0);
+  const vinylMat = std({ map: vt, roughness: 0.45, envMapIntensity: 0.6 });
+  for (const sx of [-1, 1]) {
+    const side = new THREE.Mesh(shared.sideGeo, [vinylMat, TRIM[p.trim]]);
+    side.scale.set(1, 1.006, 1.01); side.position.x = sx * (INNER_W / 2 + SIDE_T / 2);
+    side.castShadow = side.receiveShadow = true; g.add(side);
+  }
+
+  const kick = new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, 0.16), shared.kickMat);
+  g.add(onEdge(kick, F.front, 0.095, 0.002));
+
+  // Jeton kapısı
+  const door = new THREE.Group(); onEdge(door, F.front, 0.6, 0.004); g.add(door);
+  const doorMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.40), shared.doorMat);
+  doorMesh.receiveShadow = true; doorMesh.userData.machine = i; door.add(doorMesh); doorMeshes.push(doorMesh);
+  m.lamps = [];
+  for (const lx of [-0.07, 0.07]) {
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0xff2a2a, toneMapped: false });
+    const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.011, 16), lampMat); lamp.position.set(lx, 0.155, 0.002); door.add(lamp);
+    const gl = glowSprite(0xff2020, 0.09, 0.09, 0.6); gl.position.set(lx, 0.155, 0.01); door.add(gl);
+    m.lamps.push({ mat: lampMat, glow: gl });
+  }
+  m.door = door;
+
+  // Kontrol paneli
+  const pTex = mkTex(panelTexture(p, F.panel.L));
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, F.panel.L), std({ map: pTex, roughness: 0.4, envMapIntensity: 0.5 }));
+  pm.receiveShadow = true; g.add(onEdge(pm, F.panel, 0.5, 0.002));
+  const lip = new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, F.lip.L), std({ color: p.c1, roughness: 0.4, emissive: p.c1, emissiveIntensity: 0.15 }));
+  g.add(onEdge(lip, F.lip, 0.5, 0.002));
+  const ctrl = new THREE.Group(); onEdge(ctrl, F.panel, 0.5, 0.003); g.add(ctrl);
+  const cyl = (r1, r2, h, mat, x, y, z) => { const c = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, 24), mat); c.rotation.x = Math.PI / 2; c.position.set(x, y, z + h / 2); c.castShadow = true; ctrl.add(c); return c; };
+  const [jx, jy] = CTRL.stick;
+  cyl(0.034, 0.036, 0.008, shared.blackPlastic, jx, jy, 0);
+  cyl(0.006, 0.006, 0.075, shared.metal, jx, jy, 0.008);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.022, 24, 16), shared.stickBall); ball.position.set(jx, jy, 0.092); ball.castShadow = true; ctrl.add(ball);
+  m.stick = ball;
+  CTRL.buttons.forEach(([bx, by], k) => {
+    cyl(0.022, 0.022, 0.006, shared.blackPlastic, bx, by, 0);
+    cyl(0.016, 0.017, 0.014, std({ color: BTN_COLORS[k], roughness: 0.3, envMapIntensity: 0.8 }), bx, by, 0.004);
+  });
+  cyl(0.012, 0.012, 0.004, shared.blackPlastic, CTRL.start[0], CTRL.start[1], 0);
+  cyl(0.009, 0.009, 0.01, std({ color: 0xf2f2f2, roughness: 0.3 }), CTRL.start[0], CTRL.start[1], 0.002);
+
+  // Ekran
+  const bezel = new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, F.screen.L), shared.bezelMat);
+  g.add(onEdge(bezel, F.screen, 0.5, 0.002));
+  const scrGroup = new THREE.Group(); onEdge(scrGroup, F.screen, 0.5 + SCREEN.cy / F.screen.L, 0.003); g.add(scrGroup);
+  const [sc, sx] = mkCanvas(SW, SH);
+  const sTex = mkTex(sc, { nearest: true });
+  scrGroup.add(new THREE.Mesh(shared.screenGeo, new THREE.MeshBasicMaterial({ map: sTex, toneMapped: false })));
+  const scan = new THREE.Mesh(shared.screenGeo, shared.scanMat); scan.position.z = 0.0012; scrGroup.add(scan);
+  const glass = new THREE.Mesh(shared.screenGeo, shared.glassMat); glass.position.z = 0.0025; scrGroup.add(glass);
+  Object.assign(m, { sCanvas: sc, sCtx: sx, sTex, scrGroup, draw: SCENES[p.scene] ? SCENES[p.scene](p) : SCENES.glitch(p) });
+
+  // Tabela
+  const marqMat = new THREE.MeshBasicMaterial({ map: mkTex(marqueeTexture(p)), toneMapped: false, fog: false });
+  marqMat.color.setScalar(0.92);
+  g.add(onEdge(new THREE.Mesh(new THREE.PlaneGeometry(INNER_W, F.marquee.L), marqMat), F.marquee, 0.5, 0.002));
+  m.marqMat = marqMat;
+
+  // Işıklar ve ışımalar
+  const mg = glowSprite(new THREE.Color(p.c1), 1.4, 0.62, 0.42); mg.position.copy(F.marquee.at(0.5, 0.14)); g.add(mg);
+  const sgl = glowSprite(new THREE.Color(p.scr), 0.95, 0.8, 0.3); sgl.position.copy(F.screen.at(0.55, 0.12)); g.add(sgl);
+  m.mGlow = mg; m.sGlow = sgl;
+  const light = new THREE.PointLight(p.scr, 0.8, 2.8, 1.6); light.position.set(0, 1.22, 0.62); g.add(light);
+  m.light = light;
+
+  // Görünmez tıklama kutusu
+  const hb = new THREE.Mesh(new THREE.BoxGeometry(0.74, 1.88, 0.98), new THREE.MeshBasicMaterial({ visible: false }));
+  hb.position.set(0, 0.94, 0.04); hb.userData.machine = i; g.add(hb); hitBoxes.push(hb);
+
+  if (p.secret) {
+    const note = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.28), new THREE.MeshStandardMaterial({ map: mkTex(noteTexture()), transparent: true, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.2, emissive: 0xffffff, emissiveIntensity: 0.08, emissiveMap: null }));
+    note.position.set(0.01, 0.0, 0.03); note.rotation.z = 0.07; note.castShadow = true;
+    scrGroup.add(note); m.note = note;
+  }
+
+  scene.add(g);
+  machines.push(m);
+  return m;
+}
+
+function buildRoom(rowHalf) {
+  const ROOM_X = rowHalf + 2.3;
+  const floorTex = mkTex(carpetTexture(), { repeat: [ROOM_X * 2 / 1.5, 12 / 1.5], aniso: 8 });
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_X * 2, 12), std({ map: floorTex, color: 0x6a6a6a, roughness: 0.95, emissive: 0xffffff, emissiveMap: floorTex, emissiveIntensity: 0.06, envMapIntensity: 0.1 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, 5.2); floor.receiveShadow = true; scene.add(floor);
+
+  const wc = wallTexture();
+  const wallMat = (w) => std({ map: mkTex(wc, { repeat: [w / 4, 1] }), roughness: 0.92, envMapIntensity: 0.15 });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_X * 2, 4), wallMat(ROOM_X * 2)); back.position.set(0, 2, -0.8); back.receiveShadow = true; scene.add(back);
+  for (const s of [-1, 1]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(12, 4), wallMat(12)); w.position.set(s * ROOM_X, 2, 5.2); w.rotation.y = -s * Math.PI / 2; w.receiveShadow = true; scene.add(w); }
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(ROOM_X * 2, 12), std({ color: 0x050508, roughness: 1 })); ceil.rotation.x = Math.PI / 2; ceil.position.set(0, 4, 5.2); scene.add(ceil);
+
+  // Neon yazı ve tüp
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 0.9), new THREE.MeshBasicMaterial({ map: mkTex(neonSignTexture("OYUN SALONU", "#ff2f9a")), transparent: true, toneMapped: false, fog: false, depthWrite: false }));
+  sign.position.set(0, 2.5, -0.78); scene.add(sign);
+  const sGlow = glowSprite(0xff2f9a, 4.6, 1.5, 0.35); sGlow.position.set(0, 2.5, -0.7); scene.add(sGlow);
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 3.8, 12), new THREE.MeshBasicMaterial({ color: 0x9ff6ff, toneMapped: false, fog: false }));
+  tube.rotation.z = Math.PI / 2; tube.position.set(0, 3.05, -0.74); scene.add(tube);
+  const tGlow = glowSprite(0x18e0ff, 4.8, 0.42, 0.55); tGlow.position.set(0, 3.05, -0.68); scene.add(tGlow);
+  room.neon = [sign.material, sGlow, tGlow];
+
+  // Gizli köşe neonu (sağ duvar, başta sönük)
+  const sec = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: mkTex(neonSignTexture("GİZLİ KÖŞE", "#38ff8a")), transparent: true, opacity: 0, toneMapped: false, fog: false, depthWrite: false }));
+  sec.position.set(ROOM_X - 0.02, 2.3, 1.8); sec.rotation.y = -Math.PI / 2; scene.add(sec);
+  const secGlow = glowSprite(0x38ff8a, 3.2, 1.1, 0); secGlow.position.set(ROOM_X - 0.1, 2.3, 1.8); scene.add(secGlow);
+  const secLight = new THREE.PointLight(0x38ff8a, 0, 5, 1.5); secLight.position.set(ROOM_X - 0.5, 2.2, 1.8); scene.add(secLight);
+  room.secret = { sec, secGlow, secLight, on: false, t: 0 };
+
+  // Işıklar
+  scene.add(new THREE.AmbientLight(0x404060, 0.32));
+  scene.add(new THREE.HemisphereLight(0x5a6aaa, 0x120a18, 0.45));
+  const key = new THREE.SpotLight(0xffd6a0, 3.2, 18, 0.8, 0.6, 1.0);
+  key.position.set(-2.2, 4.6, 4.2); key.target.position.set(0.3, 0.8, 0);
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0006; key.shadow.camera.near = 1; key.shadow.camera.far = 14;
+  scene.add(key, key.target);
+  const fill = new THREE.SpotLight(0x7a9cff, 1.0, 16, 0.9, 0.8, 1.2);
+  fill.position.set(5, 3.6, 5.5); fill.target.position.set(0, 1, 0); scene.add(fill, fill.target);
+  const pink = new THREE.PointLight(0xff3fa4, 1.4, 6, 1.5); pink.position.set(0, 2.5, -0.35); scene.add(pink);
+  room.pink = pink;
+  return ROOM_X;
+}
+const room = {};
+
+/* ─────────────────────────── ekran çizimi ─────────────────────────── */
+function drawScreen(m, t, dt) {
+  const x = m.sCtx, p = m.p;
+  x.imageSmoothingEnabled = false;
+  if (m.mode === "loading") {
+    x.fillStyle = "#000"; x.fillRect(0, 0, SW, SH);
+    if ((t * 3 | 0) % 2) pxText(x, "KREDİ 01", 80, 34, "#ffb000", 8, "center");
+    pxText(x, "YÜKLENİYOR" + ".".repeat((t * 4 | 0) % 4), 24, 62, "#fff", 8);
+    x.strokeStyle = "#444"; x.strokeRect(24.5, 82.5, 111, 7);
+    x.fillStyle = p.c1; x.fillRect(26, 84, 108 * clamp(m.modeT / 1.4, 0, 1), 4);
+    return;
+  }
+  if (m.mode === "info") {
+    x.fillStyle = "#05050a"; x.fillRect(0, 0, SW, SH);
+    x.fillStyle = p.c1; x.fillRect(0, 0, SW, 18);
+    const nm = p.name.toUpperCase(); let fs = 8; x.font = `${fs}px "Press Start 2P"`;
+    if (x.measureText(nm).width > 150) fs = 6;
+    pxText(x, nm, 80, fs === 8 ? 5 : 6, "#08080c", fs, "center");
+    pxText(x, p.secret ? "ARIZA GİDERİLDİ" : "OYUN BAŞLADI", 6, 24, p.c2, 6);
+    x.fillStyle = "#33334a"; x.fillRect(6, 34, 148, 1);
+    p.tags.slice(0, 5).forEach((tg, k) => pxText(x, "> " + tg.toUpperCase().slice(0, 17), 6, 40 + k * 11, "#e8e8f0", 6));
+    if ((t * 2.5 | 0) % 2) {
+      pxText(x, "AYRINTILAR", 70, 106, "#ffb000", 8, "center");
+      x.fillStyle = "#ffb000"; x.beginPath(); x.moveTo(122, 107); x.lineTo(130, 107); x.lineTo(126, 113); x.fill();
+    }
+    return;
+  }
+  m.draw(x, t + m.i * 3.7, dt);
+  // bekleme modu katmanı
+  x.fillStyle = "rgba(0,0,0,.55)"; x.fillRect(0, 0, SW, 12);
+  pxText(x, "1P 00000", 3, 2, "#fff", 6);
+  pxText(x, "HI 25000", SW - 3, 2, "#ffb000", 6, "right");
+  const ph = (t * 0.33 + m.i * 0.17) % 1;
+  if (ph < 0.55 && !p.secret) {
+    x.fillStyle = "rgba(0,0,0,.72)"; x.fillRect(0, 50, SW, 20);
+    x.fillStyle = p.c1; x.fillRect(0, 50, SW, 1); x.fillRect(0, 69, SW, 1);
+    const nm = p.name.toUpperCase(); x.font = '8px "Press Start 2P"';
+    const big = x.measureText(nm).width + (nm.length - 1) * 2 <= 152;
+    spacedText(x, nm, 80, big ? 56 : 57, "#fff", big ? 8 : 6, big ? 2 : 1);
+  }
+  if ((t * 2 | 0) % 2) { x.fillStyle = "rgba(0,0,0,.55)"; x.fillRect(40, 104, 80, 12); pxText(x, "JETON AT", 80, 106, "#fff", 8, "center"); }
+}
+
+/* ─────────────────────────── kamera ─────────────────────────── */
+const cam = {
+  mode: "paper", // paper | intro | walk | focus
+  pos: new V3(), look: new V3(), yaw: 0, pitch: 0,
+  tween: null, focus: -1, idle: 0, eyeY: 1.62,
+  overview: { pos: new V3(), look: new V3() },
+};
+const fitCam = new THREE.PerspectiveCamera();
+let ROOM_X = 6, ROW_HALF = 4.6;
+
+function layout() {
+  const w = window.innerWidth, h = window.innerHeight, a = w / h;
+  renderer.setSize(w, h);
+  camera.aspect = a; camera.fov = a < 0.85 ? 60 : 50; camera.updateProjectionMatrix();
+  const portrait = a < 0.85;
+  const target = portrait ? new V3(0.6, 0.95, 0.3) : new V3(1.5, 1.05, 0.2);
+  const dir = (portrait ? new V3(-0.75, 0.55, 1) : new V3(-1.15, 0.2, 1)).normalize();
+  fitCam.fov = camera.fov; fitCam.aspect = a; fitCam.near = 0.1; fitCam.far = 100; fitCam.updateProjectionMatrix();
+  const pts = [];
+  for (const x of [-ROW_HALF - 0.36, ROW_HALF + 0.36]) for (const y of [0.1, 1.86]) for (const z of [-0.42, 0.5]) pts.push(new V3(x, y, z));
+  let d = 4;
+  for (; d < 30; d += 0.2) {
+    fitCam.position.copy(target).addScaledVector(dir, d); fitCam.lookAt(target); fitCam.updateMatrixWorld();
+    if (pts.every((pt) => { const v = pt.clone().project(fitCam); return Math.abs(v.x) < 0.94 && v.y > -0.8 && v.y < 0.7 && v.z < 1; })) break;
+  }
+  cam.overview.pos.copy(target).addScaledVector(dir, d);
+  cam.overview.look.copy(target);
+  const extra = Math.max(0, d - 8.5);
+  scene.fog.near = 5.5 + extra; scene.fog.far = 13 + extra;
+  if (cam.mode === "focus" && !cam.tween) { const f = focusPose(cam.focus); cam.pos.copy(f.pos); cam.look.copy(f.look); }
+}
+
+function focusPose(i) {
+  const mx = machines[i].group.position.x, a = camera.aspect;
+  const hfov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * a);
+  const dist = Math.max(1.6, 0.5 / Math.tan(hfov / 2));
+  let ox = 0, oy = 0;
+  if (ui.panelOpen) { if (window.innerWidth > 720) ox = Math.min(0.5, 0.26 * dist); else oy = -0.3 * dist; }
+  return { pos: new V3(mx + ox, 1.5 + 0.08 * (dist - 1.6), 0.2 + dist), look: new V3(mx + ox, 1.3 + oy, 0.16) };
+}
+
+function setLookFromYawPitch() {
+  cam.look.set(cam.pos.x + Math.sin(cam.yaw) * Math.cos(cam.pitch), cam.pos.y + Math.sin(cam.pitch), cam.pos.z - Math.cos(cam.yaw) * Math.cos(cam.pitch));
+}
+function yawPitchFromLook() {
+  const d = cam.look.clone().sub(cam.pos).normalize();
+  cam.yaw = Math.atan2(d.x, -d.z); cam.pitch = Math.asin(clamp(d.y, -1, 1));
+}
+function tweenTo(pos, look, dur, done, ease = easeInOut) {
+  if (cam.mode === "walk") { cam.look.copy(cam.pos).add(cam.look.clone().sub(cam.pos).normalize().multiplyScalar(4)); }
+  if (reduceMotion) dur = 0;
+  cam.tween = { fp: cam.pos.clone(), fl: cam.look.clone(), tp: pos.clone(), tl: look.clone(), t: 0, dur, done, ease };
+}
+
+/* ─────────────────────────── arayüz ─────────────────────────── */
+const ui = { panelOpen: false, secretOpen: false, hover: -1, hoverDoor: false, busy: false };
+const chipsEl = $("#chips");
+PROJECTS.forEach((p, i) => {
+  const b = document.createElement("button"); b.className = "chip"; b.type = "button"; b.lang = "en";
+  b.innerHTML = `<b style="color:${p.c1};background:${p.c1}"></b>`;
+  b.append(p.name);
+  b.addEventListener("click", () => focusMachine(i));
+  chipsEl.append(b);
+});
+$("#ctlText").innerHTML = isTouch
+  ? "Sol çubuk: yürü · Ekranı sürükle: etrafa bak · Makineye dokun: yaklaş · Altın buton: jeton at"
+  : "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · Sürükle: etrafa bak · Tıkla: makineye geç · <kbd>←</kbd><kbd>→</kbd> makine · <kbd>Enter</kbd> jeton at · <kbd>Esc</kbd> geri";
+$("#help").innerHTML = isTouch ? "Çubuk: yürü · sürükle: bak · dokun: yaklaş" : "<kbd>WASD</kbd> yürü · sürükle: bak · tıkla: yaklaş · <kbd>←</kbd><kbd>→</kbd> makine";
+
+const SVG_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
+const SVG_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+function renderSoundBtn() { const b = $("#soundBtn"); b.innerHTML = Sound.on ? SVG_ON : SVG_OFF; b.setAttribute("aria-pressed", String(Sound.on)); b.setAttribute("aria-label", Sound.on ? "Sesi kapat" : "Sesi aç"); }
+renderSoundBtn();
+$("#soundBtn").addEventListener("click", () => { Sound.init(); Sound.set(!Sound.on); renderSoundBtn(); if (Sound.on) Sound.blip(); });
+
+function showOverviewUI(on) {
+  chipsEl.classList.toggle("hidden", !on);
+  $("#help").classList.toggle("hidden", !on);
+  $("#stick").classList.toggle("hidden", !on);
+  $("#focusBar").classList.toggle("hidden", on);
+}
+function setHover(i, door = false) {
+  if (ui.hover === i && ui.hoverDoor === door) return;
+  if (i >= 0 && i !== ui.hover) Sound.blip();
+  ui.hover = i; ui.hoverDoor = door;
+  const el = $("#hoverLabel");
+  renderer.domElement.style.cursor = i >= 0 ? "pointer" : "";
+  if (i < 0) { el.classList.remove("show"); return; }
+  const p = PROJECTS[i];
+  el.innerHTML = door ? "<i>●</i>Jeton kapısı · jeton at" : `<i style="color:${p.c1}">●</i>`;
+  el.lang = door ? "tr" : "en";
+  if (!door) el.append(p.name);
+  el.classList.add("show");
+}
+function updateChips() { [...chipsEl.children].forEach((c, k) => c.classList.toggle("on", k === cam.focus)); }
+
+function openPanel(i) {
+  const p = PROJECTS[i];
+  $("#pStrip").style.background = `linear-gradient(90deg, ${p.c1}, ${p.c2})`;
+  $("#pName").textContent = p.name; $("#pName").lang = "en"; $("#pName").style.color = p.c1;
+  $("#pDesc").textContent = p.desc;
+  const tags = $("#pTags"); tags.innerHTML = "";
+  p.tags.forEach((t) => { const s = document.createElement("span"); s.className = "tag"; s.textContent = t; tags.append(s); });
+  if (p.note) { const s = document.createElement("span"); s.className = "tag note"; s.textContent = p.note; tags.append(s); }
+  const act = $("#pActions"); act.innerHTML = "";
+  const link = (label, href, primary) => {
+    const a = document.createElement(href ? "a" : "span"); a.className = "btn" + (primary && href ? " primary" : ""); a.textContent = label;
+    if (href) { a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer"; } else { a.setAttribute("aria-disabled", "true"); a.title = p.note || "Bağlantı yok"; }
+    act.append(a);
+  };
+  link(p.demo ? "Canlı demo ↗" : "Canlı demo yok", p.demo, true);
+  link(p.github ? "GitHub ↗" : "GitHub · özel", p.github, false);
+  act.lastChild.lang = "en";
+  const tagEls = tags.querySelectorAll(".tag:not(.note)"); tagEls.forEach((el) => (el.lang = "en"));
+  const leave = document.createElement("button"); leave.className = "btn"; leave.type = "button"; leave.textContent = "Makineden kalk";
+  leave.addEventListener("click", backToHall); act.append(leave);
+  ui.panelOpen = true;
+  $("#panel").classList.add("show"); $("#focusBar").classList.add("panelOpen");
+  refocus();
+}
+function closePanel() {
+  if (!ui.panelOpen) return;
+  ui.panelOpen = false;
+  $("#panel").classList.remove("show"); $("#focusBar").classList.remove("panelOpen");
+  if (cam.focus >= 0) machines[cam.focus].mode = "attract";
+  refocus();
+}
+function openSecret() { ui.secretOpen = true; ui.panelOpen = true; $("#secret").classList.add("show"); $("#focusBar").classList.add("panelOpen"); refocus(); }
+function closeSecret() {
+  if (!ui.secretOpen) return;
+  ui.secretOpen = false; ui.panelOpen = false;
+  $("#secret").classList.remove("show"); $("#focusBar").classList.remove("panelOpen");
+  if (cam.focus >= 0) machines[cam.focus].mode = "attract";
+  refocus();
+}
+function refocus() { if (cam.mode === "focus" && cam.focus >= 0) { const f = focusPose(cam.focus); tweenTo(f.pos, f.look, 0.6); } }
+
+/* ─────────────────────────── akışlar ─────────────────────────── */
+function focusMachine(i) {
+  if (ui.busy || cam.mode === "paper" || cam.mode === "intro") return;
+  i = (i + machines.length) % machines.length;
+  if (cam.focus >= 0 && cam.focus !== i) machines[cam.focus].mode = "attract";
+  if (ui.panelOpen) { $("#panel").classList.remove("show"); $("#secret").classList.remove("show"); $("#focusBar").classList.remove("panelOpen"); ui.panelOpen = ui.secretOpen = false; }
+  if (cam.focus !== i || cam.mode !== "focus") Sound.whoosh();
+  cam.mode = "focus"; cam.focus = i;
+  const f = focusPose(i);
+  tweenTo(f.pos, f.look, 1.3);
+  showOverviewUI(false); setHover(-1); updateChips();
+}
+function backToHall() {
+  if (ui.busy) return;
+  if (ui.panelOpen) { closePanel(); closeSecret(); }
+  if (cam.focus >= 0) machines[cam.focus].mode = "attract";
+  cam.mode = "focus"; // tween boyunca odakta say
+  Sound.whoosh();
+  tweenTo(cam.overview.pos, cam.overview.look, 1.3, () => { cam.mode = "walk"; cam.focus = -1; yawPitchFromLook(); updateChips(); });
+  showOverviewUI(true); $("#focusBar").classList.add("hidden");
+}
+
+const coins = [];
+function insertCoin() {
+  if (cam.mode !== "focus" || cam.focus < 0 || ui.busy || cam.tween) return;
+  const m = machines[cam.focus];
+  if (ui.panelOpen) { ui.secretOpen ? closeSecret() : closePanel(); }
+  ui.busy = true;
+  const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.005, 32), shared.coinMat);
+  const fwd = new V3(); camera.getWorldDirection(fwd);
+  const right = new V3().crossVectors(fwd, camera.up).normalize();
+  const start = camera.position.clone().addScaledVector(fwd, 0.35).addScaledVector(right, 0.12).add(new V3(0, -0.2, 0));
+  const slot = m.door.localToWorld(new V3(0.07, 0.09, 0.0));
+  const normal = new V3(0, 0, 1);
+  scene.add(coin);
+  coins.push({ mesh: coin, start, slot, normal, t: 0, dur: reduceMotion ? 0.01 : 0.95, m, entered: false });
+  Sound.tone(220, 0, 0.08, "triangle", 0.03);
+}
+function coinEntered(m) {
+  Sound.clink(); Sound.credit();
+  m.blink = 1.4;
+  m.mode = "loading"; m.modeT = 0;
+  if (m.p.secret && m.note && !m.noteFall) dropNote(m);
+  setTimeout(() => {
+    Sound.arp();
+    m.mode = "info"; m.modeT = 0; ui.busy = false;
+    if (cam.mode !== "focus" || cam.focus !== m.i) { m.mode = "attract"; return; }
+    if (m.p.secret) { unlockSecret(); openSecret(); }
+    else openPanel(m.i);
+  }, reduceMotion ? 300 : 1500);
+}
+function dropNote(m) {
+  const n = m.note;
+  const wp = n.getWorldPosition(new V3()), wq = n.getWorldQuaternion(new THREE.Quaternion());
+  scene.attach(n);
+  n.position.copy(wp); n.quaternion.copy(wq);
+  const end = new V3(m.group.position.x + 0.12, 0.004, 0.78);
+  const endQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0.5));
+  m.noteFall = { from: wp, fromQ: wq, to: end, toQ: endQ, t: 0, dur: reduceMotion ? 0.01 : 1.3 };
+  setTimeout(() => Sound.fall(), 120);
+}
+function unlockSecret() {
+  if (room.secret.on) return;
+  room.secret.on = true; room.secret.t = 0;
+  setTimeout(() => Sound.fanfare(), 300);
+}
+
+/* ─────────────────────────── giriş: kurallar kâğıdı ─────────────────────────── */
+function closeRules() {
+  const el = $("#rules");
+  if (el.classList.contains("out")) return;
+  el.classList.add("out");
+  Sound.init(); Sound.tone(660, 0, 0.08, "square", 0.05); Sound.tone(990, 0.08, 0.14, "square", 0.05);
+  if (cam.mode === "paper") {
+    cam.mode = "intro";
+    tweenTo(cam.overview.pos, cam.overview.look, reduceMotion ? 0 : 4.2, () => {
+      cam.mode = "walk"; yawPitchFromLook(); showOverviewUI(true);
+    }, (t) => 1 - Math.pow(1 - t, 2.4));
+  }
+  renderer.domElement.focus({ preventScroll: true });
+}
+function openRules() { const el = $("#rules"); el.classList.remove("out"); $("#okBtn").focus(); }
+$("#okBtn").addEventListener("click", closeRules);
+$("#rulesBtn").addEventListener("click", openRules);
+
+/* ─────────────────────────── girdiler ─────────────────────────── */
+const keys = new Set();
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+let drag = null;
+const stick = { x: 0, y: 0, id: null };
+
+function pick3D(cx, cy) {
+  ndc.set((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  if (cam.mode === "focus" && cam.focus >= 0) {
+    const d = ray.intersectObject(doorMeshes[cam.focus]);
+    if (d.length) return { i: cam.focus, door: true };
+  }
+  const h = ray.intersectObjects(hitBoxes);
+  return h.length && h[0].distance < 14 ? { i: h[0].object.userData.machine, door: false } : null;
+}
+const cv = renderer.domElement;
+cv.addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false };
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener("pointermove", (e) => {
+  if (drag && drag.id === e.pointerId) {
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
+    if (drag.moved && cam.mode === "walk" && !cam.tween) {
+      const k = isTouch ? 0.006 : 0.004;
+      cam.yaw += dx * k; cam.pitch = clamp(cam.pitch - dy * k * 0.8, -0.7, 0.55); cam.idle = 0;
+    }
+    drag.x = e.clientX; drag.y = e.clientY;
+    return;
+  }
+  if (e.pointerType !== "mouse" || cam.mode === "paper" || cam.mode === "intro") return;
+  const h = pick3D(e.clientX, e.clientY);
+  if (h && cam.mode === "focus" && h.i === cam.focus && !h.door) setHover(-1);
+  else setHover(h ? h.i : -1, h ? h.door : false);
+});
+cv.addEventListener("pointerup", (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  const wasDrag = drag.moved; drag = null;
+  if (wasDrag || cam.mode === "paper" || cam.mode === "intro") return;
+  Sound.init();
+  const h = pick3D(e.clientX, e.clientY);
+  if (!h) return;
+  if (h.door) insertCoin();
+  else if (cam.mode !== "focus" || h.i !== cam.focus) focusMachine(h.i);
+});
+cv.addEventListener("pointercancel", () => (drag = null));
+cv.addEventListener("pointerleave", () => { if (!drag) setHover(-1); });
+cv.addEventListener("wheel", (e) => {
+  if (cam.mode !== "walk" || cam.tween) return;
+  e.preventDefault();
+  moveBy(-Math.sign(e.deltaY) * 0.35, 0);
+}, { passive: false });
+
+const stickEl = $("#stick"), knob = stickEl.querySelector("i");
+stickEl.addEventListener("pointerdown", (e) => { stick.id = e.pointerId; stickEl.setPointerCapture(e.pointerId); stickMove(e); e.stopPropagation(); });
+stickEl.addEventListener("pointermove", (e) => { if (e.pointerId === stick.id) stickMove(e); });
+const stickEnd = (e) => { if (e.pointerId !== stick.id) return; stick.id = null; stick.x = stick.y = 0; knob.style.transform = ""; };
+stickEl.addEventListener("pointerup", stickEnd); stickEl.addEventListener("pointercancel", stickEnd);
+function stickMove(e) {
+  const r = stickEl.getBoundingClientRect(), R = r.width / 2;
+  let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R); const l = Math.hypot(dx, dy);
+  if (l > R * 0.7) { dx *= R * 0.7 / l; dy *= R * 0.7 / l; }
+  stick.x = dx / (R * 0.7); stick.y = dy / (R * 0.7);
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+}
+
+window.addEventListener("keydown", (e) => {
+  const rulesOpen = !$("#rules").classList.contains("out");
+  if (rulesOpen) { if (e.key === "Escape") { closeRules(); e.preventDefault(); } return; }
+  if (e.target.closest && e.target.closest("a, button") && e.key === "Enter") return;
+  if (e.key === "Escape") {
+    if (ui.secretOpen) closeSecret();
+    else if (ui.panelOpen) closePanel();
+    else if (cam.mode === "focus") backToHall();
+    e.preventDefault(); return;
+  }
+  if (cam.mode === "paper" || cam.mode === "intro") return;
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    const dir = e.key === "ArrowLeft" ? -1 : 1;
+    if (cam.mode === "focus" && cam.focus >= 0) focusMachine(cam.focus + dir);
+    else focusMachine(ui.hover >= 0 ? ui.hover : nearestMachine());
+    e.preventDefault(); return;
+  }
+  if (e.key === "Enter") {
+    if (cam.mode === "focus") insertCoin();
+    else if (ui.hover >= 0) focusMachine(ui.hover);
+    else focusMachine(nearestMachine());
+    e.preventDefault(); return;
+  }
+  const k = e.code;
+  if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown"].includes(k)) { keys.add(k); e.preventDefault(); }
+});
+window.addEventListener("keyup", (e) => keys.delete(e.code));
+window.addEventListener("blur", () => keys.clear());
+function nearestMachine() {
+  let best = 0, bd = Infinity;
+  machines.forEach((m, i) => { const d = m.group.position.distanceTo(new V3(cam.pos.x, 0, cam.pos.z)); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+$("#prevBtn").addEventListener("click", () => focusMachine(cam.focus - 1));
+$("#nextBtn").addEventListener("click", () => focusMachine(cam.focus + 1));
+$("#coinBtn").addEventListener("click", () => { Sound.init(); insertCoin(); });
+$("#backBtn").addEventListener("click", backToHall);
+$("#pClose").addEventListener("click", closePanel);
+$("#sClose").addEventListener("click", closeSecret);
+
+function moveBy(fwd, side) {
+  const fx = Math.sin(cam.yaw), fz = -Math.cos(cam.yaw);
+  cam.pos.x += fx * fwd + Math.cos(cam.yaw) * side;
+  cam.pos.z += fz * fwd + Math.sin(cam.yaw) * side;
+  cam.pos.x = clamp(cam.pos.x, -ROOM_X + 0.4, ROOM_X - 0.4);
+  cam.pos.z = clamp(cam.pos.z, Math.abs(cam.pos.x) < ROW_HALF + 0.55 ? 0.95 : -0.35, 9.5);
+  cam.idle = 0;
+}
+
+/* ─────────────────────────── döngü ─────────────────────────── */
+const clock = new THREE.Clock();
+let screenAcc = 0, elapsed = 0;
+function frame() {
+  const rawDt = Math.min(clock.getDelta(), 0.5), dt = Math.min(rawDt, 0.05);
+  elapsed += dt;
+
+  // yürüme
+  if (cam.mode === "walk" && !cam.tween) {
+    let f = 0, s = 0;
+    if (keys.has("KeyW") || keys.has("ArrowUp")) f += 1;
+    if (keys.has("KeyS") || keys.has("ArrowDown")) f -= 1;
+    if (keys.has("KeyD")) s += 1;
+    if (keys.has("KeyA")) s -= 1;
+    if (stick.id !== null) { f -= stick.y; s += stick.x; }
+    if (f || s) {
+      const l = Math.max(1, Math.hypot(f, s));
+      moveBy((f / l) * 2.3 * dt, (s / l) * 2.3 * dt);
+      cam.pos.y = lerp(cam.pos.y, cam.eyeY, 1 - Math.exp(-dt * 2.5));
+    }
+    setLookFromYawPitch();
+  }
+  cam.idle += dt;
+
+  // kamera geçişi
+  if (cam.tween) {
+    const tw = cam.tween;
+    tw.t += rawDt;
+    const k = tw.dur > 0 ? tw.ease(clamp(tw.t / tw.dur, 0, 1)) : 1;
+    cam.pos.lerpVectors(tw.fp, tw.tp, k); cam.look.lerpVectors(tw.fl, tw.tl, k);
+    if (k >= 1) { cam.tween = null; tw.done && tw.done(); }
+  }
+  camera.position.copy(cam.pos);
+  if (!reduceMotion && cam.mode !== "paper") { // nefes alma
+    const a = cam.mode === "focus" ? 0.35 : 1;
+    camera.position.y += Math.sin(elapsed * 0.7) * 0.025 * a;
+    camera.position.x += Math.sin(elapsed * 0.37) * 0.02 * a;
+  }
+  camera.lookAt(cam.look);
+
+  // jetonlar
+  for (let k = coins.length - 1; k >= 0; k--) {
+    const c = coins[k]; c.t += rawDt; const u = clamp(c.t / c.dur, 0, 1);
+    const pre = c.slot.clone().addScaledVector(c.normal, 0.05);
+    if (u < 0.78) {
+      const v = easeInOut(u / 0.78);
+      c.mesh.position.lerpVectors(c.start, pre, v); c.mesh.position.y += Math.sin(Math.PI * v) * 0.16;
+      c.mesh.rotation.set(0, (1 - v) * Math.PI * 6, Math.PI / 2);
+    } else {
+      const v = (u - 0.78) / 0.22;
+      c.mesh.position.lerpVectors(pre, c.slot.clone().addScaledVector(c.normal, -0.03), v);
+      c.mesh.rotation.set(0, 0, Math.PI / 2);
+    }
+    if (u >= 1) { scene.remove(c.mesh); c.mesh.geometry.dispose(); coins.splice(k, 1); coinEntered(c.m); }
+  }
+
+  // makineler
+  screenAcc += dt;
+  const redraw = screenAcc >= 0.04;
+  for (const m of machines) {
+    m.modeT += dt;
+    const hov = (ui.hover === m.i && !ui.hoverDoor) || cam.focus === m.i;
+    const target = hov ? 1.35 : 0.92;
+    const cur = m.marqMat.color.r; m.marqMat.color.setScalar(lerp(cur, target + Math.sin(elapsed * 7 + m.i) * 0.015, 1 - Math.exp(-dt * 8)));
+    m.mGlow.material.opacity = lerp(m.mGlow.material.opacity, (hov ? 0.85 : 0.42) * (cam.focus === m.i ? 0.6 : 1), 1 - Math.exp(-dt * 8));
+    m.light.intensity = 0.7 + Math.sin(elapsed * 9 + m.i * 2) * 0.06 + Math.random() * 0.04;
+    const near = clamp((camera.position.distanceTo(m.group.position) - 1.6) / 1.6, 0.12, 1);
+    m.sGlow.material.opacity = (0.26 + Math.sin(elapsed * 11 + m.i) * 0.03) * near;
+    if (m.blink > 0) {
+      m.blink -= dt; const on = (m.blink * 10 | 0) % 2 === 0;
+      m.lamps.forEach((l) => { l.mat.color.set(on ? 0xff6a6a : 0x400808); l.glow.material.opacity = on ? 1 : 0.05; });
+      if (m.blink <= 0) m.lamps.forEach((l) => { l.mat.color.set(0xff2a2a); l.glow.material.opacity = 0.6; });
+    }
+    if (m.noteFall && m.noteFall.t < m.noteFall.dur) {
+      const nf = m.noteFall; nf.t += rawDt; const u = clamp(nf.t / nf.dur, 0, 1);
+      m.note.position.lerpVectors(nf.from, nf.to, u * u);
+      m.note.position.x += Math.sin(u * Math.PI * 3) * 0.08 * (1 - u);
+      m.note.position.z += Math.sin(u * Math.PI) * 0.25;
+      m.note.quaternion.slerpQuaternions(nf.fromQ, nf.toQ, easeOut(u));
+    }
+    if (cam.focus === m.i && m.stick) m.stick.position.x = CTRL.stick[0] + Math.sin(elapsed * 3) * 0.003;
+    if (redraw) { drawScreen(m, elapsed, screenAcc); m.sTex.needsUpdate = true; }
+  }
+  if (redraw) screenAcc = 0;
+
+  // neon titremesi
+  const flick = Math.random() < 0.012 ? 0.55 : 1;
+  room.pink.intensity = 1.4 * flick;
+  room.neon[0].opacity = flick; room.neon[1].material.opacity = 0.35 * flick;
+  const s = room.secret;
+  if (s.on && s.t < 2) {
+    s.t += dt; const on = s.t > 1.6 || Math.random() < s.t / 1.8 ? 1 : 0.1;
+    s.sec.material.opacity = on; s.secGlow.material.opacity = 0.45 * on; s.secLight.intensity = 1.6 * on;
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+/* ─────────────────────────── başlat ─────────────────────────── */
+(async function boot() {
+  const g = mkCanvas(160, 160);
+  const gi = g[1].createImageData(160, 160);
+  for (let i = 0; i < gi.data.length; i += 4) { const v = Math.random() * 255; gi.data[i] = gi.data[i + 1] = gi.data[i + 2] = v; gi.data[i + 3] = 255; }
+  g[1].putImageData(gi, 0, 0);
+  $("#grain").style.backgroundImage = `url(${g[0].toDataURL()})`;
+
+  try {
+    await Promise.race([
+      Promise.all(['80px Bungee', '8px "Press Start 2P"', '40px "Permanent Marker"', '600 20px "Chakra Petch"', '700 22px "Chakra Petch"', '16px Karla'].map((f) => document.fonts.load(f, "AĞİŞÖÜÇ ağışöüç 0123"))),
+      new Promise((r) => setTimeout(r, 3500)),
+    ]);
+  } catch (e) { /* font yüklenemezse yedek fontlarla devam */ }
+
+  try {
+    buildShared();
+    const n = PROJECTS.length;
+    ROW_HALF = ((n - 1) / 2) * SPACING;
+    PROJECTS.forEach((p, i) => buildMachine(p, i, n));
+    ROOM_X = buildRoom(ROW_HALF);
+  } catch (e) {
+    console.error(e);
+    fail("Salon kurulurken bir hata oluştu: " + e.message);
+    return;
+  }
+
+  layout();
+  // açılış: kamera salonun dışından, yukarıdan başlar
+  const away = cam.overview.pos.clone().sub(cam.overview.look).normalize();
+  cam.pos.copy(cam.overview.pos).addScaledVector(away, 7).add(new V3(1.5, 1.6, 0));
+  cam.pos.z = Math.min(cam.pos.z, 10.5); cam.pos.x = clamp(cam.pos.x, -ROOM_X + 0.3, ROOM_X - 0.3);
+  cam.look.copy(cam.overview.look).add(new V3(0, 0.8, 0));
+  window.addEventListener("resize", layout);
+  requestAnimationFrame(frame);
+  setTimeout(() => { $("#boot").classList.add("out"); $("#okBtn").focus(); }, 250);
+})();
+</script>
 </body>
-
 </html>
