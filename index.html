@@ -169,6 +169,13 @@ button { font: inherit; color: inherit; }
 #error p { color: var(--muted); max-width: 440px; line-height: 1.6; margin: 0 auto 16px; }
 #error a { color: var(--amber); }
 
+/* Fareyle bakış (imleç kilitliyken) nişangâhı */
+#crosshair { position: fixed; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; z-index: 9; pointer-events: none; display: none; }
+#crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(255,255,255,.85); box-shadow: 0 0 4px rgba(0,0,0,.8); }
+#crosshair::before { left: 6px; top: 0; width: 2px; height: 14px; }
+#crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
+body.locked #crosshair { display: block; }
+
 /* Oyun makinesi: üst çubuk ve dokunmatik kumanda */
 #gameBar { left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 12px; align-items: center; transition: opacity .3s; }
 #gameHint { font: 600 12px "Chakra Petch", sans-serif; letter-spacing: .06em; color: var(--muted); background: rgba(10,10,18,.86); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; white-space: nowrap; }
@@ -231,6 +238,7 @@ body.touch #help { bottom: calc(196px + var(--safe-b)); }
 </div>
 
 <div id="hoverLabel" class="hud"></div>
+<div id="crosshair" aria-hidden="true"></div>
 <div id="help" class="hud hidden"></div>
 <div id="stick" class="hud hidden" aria-hidden="true"><i></i></div>
 <nav id="chips" class="hud hidden" aria-label="Makineler"></nav>
@@ -3185,8 +3193,13 @@ PROJECTS.forEach((p, i) => {
 });
 $("#ctlText").innerHTML = isTouch
   ? "Sol çubuk: yürü · Ekranı sürükle: etrafa bak · Makineye dokun: yaklaş · Altın buton: jeton at"
-  : "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · Sürükle: etrafa bak · Tıkla: makineye geç · <kbd>←</kbd><kbd>→</kbd> makine · <kbd>Enter</kbd> jeton at · <kbd>Esc</kbd> geri";
-$("#help").innerHTML = isTouch ? "Çubuk: yürü · sürükle: bak · dokun: yaklaş" : "<kbd>WASD</kbd> yürü · sürükle: bak · tıkla: yaklaş · <kbd>←</kbd><kbd>→</kbd> makine";
+  : "<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> yürü · Boşluğa tıkla: fareyle bak (GTA gibi) · Makineye tıkla: yaklaş · <kbd>←</kbd><kbd>→</kbd> makine · <kbd>Enter</kbd> jeton at · <kbd>Esc</kbd> geri";
+function updateHelp() {
+  $("#help").innerHTML = isTouch ? "Çubuk: yürü · sürükle: bak · dokun: yaklaş"
+    : document.pointerLockElement ? "<kbd>WASD</kbd> yürü · fare: bak · tıkla: seç · <kbd>Esc</kbd> imleci bırak"
+    : "<kbd>WASD</kbd> yürü · boşluğa tıkla: fareyle bak · makineye tıkla: yaklaş · <kbd>←</kbd><kbd>→</kbd> makine";
+}
+updateHelp();
 
 const SVG_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>';
 const SVG_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
@@ -3269,6 +3282,7 @@ function refocus() { if (cam.mode === "focus" && cam.focus >= 0) { const f = foc
 /* ─────────────────────────── akışlar ─────────────────────────── */
 function focusMachine(i) {
   if (ui.busy || cam.mode === "paper" || cam.mode === "intro") return;
+  if (document.pointerLockElement) document.exitPointerLock();
   i = (i + machines.length) % machines.length;
   if (cam.focus >= 0 && cam.focus !== i) machines[cam.focus].mode = "attract";
   if (ui.panelOpen) { $("#panel").classList.remove("show"); $("#secret").classList.remove("show"); $("#focusBar").classList.remove("panelOpen"); ui.panelOpen = ui.secretOpen = false; }
@@ -3374,43 +3388,67 @@ function pick3D(cx, cy) {
   return { i: h[0].object.userData.machine, door: false };
 }
 const cv = renderer.domElement;
-cv.addEventListener("pointerdown", (e) => {
-  if (e.pointerType === "mouse" && e.button !== 0) return;
-  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false };
-  cv.setPointerCapture(e.pointerId);
-});
-cv.addEventListener("pointermove", (e) => {
-  if (drag && drag.id === e.pointerId) {
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
-    if (drag.moved && cam.mode === "walk" && !cam.tween) {
-      const k = isTouch ? 0.006 : 0.004;
-      cam.yaw -= dx * k; cam.pitch = clamp(cam.pitch - dy * k * 0.8, -0.7, 0.55); cam.idle = 0;
-    }
-    drag.x = e.clientX; drag.y = e.clientY;
-    return;
-  }
-  if (e.pointerType !== "mouse" || cam.mode === "paper" || cam.mode === "intro") return;
-  const h = pick3D(e.clientX, e.clientY);
+// Fareyle bakış GTA gibi: masaüstünde salona bir kez tıklayınca imleç kilitlenir, fare bakışı
+// doğrudan döndürür (sağa = sağa), tıklama nişangâhın gösterdiği şeyi seçer, Esc imleci bırakır.
+// Dokunmatikte ve kilit yokken sürükleyerek bakılır (yine sağa sürükle = sağa bak).
+const LOOK_K = 0.0024;
+const mouseLocked = () => document.pointerLockElement === cv;
+function lookBy(dx, dy) { cam.yaw += dx; cam.pitch = clamp(cam.pitch - dy, -0.7, 0.55); cam.idle = 0; }
+function hoverAt(cx, cy) {
+  const h = pick3D(cx, cy);
   if (h && h.badge) { setHover(-1); setBadgeHover(h.badge); return; }
   setBadgeHover(null);
   if (h && cam.mode === "focus" && h.i === cam.focus && !h.door) setHover(-1);
   else setHover(h ? h.i : -1, h ? h.door : false);
+}
+function activateAt(cx, cy) {
+  Sound.init();
+  const h = pick3D(cx, cy);
+  if (!h) return;
+  if (h.badge && h.badge.jukebox) { Jukebox.toggle(); return; }
+  if (h.badge) { Sound.blip(); if (mouseLocked()) document.exitPointerLock(); window.open(badgeUrl(h.badge), "_blank", "noopener"); return; }
+  if (h.door) insertCoin();
+  else if (cam.mode !== "focus" || h.i !== cam.focus) focusMachine(h.i);
+}
+const center = () => [window.innerWidth / 2, window.innerHeight / 2];
+document.addEventListener("pointerlockchange", () => {
+  const on = mouseLocked();
+  document.body.classList.toggle("locked", on);
+  if (!on) { setHover(-1); setBadgeHover(null); }
+  updateHelp();
+});
+cv.addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  if (mouseLocked()) return; // kilitliyken tıklama pointerup'ta işlenir
+  drag = { id: e.pointerId, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false };
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener("pointermove", (e) => {
+  if (mouseLocked()) {
+    if (cam.mode === "walk" && !cam.tween) lookBy(e.movementX * LOOK_K, e.movementY * LOOK_K);
+    return;
+  }
+  if (drag && drag.id === e.pointerId) {
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
+    if (drag.moved && cam.mode === "walk" && !cam.tween) { const k = isTouch ? 0.006 : 0.004; lookBy(dx * k, dy * k * 0.8); }
+    drag.x = e.clientX; drag.y = e.clientY;
+    return;
+  }
+  if (e.pointerType !== "mouse" || cam.mode === "paper" || cam.mode === "intro") return;
+  hoverAt(e.clientX, e.clientY);
 });
 cv.addEventListener("pointerup", (e) => {
+  if (mouseLocked()) { if (e.button === 0 && cam.mode === "walk" && !cam.tween) activateAt(...center()); return; }
   if (!drag || drag.id !== e.pointerId) return;
   const wasDrag = drag.moved; drag = null;
   if (wasDrag || cam.mode === "paper" || cam.mode === "intro" || arcadeActive()) return;
-  Sound.init();
-  const h = pick3D(e.clientX, e.clientY);
-  if (!h) return;
-  if (h.badge && h.badge.jukebox) { Jukebox.toggle(); return; }
-  if (h.badge) { Sound.blip(); window.open(badgeUrl(h.badge), "_blank", "noopener"); return; }
-  if (h.door) insertCoin();
-  else if (cam.mode !== "focus" || h.i !== cam.focus) focusMachine(h.i);
+  // masaüstünde salonda boşluğa tıklamak fareyle bakışı açar
+  if (!isTouch && cam.mode === "walk" && !pick3D(e.clientX, e.clientY) && cv.requestPointerLock) { cv.requestPointerLock(); return; }
+  activateAt(e.clientX, e.clientY);
 });
 cv.addEventListener("pointercancel", () => (drag = null));
-cv.addEventListener("pointerleave", () => { if (!drag) { setHover(-1); setBadgeHover(null); } });
+cv.addEventListener("pointerleave", () => { if (!drag && !mouseLocked()) { setHover(-1); setBadgeHover(null); } });
 cv.addEventListener("wheel", (e) => {
   if (cam.mode !== "walk" || cam.tween) return;
   e.preventDefault();
@@ -3561,6 +3599,8 @@ function frame() {
     }
     if (u >= 1) { scene.remove(c.mesh); c.mesh.geometry.dispose(); coins.splice(k, 1); coinEntered(c.m); }
   }
+
+  if (mouseLocked() && cam.mode === "walk" && ((elapsed * 12) | 0) !== ((elapsed - dt) * 12 | 0)) hoverAt(...center());
 
   // oyun makinesi: girdiyi işle (her kare)
   if (arcadeActive()) machines[cam.focus].game.update(dt);
