@@ -2107,15 +2107,908 @@ function BugGame() {
   return g;
 }
 
+/* ── Gece Sürüşü (yarış) ── */
+/* ── Gece Sürüşü ── */
+// Yukarıdan görünüşlü gece yarışı: yol aşağı akar, trafikten kaç, yakıt topla
+const RACE_PY = 160, RACE_TOP = 22, RACE_LANES = [-0.62, 0, 0.62];
+function RaceGame() {
+  const PY = RACE_PY, TOP = RACE_TOP, LANES = RACE_LANES;
+  const g = { over: false, hint: "← → direksiyon · ↑ gaz · ↓ fren · Esc menü" };
+  const mk = (col, w, h, truck) => ({ col, dark: shade(col, 0.5), light: shade(col, 1.4), w, h, truck: !!truck });
+  const TYPES = [mk("#18e0ff", 10, 16), mk("#3dff7a", 10, 16), mk("#b26bff", 10, 15), mk("#ff8a3d", 10, 17), mk("#3f7bff", 11, 17)];
+  const TRUCK = mk("#ffd23f", 14, 30, true), PLAYER = mk("#ff3fa4", 10, 16);
+  const ASPH = "#15151f", KERB_W = "#d8d8e8", KERB_R = "#ff4d6d", EDGE = "#18e0ff", DASH = "#8a8aa8";
+  const GRASS = "#06120c", GRASS2 = "#0a1a12";
+  const CONE = hexA("#ffd23f", 0.06), POOL = hexA("#ffd23f", 0.045), TAIL = hexA("#ff4d6d", 0.35);
+  const NEON = ["#ff3fa4", "#18e0ff", "#3dff7a", "#ffd23f"], NEON_GLOW = NEON.map((c) => hexA(c, 0.16));
+  const SPARK = ["#ffd23f", "#ff4d6d", "#ffffff", "#ff8a3d"];
+
+  // yol: mesafeye göre merkez ve yarı genişlik (yavaşça kıvrılır, yer yer daralır)
+  let rc = 128, rh = 58;
+  function road(z) {
+    const k = Math.min(1, 0.25 + z / 16000);
+    rc = 128 + k * (34 * Math.sin(z * 0.0024) + 12 * Math.sin(z * 0.0059 + 2));
+    const n = Math.max(0, Math.sin(z * 0.0008 - 1.5));
+    rh = 58 - 16 * n * n * Math.min(1, z / 8000);
+  }
+
+  let dist, spd, px, vx, fuel, bonus, stage, state, readyT, lastN, goT, crashT, invT, shakeT, flashT, bannerT, outT, engT, warnT;
+  let nextCar, nextFuel, nextCoin, nextDecor, hi;
+  const cars = [], items = [], decor = [];
+  const parts = Array.from({ length: 16 }, () => ({ x: 0, y: 0, vx: 0, vy: 0, l: 0, c: "" }));
+  const pops = Array.from({ length: 4 }, () => ({ x: 0, y: 0, l: 0, s: "", c: "" }));
+  const score = () => Math.floor(dist / 10) + bonus;
+
+  function reset() {
+    dist = 0; spd = 0; vx = 0; fuel = 100; bonus = 0; stage = 1; state = 0; readyT = 3; lastN = 4; goT = 0;
+    crashT = 0; invT = 0; shakeT = 0; flashT = 0; bannerT = 0; outT = 0; engT = 0; warnT = 0;
+    nextCar = 120; nextFuel = 700; nextCoin = 400; nextDecor = -80;
+    cars.length = 0; items.length = 0; decor.length = 0;
+    for (const p of parts) p.l = 0;
+    for (const p of pops) p.l = 0;
+    road(8); px = rc;
+    hi = hiGet("yaris"); g.over = false;
+    updDecor();
+  }
+  function popup(s, c, x, y) {
+    let p = pops[0];
+    for (const q of pops) if (q.l < p.l) p = q;
+    p.s = s; p.c = c; p.x = x; p.y = y; p.l = 0.9;
+  }
+  function updDecor() {
+    while (nextDecor < dist + PY + 40) {
+      const r = Math.random();
+      decor.push({ z: nextDecor, side: Math.random() < 0.5 ? -1 : 1, type: r < 0.4 ? 0 : r < 0.7 ? 1 : r < 0.88 ? 2 : 3, off: rand(10, 30), c: (Math.random() * 4) | 0 });
+      nextDecor += rand(20, 40);
+    }
+    while (decor.length && decor[0].z < dist - (ARC_H - PY) - 40) decor.shift();
+  }
+  const laneFree = (f, z, gap) => {
+    for (const c of cars) if ((Math.abs(c.f - f) < 0.35 || Math.abs(c.tf - f) < 0.35) && Math.abs(c.z - z) < gap) return false;
+    return true;
+  };
+  function spawnCar() {
+    const ty = Math.random() < 0.1 + stage * 0.02 ? TRUCK : pick(TYPES);
+    const z = dist + PY - TOP + ty.h + 6;
+    let near = 0;
+    for (const c of cars) if (Math.abs(c.z - z) < 70) near++;
+    if (near >= 2) return; // en az bir şerit hep açık
+    const lane = (Math.random() * 3) | 0, f = LANES[lane];
+    if (!laneFree(f, z, 64)) return;
+    const v = ty.truck ? 55 + stage * 4 : rand(75, 120) + stage * 6;
+    cars.push({ z, f, tf: f, v, ty, sw: !ty.truck && Math.random() < 0.25 + stage * 0.05 ? rand(0.8, 2.5) : -1, sx: 0, sy: -40 });
+  }
+  function spawnItem(kind) {
+    const z = dist + PY - TOP + 12, s = (Math.random() * 3) | 0;
+    for (let i = 0; i < 3; i++) {
+      const f = LANES[(s + i) % 3];
+      if (laneFree(f, z, 40)) { items.push({ z, f, kind }); return; }
+    }
+  }
+  function crash(side) {
+    crashT = 0.9; invT = 1.9; spd *= 0.3; shakeT = 0.35; flashT = 0.12; vx = side * 110;
+    for (const p of parts) { p.x = px; p.y = PY + 8; p.vx = rand(-70, 70); p.vy = rand(-90, 30); p.l = rand(0.3, 0.7); p.c = pick(SPARK); }
+    Sound.noise(0, 0.5, 0.14, 700, 0.7, "lowpass", 120);
+    Sound.tone(320, 0, 0.45, "square", 0.04, 60);
+  }
+
+  reset();
+  g.update = (dt) => {
+    if (g.over) { if (hit("a") || hit("start")) reset(); return; }
+    flashT -= dt; shakeT -= dt; bannerT -= dt; goT -= dt;
+    if (state === 0) { // HAZIR? 3-2-1
+      readyT -= dt;
+      const n = Math.ceil(readyT);
+      if (n !== lastN && n > 0) { lastN = n; Sound.tone(440, 0, 0.12, "square", 0.05); }
+      if (readyT <= 0) { state = 1; goT = 0.8; Sound.tone(880, 0, 0.35, "square", 0.05); }
+      return;
+    }
+    crashT -= dt; invT -= dt;
+    const ctl = state === 1 && crashT <= 0;
+    road(dist + 8);
+    const off = Math.abs(px - rc) > rh + 2;
+    const maxS = Math.min(205, 172 + stage * 6);
+    if (ctl && pad.up) spd += 120 * (1 - 0.55 * spd / maxS) * dt;
+    else if (ctl && pad.down) spd -= 230 * dt;
+    else spd -= 22 * dt;
+    if (state === 2) spd -= 90 * dt;
+    if (off && spd > 60) spd -= 260 * dt; // çimde ağır yavaşlama
+    spd = clamp(spd, 0, maxS);
+    // direksiyon: ataletli yanal hız
+    const dir = ctl ? (pad.left ? -1 : 0) + (pad.right ? 1 : 0) : 0;
+    if (dir) vx += dir * 520 * dt;
+    vx -= vx * Math.min(1, (dir ? 3 : 7) * dt);
+    vx = clamp(vx, -120, 120);
+    px += vx * (crashT > 0 ? 1 : Math.min(1, 0.25 + spd / 90)) * dt;
+    px = clamp(px, Math.max(6, rc - rh - 34), Math.min(250, rc + rh + 34));
+    dist += spd * dt;
+
+    const st = 1 + Math.floor(dist / 4000);
+    if (st > stage) { stage = st; bannerT = 2.4; fuel = Math.min(100, fuel + 15); bonus += 1000; Sound.fanfare(); }
+    if (state === 1) {
+      fuel -= (2.1 + stage * 0.25) * dt;
+      if (fuel < 20) { warnT -= dt; if (warnT <= 0) { warnT = 0.7; Sound.tone(1200, 0, 0.06, "square", 0.03); } }
+      if (fuel <= 0) { fuel = 0; state = 2; outT = 1.6; Sound.fall(); }
+    } else if (state === 2) {
+      outT -= dt;
+      if (outT <= 0) { g.over = true; hiSet("yaris", score()); hi = Math.max(hi, score()); return; }
+    }
+    engT -= dt;
+    if (engT <= 0) { engT = 0.13; if (state === 1) Sound.tone(48 + spd * 0.55, 0, 0.12, "sawtooth", off ? 0.02 : 0.012); }
+
+    if (state === 1) {
+      if (dist >= nextCar) { spawnCar(); nextCar = dist + rand(0.7, 1.3) * Math.max(55, 170 - stage * 18); }
+      if (dist >= nextFuel) { spawnItem(0); nextFuel = dist + rand(900, 1300) + stage * 80; }
+      if (dist >= nextCoin) { spawnItem(1); nextCoin = dist + rand(500, 900); }
+    }
+    updDecor();
+
+    // trafik
+    for (const a of cars) for (const b of cars) // öndeki yavaş araca yetişen yavaşlar
+      if (a !== b && b.z > a.z && Math.abs(a.f - b.f) < 0.35 && b.z - b.ty.h - a.z < 12 && a.v > b.v) a.v = b.v;
+    for (let i = cars.length - 1; i >= 0; i--) {
+      const c = cars[i], T = c.ty;
+      c.z += c.v * dt;
+      if (c.f !== c.tf) { const s = 0.38 * dt; c.f = Math.abs(c.tf - c.f) <= s ? c.tf : c.f + Math.sign(c.tf - c.f) * s; }
+      else if (c.sw > 0) {
+        c.sw -= dt;
+        if (c.sw <= 0) {
+          c.sw = rand(2, 4);
+          const li = LANES.indexOf(c.f), nl = li === 0 ? 1 : li === 2 ? 1 : Math.random() < 0.5 ? 0 : 2;
+          if (c.sy < PY - 50 && laneFree(LANES[nl], c.z, 50)) c.tf = LANES[nl];
+        }
+      }
+      road(c.z - T.h / 2);
+      c.sx = rc + c.f * rh; c.sy = PY - (c.z - dist);
+      if (c.sy > ARC_H + 30 || c.sy < -160) { cars.splice(i, 1); continue; }
+      if (state !== 0 && crashT <= 0 && invT <= 0 && Math.abs(c.sx - px) < (T.w + 10) / 2 - 1 && c.sy + T.h - 1 > PY && c.sy + 1 < PY + 16) {
+        crash(px < c.sx ? -1 : 1); c.v += 25; c.z += 4;
+      }
+    }
+    // toplanacaklar
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      road(it.z); const ix = rc + it.f * rh, iy = PY - (it.z - dist);
+      if (iy > ARC_H + 10) { items.splice(i, 1); continue; }
+      if (Math.abs(ix - px) < 9 && iy + 8 > PY && iy < PY + 16 && crashT <= 0) {
+        items.splice(i, 1);
+        if (it.kind === 0) { fuel = Math.min(100, fuel + 20); bonus += 100; popup("+YAKIT", "#3dff7a", ix, iy); Sound.tone(660, 0, 0.08, "square", 0.04); Sound.tone(990, 0.07, 0.12, "square", 0.04); }
+        else { bonus += 500; popup("+500", "#ffd23f", ix, iy); Sound.tone(1319, 0, 0.06, "square", 0.04); Sound.tone(1760, 0.06, 0.14, "square", 0.04); }
+      }
+    }
+    for (const p of parts) if (p.l > 0) { p.l -= dt; p.x += p.vx * dt; p.y += (p.vy + spd) * dt; p.vy += 200 * dt; }
+    for (const p of pops) if (p.l > 0) { p.l -= dt; p.y -= 24 * dt; }
+  };
+
+  // araba: birkaç dikdörtgen (sprite yerine, çağrı sayısı düşük kalsın)
+  function car(x, T, lx, ly, me) {
+    const w = T.w, h = T.h;
+    x.fillStyle = "#020205";
+    x.fillRect(lx - 1, ly + 2, w + 2, 4); x.fillRect(lx - 1, ly + h - 6, w + 2, 4);
+    if (T.truck) {
+      x.fillRect(lx - 1, ly + h - 12, w + 2, 4);
+      x.fillStyle = T.col; x.fillRect(lx + 1, ly, w - 2, 8);
+      x.fillStyle = "#0a0a18"; x.fillRect(lx + 2, ly + 2, w - 4, 3);
+      x.fillStyle = "#3a3a5a"; x.fillRect(lx, ly + 9, w, h - 9);
+      x.fillStyle = "#55557a"; x.fillRect(lx + 1, ly + 10, w - 2, h - 12);
+      x.fillStyle = T.col; x.fillRect(lx + 1, ly + 18, w - 2, 2);
+    } else {
+      x.fillStyle = T.col; x.fillRect(lx, ly, w, h);
+      x.fillStyle = T.dark; x.fillRect(lx + w - 1, ly + 1, 1, h - 2);
+      x.fillStyle = "#0a0a18"; x.fillRect(lx + 1, ly + 3, w - 2, 3); x.fillRect(lx + 1, ly + h - 5, w - 2, 2);
+      x.fillStyle = T.light; x.fillRect(lx + 2, ly + 6, w - 4, h - 11);
+    }
+    x.fillStyle = me ? "#fff3b0" : "#ffffff"; x.fillRect(lx + 1, ly, 2, 1); x.fillRect(lx + w - 3, ly, 2, 1);
+    x.fillStyle = "#ff2040"; x.fillRect(lx + 1, ly + h - 1, 2, 1); x.fillRect(lx + w - 3, ly + h - 1, 2, 1);
+  }
+
+  g.draw = (x, t) => {
+    x.fillStyle = GRASS; x.fillRect(0, 0, ARC_W, ARC_H);
+    x.save();
+    if (shakeT > 0) x.translate(((t * 60) | 0) % 3 - 1, ((t * 47) | 0) % 3 - 1);
+    const zLo = dist - (ARC_H - PY) - 16, zHi = dist + PY - TOP + 16;
+    x.fillStyle = GRASS2;
+    for (let s = Math.floor(zLo / 64); s * 64 < zHi; s++) x.fillRect(0, (PY - (s * 64 + 32 - dist)) | 0, ARC_W, 32);
+    for (let s = Math.floor(zLo / 8); s * 8 < zHi; s++) { // kırmızı/beyaz bordür (dünyaya sabit, akıcı kayar)
+      const z = s * 8; road(z + 4);
+      const y = (PY - (z + 8 - dist)) | 0;
+      x.fillStyle = s & 1 ? KERB_W : KERB_R;
+      x.fillRect(((rc - rh) | 0) - 5, y, 6, 8); x.fillRect(((rc + rh) | 0) - 1, y, 6, 8);
+    }
+    for (let y = TOP; y < ARC_H; y += 4) { // yol bantları
+      road(dist + PY - y - 2);
+      const l = (rc - rh) | 0, r = (rc + rh) | 0;
+      x.fillStyle = EDGE; x.fillRect(l - 1, y, r - l + 2, 4);
+      x.fillStyle = ASPH; x.fillRect(l, y, r - l, 4);
+    }
+    x.fillStyle = DASH;
+    for (let s = Math.floor(zLo / 32); s * 32 < zHi; s++) {
+      const z = s * 32; road(z + 8);
+      const y = (PY - (z + 16 - dist)) | 0;
+      x.fillRect((rc - rh * 0.31) | 0, y, 2, 14); x.fillRect(((rc + rh * 0.31) | 0) - 1, y, 2, 14);
+    }
+    // yol kenarı: ağaç, sokak lambası, neon tabela, çalı
+    for (const d of decor) {
+      road(d.z);
+      const bx = (d.side < 0 ? rc - rh - 5 - d.off : rc + rh + 5 + d.off) | 0, y = (PY - (d.z - dist)) | 0;
+      if (bx < -12 || bx > ARC_W + 12 || y < TOP - 4 || y > ARC_H + 20) continue;
+      if (d.type === 0) {
+        x.fillStyle = "#3a2618"; x.fillRect(bx - 1, y - 3, 2, 3);
+        x.fillStyle = "#0f3a22"; x.fillRect(bx - 5, y - 10, 10, 7); x.fillRect(bx - 3, y - 13, 6, 3);
+        x.fillStyle = "#1d5a34"; x.fillRect(bx - 3, y - 9, 3, 3);
+      } else if (d.type === 1) {
+        const lx = d.side < 0 ? bx + 5 : bx - 5;
+        x.fillStyle = POOL; x.fillRect(lx - 11, y - 19, 22, 14); x.fillRect(lx - 6, y - 16, 12, 8);
+        x.fillStyle = "#55557a"; x.fillRect(bx, y - 14, 1, 14); x.fillRect(Math.min(bx, lx), y - 14, 6, 1);
+        x.fillStyle = "#ffd23f"; x.fillRect(lx - 1, y - 13, 3, 1);
+      } else if (d.type === 2) {
+        const col = NEON[d.c];
+        x.fillStyle = NEON_GLOW[d.c]; x.fillRect(bx - 10, y - 18, 20, 14);
+        x.fillStyle = "#55557a"; x.fillRect(bx, y - 6, 1, 6);
+        x.fillStyle = col; x.fillRect(bx - 8, y - 16, 16, 10);
+        x.fillStyle = "#0a0a14"; x.fillRect(bx - 7, y - 15, 14, 8);
+        if (((t * 2.5 + d.c) | 0) % 3) { x.fillStyle = col; x.fillRect(bx - 5, y - 13, 2, 4); x.fillRect(bx - 1, y - 13, 2, 4); x.fillRect(bx + 3, y - 13, 2, 4); }
+      } else {
+        x.fillStyle = "#123a24"; x.fillRect(bx - 3, y - 4, 7, 4); x.fillRect(bx - 2, y - 5, 4, 1);
+      }
+    }
+    for (const it of items) {
+      road(it.z);
+      const ix = (rc + it.f * rh) | 0, iy = (PY - (it.z - dist)) | 0;
+      if (it.kind === 0) {
+        x.fillStyle = hexA("#3dff7a", 0.12 + 0.1 * Math.sin(t * 8)); x.fillRect(ix - 6, iy - 2, 13, 13);
+        x.fillStyle = "#ff4d6d"; x.fillRect(ix - 3, iy + 1, 7, 8);
+        x.fillStyle = "#ffd23f"; x.fillRect(ix - 2, iy, 3, 1); x.fillRect(ix - 1, iy + 3, 3, 3);
+      } else {
+        const w = 1 + ((Math.abs(Math.sin(t * 6)) * 6) | 0);
+        x.fillStyle = "#ffd23f"; x.fillRect(ix - (w >> 1), iy, w, 7);
+        x.fillStyle = "#ffffff"; x.fillRect(ix - (w >> 1), iy + 1, 1, 3);
+      }
+    }
+    for (const c of cars) {
+      const T = c.ty, lx = (c.sx - T.w / 2) | 0, ly = c.sy | 0;
+      if (ly > ARC_H || ly + T.h < TOP) continue;
+      x.fillStyle = TAIL; x.fillRect(lx, ly + T.h, T.w, 3);
+      car(x, T, lx, ly, false);
+      if (c.f !== c.tf && ((t * 6) | 0) % 2) { x.fillStyle = "#ff8a3d"; x.fillRect(c.tf < c.f ? lx - 2 : lx + T.w + 1, ly + 1, 1, 2); }
+    }
+    // oyuncu
+    const pxi = px | 0;
+    if (crashT > 0) {
+      x.save(); x.translate(pxi, PY + 8); x.rotate((((crashT * 14) | 0) % 4) * Math.PI / 2);
+      car(x, PLAYER, -5, -8, true); x.restore();
+    } else if (invT <= 0 || ((t * 16) | 0) % 2) {
+      if (state !== 2 || outT > 1) {
+        x.fillStyle = CONE;
+        for (let i = 0; i < 8; i++) x.fillRect(pxi - 4 - i, PY - 6 - i * 6, 8 + i * 2, 6);
+      }
+      car(x, PLAYER, pxi - 5, PY, true);
+    }
+    for (const p of parts) if (p.l > 0) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, 2, 2); }
+    for (const p of pops) if (p.l > 0) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    x.restore();
+    if (flashT > 0) { x.fillStyle = "rgba(255,255,255,.5)"; x.fillRect(0, 0, ARC_W, ARC_H); }
+
+    // HUD
+    const sc = score();
+    x.fillStyle = "#05050c"; x.fillRect(0, 0, ARC_W, TOP);
+    x.fillStyle = "#ff3fa4"; x.fillRect(0, TOP - 1, ARC_W, 1);
+    pxText(x, "SKOR", 4, 2, "#8a8aa8"); pxText(x, pad6(sc), 40, 2, "#ffffff");
+    pxText(x, (dist / 1000).toFixed(1) + "KM", 122, 3, "#18e0ff", 6, "center");
+    pxText(x, "REKOR " + pad6(Math.max(hi, sc)), 252, 2, "#ffd23f", 8, "right");
+    pxText(x, "HIZ", 4, 12, "#8a8aa8"); pxText(x, String((spd * 1.2) | 0).padStart(3, "0"), 32, 12, "#ffffff");
+    pxText(x, "KM/S", 58, 14, "#8a8aa8", 6);
+    pxText(x, "YAKIT", 120, 12, "#8a8aa8");
+    x.fillStyle = "#2a2a55"; x.fillRect(164, 12, 88, 8);
+    x.fillStyle = "#04040a"; x.fillRect(165, 13, 86, 6);
+    if (fuel >= 20 || ((t * 4) | 0) % 2) { x.fillStyle = fuel < 20 ? "#ff4d6d" : fuel < 45 ? "#ffd23f" : "#3dff7a"; x.fillRect(165, 13, (86 * fuel / 100) | 0, 6); }
+    if (state === 1 && fuel < 20 && ((t * 3) | 0) % 2) pxText(x, "YAKIT AZ!", 128, 28, "#ff4d6d", 8, "center");
+
+    if (state === 0) {
+      x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(0, 62, ARC_W, 60);
+      pxText(x, "HAZIR?", 128, 70, "#ff3fa4", 16, "center");
+      pxText(x, String(Math.max(1, Math.ceil(readyT))), 128, 96, "#ffd23f", 16, "center");
+      pxText(x, "^ GAZ", 128, 128, "#8a8aa8", 6, "center");
+    } else if (goT > 0) {
+      pxText(x, "BAŞLA!", 128, 80, "#3dff7a", 16, "center");
+    }
+    if (bannerT > 0 && !g.over && ((t * 4) | 0) % 4) {
+      x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(0, 66, ARC_W, 40);
+      pxText(x, "BÖLGE " + stage, 128, 72, "#18e0ff", 16, "center");
+      pxText(x, "+YAKIT  +1000", 128, 93, "#ffd23f", 8, "center");
+    }
+    if (g.over) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 56, ARC_W, 80);
+      pxText(x, "YAKIT BİTTİ", 128, 64, "#ff4d6d", 16, "center");
+      pxText(x, "SKOR " + pad6(sc), 128, 88, "#fff", 8, "center");
+      pxText(x, "MESAFE " + (dist / 1000).toFixed(1) + " KM", 128, 100, "#18e0ff", 8, "center");
+      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
+    }
+  };
+  return g;
+}
+
+/* ── Bug İstilası (uzay atıcı) ── */
+/* ── Bug İstilası ── */
+// Sprite'ı yatay şeritlere çevir; tarayıcıda OffscreenCanvas'a bir kez çiz (her karede tek drawImage)
+function SHOOT_bake(rows, pal) {
+  const w = rows[0].length, h = rows.length, runs = [];
+  for (let r = 0; r < h; r++) {
+    let c = 0;
+    while (c < w) {
+      const ch = rows[r][c];
+      if (ch === ".") { c++; continue; }
+      let e = c; while (e < w && rows[r][e] === ch) e++;
+      runs.push([pal[ch], c, r, e - c]); c = e;
+    }
+  }
+  let img = null;
+  if (typeof OffscreenCanvas !== "undefined") {
+    try {
+      img = new OffscreenCanvas(w, h); const c = img.getContext("2d");
+      for (const [col, rx, ry, len] of runs) { c.fillStyle = col; c.fillRect(rx, ry, len, 1); }
+    } catch (e) { img = null; }
+  }
+  return { w, h, img, runs };
+}
+function SHOOT_put(x, s, px, py) {
+  px |= 0; py |= 0;
+  if (s.img) { x.drawImage(s.img, px, py); return; }
+  for (const [col, rx, ry, len] of s.runs) { x.fillStyle = col; x.fillRect(px + rx, py + ry, len, 1); }
+}
+
+function ShooterGame() {
+  const COLS = 8, ROWS = 5, SX = 16, SY = 13, EW = 11, EH = 8, PY = 168, PW = 13, GROUND = 179;
+  const CY = "#18e0ff", PK = "#ff3fa4", YE = "#ffd23f", GR = "#3dff7a", RD = "#ff4d6d", OR = "#ff8a3d", PU = "#b26bff";
+  // Üç böcek türü: güve (40), örümcek (20), böcek (10) — iki kare kanat/bacak animasyonu
+  const SPR_ROWS = [
+    [["....a.a....", "BB..BBB..BB", "BBB.BwB.BBB", "BBBBBBBBBBB", ".BBBBdBBBB.", "..B.BBB.B..", ".....B.....", "..........."],
+     ["....a.a....", "....BBB....", "BB..BwB..BB", "BBBBBBBBBBB", "BBBBBdBBBBB", "B.B.BBB.B.B", ".....B.....", "..........."]],
+    [["...BBBBB...", "..BwBBBwB..", "B.BBBBBBB.B", ".BBdBBBdBB.", "..BBBBBBB..", ".B.B...B.B.", "B...B.B...B", "..........."],
+     ["...BBBBB...", "..BwBBBwB..", "..BBBBBBB..", "BBBdBBBdBBB", "..BBBBBBB..", "..B.B.B.B..", ".B..B.B..B.", "..........."]],
+    [["..a.....a..", "...a...a...", "..BBBBBBB..", ".BBwBBBwBB.", "BBBBBBBBBBB", "B.BdBdBdB.B", "..B.....B..", ".B.......B."],
+     ["..a.....a..", "...a...a...", "..BBBBBBB..", ".BBwBBBwBB.", "BBBBBBBBBBB", ".BBdBdBdBB.", "B.B.....B.B", "..B.....B.."]],
+  ];
+  const TYPE_COL = [YE, PK, GR], TYPE_PTS = [40, 20, 10], ROW_TYPE = [0, 1, 1, 2, 2];
+  const SHIP_ROWS = ["......C......", ".....CCC.....", "..CCCCCCCCC..", ".CCKKKKKKKCC.", ".CCKGKGGKKCC.", ".CCKKKKKKKCC.", "CCCCCCCCCCCCC", "CC.C.....C.CC"];
+  const DISK_ROWS = ["....PPPPPP....", "..PPWWWWWWPP..", ".PPPPPPPPPPPP.", "PPKPPKPPKPPKPP", ".PPPPPPPPPPPP.", "...PP....PP..."];
+  const LIFE_ROWS = ["...C...", "..CCC..", "CCCCCCC", "C.....C"];
+  const SHIELD_MASK = ["..######..", ".########.", "##########", "##########", "###....###", "##......##"];
+  const MARCH = [98, 87, 78, 73]; // 4 notalık bas yürüyüşü
+  const g = { over: false, hint: "← → hareket · Boşluk / ↑ ateş · Esc menü" };
+  let SPR, SHIP, DISK, LIFE;
+  let score, lives, wave, en, fx, fy, dir, dropNext, stepT, noteAcc, noteI, anim, shots, ebul, shields, parts, pops;
+  let px, fireCd, deadT, invT, flashT, bannerT, diveT, shootT, ufo, ufoT, overT, time;
+  const stars = [];
+  for (let i = 0; i < 48; i++) stars.push({ x: rand(0, ARC_W), y: rand(0, ARC_H), l: (Math.random() * 3) | 0 });
+
+  const spd = () => 1 + (wave - 1) * 0.14;
+  const slotX = (e) => fx + e.c * SX, slotY = (e) => fy + e.r * SY;
+  function bake() {
+    if (SPR) return;
+    SPR = SPR_ROWS.map((fr, i) => fr.map((rows) => SHOOT_bake(rows, { B: TYPE_COL[i], d: shade(TYPE_COL[i], 0.45), w: "#ffffff", a: "#8a8aa8" })));
+    SHIP = SHOOT_bake(SHIP_ROWS, { C: CY, K: "#06202a", G: GR });
+    DISK = SHOOT_bake(DISK_ROWS, { P: PU, W: "#ffffff", K: "#2a1050" });
+    LIFE = SHOOT_bake(LIFE_ROWS, { C: CY });
+  }
+  function setupWave() {
+    en = [];
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) en.push({ r, c, t: ROW_TYPE[r], alive: true, st: 0, x: 0, y: 0, vx: 0, vy: 0, fire: 0 });
+    fx = 64; fy = 26 + Math.min(wave - 1, 5) * 4; dir = 1; dropNext = false; stepT = 0.3; noteAcc = 0; anim = 0;
+    for (const e of en) { e.x = slotX(e); e.y = slotY(e); }
+    shields = [32, 96, 160, 224].map((cx) => ({ x: cx - 10, y: 146, cells: SHIELD_MASK.join("").split("").map((ch) => (ch === "#" ? 1 : 0)) }));
+    shots = []; ebul = []; ufo = null; ufoT = rand(12, 20);
+    bannerT = 1.8; diveT = rand(2.5, 4.5); shootT = 1.2;
+  }
+  function reset() {
+    bake();
+    score = 0; lives = 3; wave = 1; noteI = 0; parts = []; pops = [];
+    px = 122; fireCd = 0; deadT = 0; invT = 0; flashT = 0; overT = 0; time = 0; g.over = false;
+    setupWave();
+  }
+  function end() { g.over = true; overT = 0; hiSet("istila", score); Sound.fall(); }
+  function burst(x0, y0, col, n, sp) {
+    for (let i = 0; i < n && parts.length < 140; i++) {
+      const a = rand(0, Math.PI * 2), v = rand(sp * 0.3, sp);
+      parts.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.3, 0.7), c: Math.random() < 0.3 ? "#ffffff" : col });
+    }
+  }
+  function killEnemy(e) {
+    e.alive = false;
+    const pts = TYPE_PTS[e.t] * (e.st ? 2 : 1);
+    score += pts;
+    if (e.st) pops.push({ x: e.x + 5, y: e.y, s: String(pts), c: YE, life: 0.8 });
+    burst(e.x + 5, e.y + 4, TYPE_COL[e.t], 10, 60);
+    Sound.noise(0, 0.12, 0.05, 2200, 1.2, "bandpass", 500);
+  }
+  function killPlayer() {
+    lives--; deadT = 1.4; flashT = 0.25; shots = [];
+    burst(px + 6, PY + 4, CY, 28, 80); burst(px + 6, PY + 4, YE, 10, 50);
+    Sound.noise(0, 0.6, 0.08, 900, 0.7, "lowpass", 120); Sound.tone(440, 0, 0.5, "sawtooth", 0.04, 60);
+  }
+  // Güvenlik duvarı: x sütununda [y0,y1] aralığındaki ilk dolu bloğu sil
+  function shieldHit(x, y0, y1, down) {
+    for (const s of shields) {
+      if (x < s.x || x >= s.x + 20 || y1 < s.y || y0 >= s.y + 12) continue;
+      const c = ((x - s.x) / 2) | 0, ra = clamp(((y0 - s.y) / 2) | 0, 0, 5), rb = clamp(((y1 - s.y) / 2) | 0, 0, 5);
+      for (let k = 0; k <= rb - ra; k++) {
+        const r = down ? ra + k : rb - k;
+        if (s.cells[r * 10 + c]) {
+          s.cells[r * 10 + c] = 0;
+          const nc = c + (Math.random() < 0.5 ? -1 : 1), nr = r + (down ? 1 : -1);
+          if (Math.random() < 0.6 && nc >= 0 && nc < 10) s.cells[r * 10 + nc] = 0;
+          if (Math.random() < 0.4 && nr >= 0 && nr < 6) s.cells[nr * 10 + c] = 0;
+          burst(s.x + c * 2 + 1, s.y + r * 2 + 1, OR, 3, 30);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  function shieldErase(x0, y0, w, h) {
+    for (const s of shields) {
+      if (x0 + w <= s.x || x0 >= s.x + 20 || y0 + h <= s.y || y0 >= s.y + 12) continue;
+      for (let i = 0; i < 60; i++) {
+        const cx = s.x + (i % 10) * 2, cy = s.y + ((i / 10) | 0) * 2;
+        if (cx + 2 > x0 && cx < x0 + w && cy + 2 > y0 && cy < y0 + h) s.cells[i] = 0;
+      }
+    }
+  }
+  function formationStep() {
+    let minC = COLS, maxC = -1;
+    for (const e of en) if (e.alive) { minC = Math.min(minC, e.c); maxC = Math.max(maxC, e.c); }
+    if (maxC < 0) return;
+    if (dropNext) { fy += 6; dir = -dir; dropNext = false; }
+    else {
+      fx += dir * 2;
+      const left = fx + minC * SX, right = fx + maxC * SX + EW;
+      if ((dir > 0 && right + 2 > ARC_W - 4) || (dir < 0 && left - 2 < 4)) dropNext = true;
+    }
+  }
+  function enemyFire(x0, y0) { ebul.push({ x: x0 | 0, y: y0, v: Math.min(120, 72 + wave * 6) }); }
+
+  reset();
+  g.update = (dt) => {
+    time += dt;
+    for (const s of stars) { s.y += (6 + s.l * 10) * dt; if (s.y > ARC_H) { s.y -= ARC_H; s.x = rand(0, ARC_W); } }
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt; }
+    parts = parts.filter((p) => p.life > 0);
+    for (const p of pops) { p.y -= 12 * dt; p.life -= dt; }
+    pops = pops.filter((p) => p.life > 0);
+    flashT = Math.max(0, flashT - dt);
+    if (g.over) { overT += dt; if (overT > 0.4 && (hit("a") || hit("start"))) reset(); return; }
+
+    // Oyuncu
+    if (deadT > 0) {
+      deadT -= dt;
+      if (deadT <= 0) { if (lives <= 0) { end(); return; } px = 122; invT = 1.6; ebul = []; }
+    } else {
+      const d = (pad.right ? 1 : 0) - (pad.left ? 1 : 0);
+      px = clamp(px + d * 95 * dt, 2, ARC_W - PW - 2);
+      fireCd -= dt; invT -= dt;
+      if ((pad.a || pad.up) && fireCd <= 0 && shots.length < 2) {
+        shots.push({ x: (px + 6) | 0, y: PY - 4 }); fireCd = 0.2;
+        Sound.tone(1200, 0, 0.07, "square", 0.025, 300);
+      }
+    }
+
+    const alive = en.filter((e) => e.alive);
+    if (bannerT > 0) bannerT -= dt;
+    else {
+      // Formasyon yürüyüşü: kalan böcek azaldıkça hızlanır
+      const interval = Math.max(0.016, 0.012 + 0.11 * (alive.length / en.length)) / spd();
+      stepT -= dt;
+      if (stepT <= 0) {
+        stepT = interval; formationStep();
+        noteAcc += interval;
+        if (noteAcc >= clamp(interval * 4, 0.14, 0.5)) { noteAcc = 0; anim ^= 1; Sound.tone(MARCH[noteI++ % 4], 0, 0.09, "square", 0.04); }
+      }
+      if (deadT <= 0) {
+        // Dalış: formasyondan kopup kavisli yolla oyuncuya süzülür
+        diveT -= dt;
+        const divers = alive.filter((e) => e.st).length;
+        if (diveT <= 0) {
+          diveT = rand(2, 4.5) / spd();
+          const cand = alive.filter((e) => !e.st);
+          if (cand.length && divers < Math.min(4, 1 + (wave >> 1))) {
+            const e = pick(cand), side = e.x < 128 ? -1 : 1;
+            e.st = 1; e.vx = side * 40; e.vy = -55; e.fire = rand(0.3, 0.8);
+            Sound.tone(600, 0, 0.25, "triangle", 0.03, 1200);
+          }
+        }
+        shootT -= dt;
+        if (shootT <= 0) {
+          shootT = rand(0.5, 1.3) / spd();
+          const col = pick(alive.filter((e) => !e.st));
+          if (col && ebul.length < Math.min(6, 2 + wave)) {
+            let low = col; for (const e of alive) if (!e.st && e.c === col.c && e.r > low.r) low = e;
+            enemyFire(low.x + 5, low.y + EH);
+          }
+        }
+        ufoT -= dt;
+        if (ufoT <= 0 && !ufo) {
+          const fromL = Math.random() < 0.5;
+          ufo = { x: fromL ? -14 : ARC_W, v: fromL ? 45 : -45 }; ufoT = rand(15, 25);
+          Sound.tone(500, 0, 0.3, "sine", 0.03, 900);
+        }
+      }
+    }
+    if (ufo) { ufo.x += ufo.v * dt; if (ufo.x < -16 || ufo.x > ARC_W + 2) ufo = null; }
+
+    // Böcek konumları
+    for (const e of alive) {
+      if (e.st === 0) { e.x = slotX(e); e.y = slotY(e); }
+      else if (e.st === 1) {
+        e.vy = Math.min(e.vy + 130 * dt, 85 * spd());
+        const tx = deadT > 0 ? e.x : px + 1;
+        e.vx = clamp(e.vx + Math.sign(tx - e.x) * 95 * dt, -70, 70);
+        e.x = clamp(e.x + e.vx * dt, 0, ARC_W - EW); e.y += e.vy * dt;
+        e.fire -= dt;
+        if (e.fire <= 0 && e.y > 30 && e.y < 125 && deadT <= 0) { enemyFire(e.x + 5, e.y + EH); e.fire = rand(0.6, 1.2); }
+        if (e.y > ARC_H + 4) { e.y = -12; e.st = 2; }
+        shieldErase(e.x, e.y, EW, EH);
+      } else {
+        const dx = slotX(e) - e.x, dy = slotY(e) - e.y, d = Math.hypot(dx, dy), v = 80 * dt;
+        if (d <= v + 0.5) { e.st = 0; e.x = slotX(e); e.y = slotY(e); } else { e.x += (dx / d) * v; e.y += (dy / d) * v; }
+      }
+      if (e.st === 0 && e.y + EH > 146) shieldErase(e.x, e.y, EW, EH);
+      if (e.st === 0 && e.y + EH >= PY && deadT <= 0 && lives > 0) { lives = 1; killPlayer(); } // istila tabana ulaştı
+    }
+
+    // Oyuncu mermileri
+    for (const s of shots) {
+      const y0 = s.y; s.y -= 190 * dt;
+      if (s.y < 14) { s.dead = true; continue; }
+      if (shieldHit(s.x, s.y, y0 + 4, false)) { s.dead = true; continue; }
+      for (const e of alive) if (e.alive && s.x >= e.x && s.x < e.x + EW && s.y < e.y + EH && y0 + 4 > e.y) { killEnemy(e); s.dead = true; break; }
+      if (!s.dead && ufo && s.x >= ufo.x && s.x < ufo.x + 14 && s.y < 24 && y0 + 4 > 17) {
+        const pts = pick([50, 100, 150, 300]); score += pts; s.dead = true;
+        pops.push({ x: ufo.x + 7, y: 18, s: String(pts), c: PU, life: 1.2 });
+        burst(ufo.x + 7, 20, PU, 16, 60); ufo = null;
+        [880, 1175, 1568].forEach((f, i) => Sound.tone(f, i * 0.06, 0.1, "square", 0.035));
+      }
+    }
+    shots = shots.filter((s) => !s.dead);
+
+    // Düşman mermileri
+    const pAlive = deadT <= 0;
+    for (const b of ebul) {
+      const y0 = b.y; b.y += b.v * dt;
+      if (b.y > GROUND) { b.dead = true; continue; }
+      if (shieldHit(b.x, y0, b.y + 4, true)) { b.dead = true; continue; }
+      if (pAlive && invT <= 0 && b.x >= px + 1 && b.x < px + PW - 1 && b.y + 4 > PY + 2 && b.y < PY + 8) { b.dead = true; killPlayer(); }
+    }
+    ebul = ebul.filter((b) => !b.dead);
+    if (deadT <= 0 && invT <= 0) for (const e of alive) {
+      if (e.alive && e.st && e.x + EW > px + 2 && e.x < px + PW - 2 && e.y + EH > PY + 2 && e.y < PY + 8) { killEnemy(e); killPlayer(); break; }
+    }
+
+    // Dalga temizlendi
+    if (!en.some((e) => e.alive) && deadT <= 0) {
+      wave++; setupWave();
+      [523, 659, 784, 1047].forEach((f, i) => Sound.tone(f, i * 0.07, 0.1, "square", 0.04));
+    }
+  };
+
+  g.draw = (x, t) => {
+    x.fillStyle = "#05050f"; x.fillRect(0, 0, ARC_W, ARC_H);
+    const SC = ["#22224a", "#55557a", "#c8c8ff"];
+    for (const s of stars) {
+      if (s.l === 2 && ((t * 3 + s.x) | 0) % 5 === 0) continue; // parıltı
+      x.fillStyle = SC[s.l]; x.fillRect(s.x | 0, s.y | 0, 1, 1);
+    }
+    x.fillStyle = "#1a3a2a"; x.fillRect(0, GROUND, ARC_W, 1);
+    // Güvenlik duvarları: satır bazında birleşik şeritler
+    for (const s of shields) {
+      for (let r = 0; r < 6; r++) {
+        x.fillStyle = r === 0 ? "#ffb070" : OR;
+        let c = 0;
+        while (c < 10) {
+          if (!s.cells[r * 10 + c]) { c++; continue; }
+          let e = c; while (e < 10 && s.cells[r * 10 + e]) e++;
+          x.fillRect(s.x + c * 2, s.y + r * 2, (e - c) * 2, 2); c = e;
+        }
+      }
+    }
+    for (const e of en) if (e.alive) SHOOT_put(x, SPR[e.t][e.st ? ((t * 8) | 0) % 2 : anim], e.x, e.y);
+    if (ufo) SHOOT_put(x, DISK, ufo.x, 17);
+    if (deadT <= 0 && !g.over && (invT <= 0 || ((t * 12) | 0) % 2)) SHOOT_put(x, SHIP, px, PY);
+    for (const s of shots) { x.fillStyle = "#ffffff"; x.fillRect(s.x, s.y | 0, 1, 4); x.fillStyle = CY; x.fillRect(s.x, (s.y | 0) + 4, 1, 2); }
+    x.fillStyle = RD;
+    for (const b of ebul) { const k = ((b.y / 3) | 0) % 2; x.fillRect(b.x - k, b.y | 0, 1, 2); x.fillRect(b.x - 1 + k, (b.y | 0) + 2, 1, 2); }
+    for (const p of parts) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, p.life > 0.4 ? 2 : 1, p.life > 0.4 ? 2 : 1); }
+    for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+
+    // HUD
+    x.fillStyle = "#05050f"; x.fillRect(0, 0, ARC_W, 13);
+    x.fillStyle = "#1a1a3a"; x.fillRect(0, 13, ARC_W, 1);
+    pxText(x, "SKOR", 4, 4, "#8a8aa8", 6); pxText(x, pad6(score), 32, 3, "#ffffff", 8);
+    pxText(x, "REKOR", 150, 4, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet("istila"), score)), 186, 3, YE, 8);
+    for (let i = 0; i < lives; i++) SHOOT_put(x, LIFE, 4 + i * 10, 183);
+    pxText(x, "DALGA " + wave, 252, 183, GR, 6, "right");
+
+    if (bannerT > 0 && !g.over) {
+      x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(0, 100, ARC_W, 34);
+      pxText(x, "DALGA " + wave, 128, 104, YE, 16, "center");
+      if (((t * 3) | 0) % 2) pxText(x, wave === 1 ? "SUNUCUYU KORU!" : "HAZIR OL!", 128, 123, CY, 8, "center");
+    }
+    if (flashT > 0) { x.fillStyle = hexA("#ffffff", flashT * 2); x.fillRect(0, 0, ARC_W, ARC_H); }
+    if (g.over) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
+      pxText(x, "SUNUCU ÇÖKTÜ", 128, 74, RD, 16, "center");
+      pxText(x, "SKOR " + pad6(score) + "  DALGA " + wave, 128, 98, "#fff", 8, "center");
+      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 112, YE, 8, "center");
+    }
+  };
+  return g;
+}
+
+/* ── Duvar Kırıcı (tuğla kırma) ── */
+/* ── Duvar Kırıcı ── */
+// Tuğla haritaları: küçük harf 1 vuruş, büyük harf 2 vuruş, M kırılmaz metal, "." boş
+const BRK_COLS = 12, BRK_BW = 20, BRK_BH = 8, BRK_X0 = 8, BRK_Y0 = 26;
+const BRK_COL = { r: "#ff4d6d", o: "#ff8a3d", y: "#ffd23f", g: "#3dff7a", c: "#18e0ff", b: "#3f7bff", v: "#b26bff", p: "#ff3fa4" };
+const BRK_DARK = {}, BRK_LIGHT = {};
+for (const k in BRK_COL) { BRK_DARK[k] = shade(BRK_COL[k], 0.5); BRK_LIGHT[k] = shade(BRK_COL[k], 1.45); }
+const BRK_LEVELS = [
+  { name: "GİRİŞ KAPISI", map: ["pppppppppppp", "yyyyyyyyyyyy", "gggggggggggg", "cccccccccccc", "bbbbbbbbbbbb"] },
+  { name: "PROXY KATMANI", map: ["..PPPPPPPP..", ".pyyyyyyyyp.", "pyyggggggyyp", "pyg.cccc.gyp", "pyg.c..c.gyp", "............", "MM........MM"] },
+  { name: "ŞİFRELİ ÇEKİRDEK", map: ["yyyyyyyyyyyy", "YrrrrrrrrrrY", "YrMMrrrrMMrY", "YrrrrrrrrrrY", "oooooooooooo", "............", "MMM..MM..MMM"] },
+  { name: "KAFES PROTOKOLÜ", map: ["CbCbCbCbCbCb", "bCbCbCbCbCbC", "CbCbCbCbCbCb", "............", "gMgMgMgMgMgM", "GgGgGgGgGgGg", "pppppppppppp"] },
+  { name: "SON SAVUNMA", map: ["...vvvvvv...", "..vVVVVVVv..", ".vVrrVVrrVv.", ".vVrrVVrrVv.", ".vVVVVVVVVv.", "..vVpVVpVv..", "...v.vv.v...", "............", "MM...MM...MM"] },
+];
+// Güçlendirme kapsülleri
+const BRK_PW = {
+  G: { name: "GENİŞ", col: "#3dff7a" }, Ç: { name: "ÇOKLU", col: "#18e0ff" }, Y: { name: "YAVAŞ", col: "#ffd23f" },
+  L: { name: "LAZER", col: "#ff4d6d" }, "+": { name: "+1 CAN", col: "#ff3fa4" },
+};
+const BRK_DROP = ["G", "G", "Ç", "Ç", "Y", "Y", "L", "L", "+"];
+
+function BreakoutGame() {
+  const L = 8, R = 248, TOP = 14, PY = 178, PH = 4, BR = 1.5;
+  const g = { over: false, hint: "← → raket · Boşluk / ↑ fırlat · Boşluk lazer · Esc menü" };
+  const stars = Array.from({ length: 26 }, (_, i) => ({ x: L + ((i * 97) % 240), y: (i * 53) % 178, s: 3 + (i % 5) * 3 }));
+  const FRAME = hexA("#18e0ff", 0.35);
+  let bricks, rows, left, balls, caps, lasers, parts, pops, score, lives, lvl, loop, px, pv, pw, wideT, slowT, laserT, sp, readyT, clearT, shakeT, overT, snd;
+  const baseSp = () => 105 * (1 + 0.15 * loop);
+  const maxSp = () => Math.min(285, 200 * (1 + 0.12 * loop));
+
+  function reset() { score = 0; lives = 3; lvl = 0; loop = 0; px = 128; pv = 0; pw = 32; parts = []; pops = []; shakeT = 0; overT = 0; g.over = false; loadLevel(); }
+  function loadLevel() {
+    const m = BRK_LEVELS[lvl % BRK_LEVELS.length].map;
+    rows = m.length; bricks = []; left = 0;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < BRK_COLS; c++) {
+      const ch = m[r][c];
+      if (ch === ".") bricks.push(null);
+      else if (ch === "M") bricks.push({ metal: true, fl: 0 });
+      else { const hp = ch === ch.toUpperCase() ? 2 : 1; bricks.push({ k: ch.toLowerCase(), hp, max: hp, fl: 0 }); left++; }
+    }
+    clearT = 0; readyT = 2; sp = baseSp(); newLife();
+  }
+  function newLife() {
+    balls = [{ x: px, y: PY - BR, dx: 0, dy: -1, stuck: true, off: rand(-8, 8) }];
+    caps = []; lasers = []; wideT = 0; slowT = 0; laserT = 0;
+  }
+  function setDir(b, a) {
+    b.dx = Math.sin(a); b.dy = -Math.cos(a);
+    if (Math.abs(b.dy) < 0.4) { b.dy = b.dy < 0 ? -0.4 : 0.4; b.dx = (b.dx < 0 ? -1 : 1) * 0.9165; }
+  }
+  function launch(b) { b.stuck = false; setDir(b, clamp(b.off / (pw / 2), -1, 1) * 0.9 || 0.2); }
+  function burst(cx, cy, col, n) {
+    for (let i = 0; i < n && parts.length < 90; i++) parts.push({ x: cx + rand(-8, 8), y: cy + rand(-3, 3), vx: rand(-60, 60), vy: rand(-70, 10), l: rand(0.3, 0.6), c: col });
+  }
+  function damage(i) {
+    const b = bricks[i];
+    const r = (i / BRK_COLS) | 0, c = i % BRK_COLS, cx = BRK_X0 + c * BRK_BW + 10, cy = BRK_Y0 + r * BRK_BH + 4;
+    b.fl = 0.1;
+    if (b.metal) { if (!snd) { snd = 1; Sound.tone(1900, 0, 0.05, "square", 0.02); Sound.noise(0, 0.05, 0.04, 5200, 5); } return; }
+    if (--b.hp > 0) { score += 5; burst(cx, cy, BRK_DARK[b.k], 3); if (!snd) { snd = 1; Sound.tone(240, 0, 0.06, "triangle", 0.06); } return; }
+    bricks[i] = null; left--; score += 10 * b.max * (1 + loop);
+    burst(cx, cy, BRK_COL[b.k], 7);
+    if (!snd) { snd = 1; Sound.tone(1100 - r * 70, 0, 0.06, "square", 0.035); }
+    if (Math.random() < 0.16 && caps.length < 3) caps.push({ x: cx, y: cy, k: pick(BRK_DROP) });
+  }
+  // Topun kapladığı hücrelerdeki tuğlalara vur (en fazla 4 hücre)
+  function hitBricks(b) {
+    const c0 = Math.floor((b.x - BR - BRK_X0) / BRK_BW), c1 = Math.floor((b.x + BR - 0.001 - BRK_X0) / BRK_BW);
+    const r0 = Math.floor((b.y - BR - BRK_Y0) / BRK_BH), r1 = Math.floor((b.y + BR - 0.001 - BRK_Y0) / BRK_BH);
+    let h = false;
+    for (let r = Math.max(0, r0); r <= Math.min(rows - 1, r1); r++)
+      for (let c = Math.max(0, c0); c <= Math.min(BRK_COLS - 1, c1); c++) if (bricks[r * BRK_COLS + c]) { damage(r * BRK_COLS + c); h = true; }
+    return h;
+  }
+  function moveBall(b, dist) {
+    const n = Math.max(1, Math.ceil(dist / 2)), st = dist / n; // alt adım: tünellemeyi önler
+    for (let k = 0; k < n; k++) {
+      let o = b.x; b.x += b.dx * st;
+      if (hitBricks(b)) { b.x = o; b.dx = -b.dx; }
+      else if (b.x - BR < L) { b.x = L + BR; b.dx = Math.abs(b.dx); }
+      else if (b.x + BR > R) { b.x = R - BR; b.dx = -Math.abs(b.dx); }
+      o = b.y; b.y += b.dy * st;
+      if (hitBricks(b)) { b.y = o; b.dy = -b.dy; }
+      else if (b.y - BR < TOP) { b.y = TOP + BR; b.dy = Math.abs(b.dy); }
+      else if (b.dy > 0 && b.y + BR >= PY && b.y + BR <= PY + PH + 2 && Math.abs(b.x - px) <= pw / 2 + BR) {
+        setDir(b, clamp((b.x - px) / (pw / 2), -1, 1) * 1.05 + clamp(pv * 0.0008, -0.15, 0.15));
+        b.y = PY - BR; Sound.tone(330, 0, 0.05, "square", 0.035);
+      }
+      if (b.y > ARC_H + 6) { b.dead = true; return; }
+    }
+  }
+  function catchCap(k) {
+    score += 50; pops.push({ x: px, y: PY - 10, s: BRK_PW[k].name, c: BRK_PW[k].col, l: 1 });
+    [784, 1047, 1319].forEach((f, i) => Sound.tone(f, i * 0.05, 0.08, "square", 0.035));
+    if (k === "G") wideT = 12;
+    else if (k === "Y") slowT = 8;
+    else if (k === "L") laserT = 8;
+    else if (k === "+") lives = Math.min(6, lives + 1);
+    else if (balls.length) {
+      const src = balls[0];
+      if (src.stuck) launch(src);
+      const a = Math.atan2(src.dx, -src.dy);
+      for (const d of [-0.5, 0.5]) if (balls.length < 6) { const nb = { x: src.x, y: src.y, dx: 0, dy: -1 }; setDir(nb, a + d); balls.push(nb); }
+    }
+  }
+  reset();
+
+  g._test = { // test kancası: zararsız, oyunda kullanılmaz
+    clear() { for (let i = 0; i < bricks.length; i++) if (bricks[i] && !bricks[i].metal) { bricks[i].hp = 1; damage(i); } },
+    state: () => ({ balls, bricks, rows, left, lvl, loop, sp, px, pw, lives, score, clearT, L, R, TOP, BR }),
+    maxSpeed() { sp = maxSp(); },
+    cap(k, cx, cy) { caps.push({ x: cx, y: cy, k }); },
+  };
+
+  g.update = (dt) => {
+    snd = 0;
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; p.l -= dt; }
+    parts = parts.filter((p) => p.l > 0);
+    for (const p of pops) { p.y -= 14 * dt; p.l -= dt; }
+    pops = pops.filter((p) => p.l > 0);
+    if (shakeT > 0) shakeT -= dt;
+    if (g.over) { overT += dt; if (overT > 0.6 && (hit("a") || hit("start"))) reset(); return; }
+    if (clearT > 0) { clearT -= dt; if (clearT <= 0) { lvl++; if (lvl % BRK_LEVELS.length === 0) loop++; loadLevel(); } return; }
+    for (const b of bricks) if (b && b.fl > 0) b.fl -= dt;
+    if (readyT > 0) readyT -= dt;
+    // Raket: hafif ivmeli hareket
+    const dir = (pad.right ? 1 : 0) - (pad.left ? 1 : 0);
+    if (dir) { if (pv * dir < 0) pv = 0; pv = clamp(pv + dir * 1500 * dt, -210, 210); }
+    else { const d = 1800 * dt; pv = Math.abs(pv) <= d ? 0 : pv - Math.sign(pv) * d; }
+    if (wideT > 0) wideT -= dt;
+    pw += ((wideT > 0 ? 48 : 32) - pw) * Math.min(1, dt * 10);
+    px += pv * dt;
+    if (px - pw / 2 < L) { px = L + pw / 2; pv = 0; } else if (px + pw / 2 > R) { px = R - pw / 2; pv = 0; }
+    const stuck = balls.some((b) => b.stuck);
+    if (stuck && (hit("a") || hit("up"))) { balls.forEach((b) => b.stuck && launch(b)); readyT = 0; Sound.tone(520, 0, 0.06, "square", 0.03, 900); }
+    else if (laserT > 0 && hit("a") && lasers.length < 6) {
+      lasers.push({ x: px - pw / 2 + 2, y: PY - 4 }, { x: px + pw / 2 - 3, y: PY - 4 });
+      Sound.tone(1300, 0, 0.06, "sawtooth", 0.018, 500);
+    }
+    if (laserT > 0) laserT -= dt;
+    if (slowT > 0) slowT -= dt;
+    if (!stuck) sp = Math.min(maxSp(), sp + 1.6 * dt);
+    const v = sp * (slowT > 0 ? 0.6 : 1) * dt;
+    for (const b of balls) { if (b.stuck) { b.x = px + b.off; b.y = PY - BR; } else moveBall(b, v); }
+    balls = balls.filter((b) => !b.dead);
+    // Lazer ışınları: 4px adımlarla yukarı
+    for (const s of lasers) {
+      const n = Math.ceil(260 * dt / 4);
+      for (let k = 0; k < n && !s.dead; k++) {
+        s.y -= 260 * dt / n;
+        const c = Math.floor((s.x - BRK_X0) / BRK_BW), r = Math.floor((s.y - BRK_Y0) / BRK_BH);
+        if (s.y < TOP) s.dead = true;
+        else if (r >= 0 && r < rows && c >= 0 && c < BRK_COLS && bricks[r * BRK_COLS + c]) { damage(r * BRK_COLS + c); s.dead = true; }
+      }
+    }
+    lasers = lasers.filter((s) => !s.dead);
+    for (const cp of caps) {
+      cp.y += 45 * dt;
+      if (cp.y + 3 >= PY && cp.y - 3 <= PY + PH && Math.abs(cp.x - px) <= pw / 2 + 7) { cp.dead = true; catchCap(cp.k); }
+      else if (cp.y > ARC_H + 4) cp.dead = true;
+    }
+    caps = caps.filter((c) => !c.dead);
+    if (!balls.length) {
+      lives--; shakeT = 0.4; Sound.fall();
+      if (lives <= 0) { g.over = true; overT = 0; hiSet("duvar", score); } else newLife();
+    } else if (left <= 0) {
+      score += 100 * (lvl + 1); clearT = 2.4; caps = []; lasers = []; Sound.fanfare();
+    }
+  };
+
+  const brick = (x, b, bx, by) => {
+    if (b.metal) {
+      x.fillStyle = b.fl > 0 ? "#ffffff" : "#6a7090"; x.fillRect(bx, by, 19, 7);
+      x.fillStyle = "#c8cce0"; x.fillRect(bx, by, 19, 1);
+      x.fillStyle = "#2a2e40"; x.fillRect(bx, by + 6, 19, 1); x.fillRect(bx + 2, by + 3, 1, 1); x.fillRect(bx + 16, by + 3, 1, 1);
+      return;
+    }
+    const dmg = b.hp < b.max;
+    x.fillStyle = b.fl > 0 ? "#ffffff" : dmg ? BRK_DARK[b.k] : BRK_COL[b.k]; x.fillRect(bx, by, 19, 7);
+    x.fillStyle = dmg ? BRK_COL[b.k] : BRK_LIGHT[b.k]; x.fillRect(bx, by, 19, 1);
+    x.fillStyle = "rgba(0,0,0,.4)"; x.fillRect(bx, by + 6, 19, 1);
+    if (dmg) { x.fillStyle = "#05050c"; x.fillRect(bx + 6, by + 1, 1, 3); x.fillRect(bx + 7, by + 3, 3, 1); x.fillRect(bx + 10, by + 4, 1, 2); x.fillRect(bx + 14, by + 1, 1, 2); }
+    else if (b.max > 1) { x.fillStyle = BRK_DARK[b.k]; x.fillRect(bx + 2, by + 2, 15, 3); x.fillStyle = BRK_LIGHT[b.k]; x.fillRect(bx + 4, by + 3, 11, 1); }
+    else { x.fillStyle = BRK_DARK[b.k]; x.fillRect(bx + 3, by + 3, 4 + ((bx * 3 + by) % 9), 1); } // kod satırı süsü
+  };
+  g.draw = (x, t) => {
+    x.save();
+    if (shakeT > 0) x.translate(((Math.random() * 5) | 0) - 2, ((Math.random() * 5) | 0) - 2);
+    x.fillStyle = "#070712"; x.fillRect(-4, -4, ARC_W + 8, ARC_H + 8);
+    x.fillStyle = "#0e0e24";
+    for (let i = L; i <= R; i += 16) x.fillRect(i, TOP, 1, ARC_H);
+    for (let i = TOP + ((t * 6) % 16); i < ARC_H; i += 16) x.fillRect(L, i | 0, R - L, 1);
+    for (const s of stars) { x.fillStyle = s.s > 9 ? "#8a8aa8" : "#3a3a66"; x.fillRect(s.x, TOP + ((s.y + t * s.s) % (ARC_H - TOP)) | 0, 1, 1); }
+    // Çerçeve
+    x.fillStyle = "#2a2a55"; x.fillRect(L - 3, TOP - 2, 3, ARC_H); x.fillRect(R, TOP - 2, 3, ARC_H); x.fillRect(L - 3, TOP - 2, R - L + 6, 2);
+    x.fillStyle = FRAME; x.fillRect(L - 1, TOP, 1, ARC_H); x.fillRect(R, TOP, 1, ARC_H); x.fillRect(L, TOP - 1, R - L, 1);
+    for (let i = 0; i < bricks.length; i++) if (bricks[i]) brick(x, bricks[i], BRK_X0 + (i % BRK_COLS) * BRK_BW, BRK_Y0 + ((i / BRK_COLS) | 0) * BRK_BH);
+    for (const cp of caps) {
+      const p = BRK_PW[cp.k], cx = (cp.x - 8) | 0, cy = (cp.y - 3) | 0;
+      x.fillStyle = ((t * 6) | 0) % 2 ? p.col : "#ffffff"; x.fillRect(cx + 1, cy - 1, 14, 9); x.fillRect(cx, cy, 16, 7);
+      x.fillStyle = p.col; x.fillRect(cx + 1, cy, 14, 7);
+      pxText(x, cp.k, cx + 8, cy + 1, "#05050c", 6, "center");
+    }
+    x.fillStyle = "#ff4d6d";
+    for (const s of lasers) x.fillRect(s.x | 0, s.y | 0, 1, 4);
+    // Raket
+    const pl = (px - pw / 2) | 0, pwi = pw | 0;
+    x.fillStyle = "#ff3fa4"; x.fillRect(pl + 2, PY, pwi - 4, PH);
+    x.fillStyle = "#ffb3dc"; x.fillRect(pl + 2, PY, pwi - 4, 1);
+    x.fillStyle = laserT > 0 ? "#ff4d6d" : "#18e0ff"; x.fillRect(pl, PY + 1, 3, PH - 1); x.fillRect(pl + pwi - 3, PY + 1, 3, PH - 1);
+    if (laserT > 0) { x.fillRect(pl + 1, PY - 2, 2, 2); x.fillRect(pl + pwi - 3, PY - 2, 2, 2); }
+    for (const b of balls) {
+      const bx = (b.x - BR) | 0, by = (b.y - BR) | 0;
+      x.fillStyle = slowT > 0 ? "rgba(255,210,63,.3)" : "rgba(24,224,255,.3)"; x.fillRect(bx - 1, by - 1, 5, 5);
+      x.fillStyle = "#ffffff"; x.fillRect(bx, by, 3, 3);
+    }
+    for (const p of parts) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, p.l > 0.3 ? 2 : 1, p.l > 0.3 ? 2 : 1); }
+    for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    // HUD
+    x.fillStyle = "#0b0b1e"; x.fillRect(-4, -4, ARC_W + 8, 15);
+    pxText(x, "SKOR", 3, 3, "#8a8aa8", 6); pxText(x, pad6(score), 30, 3, "#ffffff", 6);
+    pxText(x, "REKOR", 74, 3, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet("duvar"), score)), 106, 3, "#ffd23f", 6);
+    pxText(x, "SEVİYE", 150, 3, "#8a8aa8", 6); pxText(x, String(lvl + 1), 188, 3, "#3dff7a", 6);
+    x.fillStyle = "#ff3fa4";
+    for (let i = 0; i < Math.min(lives, 5); i++) { x.fillRect(212 + i * 9, 4, 7, 3); }
+    const lvName = BRK_LEVELS[lvl % BRK_LEVELS.length].name;
+    if (readyT > 0 && !g.over) {
+      x.fillStyle = "rgba(0,0,0,.72)"; x.fillRect(L, 112, R - L, 36);
+      pxText(x, "SEVİYE " + (lvl + 1), 128, 116, "#ffd23f", 16, "center");
+      pxText(x, lvName, 128, 137, "#18e0ff", 6, "center");
+    }
+    if (!g.over && clearT <= 0 && balls.some((b) => b.stuck) && ((t * 2) | 0) % 2) pxText(x, "A: FIRLAT", 128, 160, "#ffffff", 6, "center");
+    if (laserT > 0 && !g.over) pxText(x, "LAZER " + Math.ceil(laserT), 244, 168, "#ff4d6d", 6, "right");
+    if (clearT > 0) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 76, ARC_W, 44);
+      pxText(x, "DUVAR AŞILDI!", 128, 82, "#3dff7a", 12, "center");
+      pxText(x, "BONUS +" + 100 * (lvl + 1), 128, 104, "#ffd23f", 8, "center");
+    }
+    if (g.over) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
+      pxText(x, "DUVAR DAYANDI!", 128, 72, "#ff4d6d", 16, "center");
+      pxText(x, "SKOR " + pad6(score), 128, 94, "#fff", 8, "center");
+      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 110, "#ffd23f", 8, "center");
+    }
+    x.restore();
+  };
+  return g;
+}
+
 /* ── menü, bekleme ekranı ve makine kontrolü ── */
-const ARC_GAMES = [{ name: "BLOK YAĞMURU", make: BlockGame, hi: "blok" }, { name: "BUG AVCISI", make: BugGame, hi: "bug" }];
+const ARC_GAMES = [
+  { name: "BLOK YAĞMURU", make: BlockGame, hi: "blok" },
+  { name: "BUG AVCISI", make: BugGame, hi: "bug" },
+  { name: "GECE SÜRÜŞÜ", make: RaceGame, hi: "yaris" },
+  { name: "BUG İSTİLASI", make: ShooterGame, hi: "istila" },
+  { name: "DUVAR KIRICI", make: BreakoutGame, hi: "duvar" },
+];
 function Arcade() {
   const a = { sel: 0, game: null, t: 0 };
   a.hint = () => (a.game ? a.game.hint : "↑ ↓ oyun seç · Enter / Boşluk başla · Esc çık");
   a.update = (dt) => {
     a.t += dt;
     if (a.game) { a.game.update(dt); return; }
-    if (hit("up") || hit("down") || hit("left") || hit("right")) { a.sel = (a.sel + 1) % ARC_GAMES.length; Sound.blip(); }
+    const n = ARC_GAMES.length;
+    if (hit("up") || hit("left")) { a.sel = (a.sel + n - 1) % n; Sound.blip(); }
+    if (hit("down") || hit("right")) { a.sel = (a.sel + 1) % n; Sound.blip(); }
     if (hit("a") || hit("start")) { a.game = ARC_GAMES[a.sel].make(); Sound.credit(); updateGameHint(); }
   };
   a.draw = (x) => (a.game ? a.game.draw(x, a.t) : arcadeMenu(x, a.t, a.sel));
@@ -2133,10 +3026,11 @@ function arcadeBackdrop(x, t) {
 function arcadeMenu(x, t, sel) {
   arcadeBackdrop(x, t);
   pxText(x, "OYUN KÖŞESİ", 128, 18, "#ffd23f", 16, "center");
-  pxText(x, "2'Sİ 1 ARADA", 128, 42, "#ff3fa4", 8, "center");
+  pxText(x, ARC_GAMES.length + " OYUN 1 ARADA", 128, 40, "#ff3fa4", 8, "center");
+  const gap = Math.min(30, 112 / ARC_GAMES.length);
   ARC_GAMES.forEach((gm, i) => {
-    const y = 76 + i * 30, on = i === sel;
-    x.fillStyle = on ? "rgba(255,210,63,.18)" : "rgba(0,0,0,.45)"; x.fillRect(40, y - 6, 176, 22);
+    const y = 60 + i * gap, on = i === sel;
+    x.fillStyle = on ? "rgba(255,210,63,.18)" : "rgba(0,0,0,.45)"; x.fillRect(40, y - 4, 176, gap - 4);
     if (on && ((t * 3) | 0) % 2) pxText(x, ">", 46, y, "#ffd23f", 8);
     pxText(x, gm.name, 60, y, on ? "#ffffff" : "#8a8aa8", 8);
     pxText(x, pad6(hiGet(gm.hi)), 212, y + 2, "#55557a", 6, "right");
@@ -2156,8 +3050,8 @@ function drawArcadeScreen(m, t) {
     return;
   }
   pxText(x, "OYUN KÖŞESİ", 128, 34, "#ffd23f", 16, "center");
-  pxText(x, "2'Sİ 1 ARADA", 128, 60, "#ff3fa4", 8, "center");
-  ARC_GAMES.forEach((gm, i) => pxText(x, "· " + gm.name + " ·", 128, 88 + i * 16, "#e9e7f2", 8, "center"));
+  pxText(x, ARC_GAMES.length + " OYUN 1 ARADA", 128, 58, "#ff3fa4", 8, "center");
+  ARC_GAMES.forEach((gm, i) => pxText(x, gm.name, 128, 76 + i * Math.min(16, 64 / ARC_GAMES.length), "#e9e7f2", ARC_GAMES.length > 3 ? 6 : 8, "center"));
   drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, 150);
   x.fillStyle = "#2b1d4a"; x.fillRect(0, 166, ARC_W, 26); x.fillStyle = "#ff3fa4"; x.fillRect(0, 166, ARC_W, 2);
   if (((t * 2) | 0) % 2) pxText(x, "JETON AT", 128, 175, "#fff", 8, "center");
