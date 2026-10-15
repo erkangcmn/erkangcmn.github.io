@@ -3385,7 +3385,7 @@ cv.addEventListener("pointermove", (e) => {
     if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
     if (drag.moved && cam.mode === "walk" && !cam.tween) {
       const k = isTouch ? 0.006 : 0.004;
-      cam.yaw += dx * k; cam.pitch = clamp(cam.pitch - dy * k * 0.8, -0.7, 0.55); cam.idle = 0;
+      cam.yaw -= dx * k; cam.pitch = clamp(cam.pitch - dy * k * 0.8, -0.7, 0.55); cam.idle = 0;
     }
     drag.x = e.clientX; drag.y = e.clientY;
     return;
