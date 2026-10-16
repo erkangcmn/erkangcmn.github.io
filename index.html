@@ -3322,8 +3322,8 @@ const BRK_COL = { r: "#ff4d6d", o: "#ff8a3d", y: "#ffd23f", g: "#3dff7a", c: "#1
 const BRK_DARK = {}, BRK_LIGHT = {};
 for (const k in BRK_COL) { BRK_DARK[k] = shade(BRK_COL[k], 0.5); BRK_LIGHT[k] = shade(BRK_COL[k], 1.45); }
 const BRK_LEVELS = [
-  { name: "GİRİŞ KAPISI", map: ["pppppppppppp", "yyyyyyyyyyyy", "gggggggggggg", "cccccccccccc", "bbbbbbbbbbbb"] },
-  { name: "PROXY KATMANI", map: ["..PPPPPPPP..", ".pyyyyyyyyp.", "pyyggggggyyp", "pyg.cccc.gyp", "pyg.c..c.gyp", "............", "MM........MM"] },
+  { name: "GİRİŞ KAPISI", map: ["pppppppppppp", "yyyyyyyyyyyy", "gggggggggggg"] },
+  { name: "PROXY KATMANI", map: ["..pppppppp..", ".pyyyyyyyyp.", "pyyggggggyyp", "pyg.cccc.gyp", "pyg.c..c.gyp", "............", "MM........MM"] },
   { name: "ŞİFRELİ ÇEKİRDEK", map: ["yyyyyyyyyyyy", "YrrrrrrrrrrY", "YrMMrrrrMMrY", "YrrrrrrrrrrY", "oooooooooooo", "............", "MMM..MM..MMM"] },
   { name: "KAFES PROTOKOLÜ", map: ["CbCbCbCbCbCb", "bCbCbCbCbCbC", "CbCbCbCbCbCb", "............", "gMgMgMgMgMgM", "GgGgGgGgGgGg", "pppppppppppp"] },
   { name: "SON SAVUNMA", map: ["...vvvvvv...", "..vVVVVVVv..", ".vVrrVVrrVv.", ".vVrrVVrrVv.", ".vVVVVVVVVv.", "..vVpVVpVv..", "...v.vv.v...", "............", "MM...MM...MM"] },
@@ -3349,14 +3349,15 @@ function BreakoutGame() {
   let bricks, rows, left, balls, caps, lasers, parts, pops, score, lives, lvl, loop, px, pv, pw, wideT, slowT, laserT, sp, readyT, clearT, shakeT, overT, snd;
   const NL = BRK_LEVELS.length;
   const li = () => lvl % NL; // tur içindeki bölüm (0..NL-1)
-  // Top hızı: bölüm başına +9 başlangıç, her tur +%25; bölüm içinde saniyede 2.5+0.35*bölüm artar
-  const baseSp = () => (100 + li() * 9) * (1 + 0.25 * loop);
-  const maxSp = () => Math.min(320, (190 + li() * 8) * (1 + 0.15 * loop));
-  const accel = () => (2.5 + li() * 0.35) * (1 + 0.5 * loop);
-  // Raket: bölüm başına 1 px, her tur 4 px küçülür (en az 22)
-  const basePw = () => Math.max(22, 32 - li() - loop * 4);
+  // Top hızı: ilk bölüm yavaş başlar, bölüm başına +7 başlangıç / +12 tavan, her tur +%25;
+  // bölüm içinde saniyede 1+0.3*bölüm artar (B1: 80→125, B11: 150→245)
+  const baseSp = () => (80 + li() * 7) * (1 + 0.25 * loop);
+  const maxSp = () => Math.min(320, (125 + li() * 12) * (1 + 0.15 * loop));
+  const accel = () => (1 + li() * 0.3) * (1 + 0.5 * loop);
+  // Raket: B1'de 42 px, bölüm başına ~1.2 px, her tur 4 px küçülür (en az 22)
+  const basePw = () => Math.max(22, 42 - Math.round(li() * 1.2) - loop * 4);
 
-  function reset() { score = 0; lives = 3; lvl = 0; loop = 0; px = 128; pv = 0; pw = 32; parts = []; pops = []; shakeT = 0; overT = 0; g.over = false; loadLevel(); }
+  function reset() { score = 0; lives = 3; lvl = 0; loop = 0; px = 128; pv = 0; pw = 42; parts = []; pops = []; shakeT = 0; overT = 0; g.over = false; loadLevel(); }
   function loadLevel() {
     const m = BRK_LEVELS[lvl % BRK_LEVELS.length].map;
     rows = m.length; bricks = []; left = 0;
@@ -3492,7 +3493,7 @@ function BreakoutGame() {
     caps = caps.filter((c) => !c.dead);
     if (!balls.length) {
       lives--; shakeT = 0.4; Sound.fall();
-      if (lives <= 0) { g.over = true; overT = 0; hiSet("duvar", score); } else { sp = Math.max(baseSp(), sp * 0.85); newLife(); }
+      if (lives <= 0) { g.over = true; overT = 0; hiSet("duvar", score); } else { sp = baseSp(); newLife(); }
     } else if (left <= 0) {
       score += 100 * (lvl + 1); clearT = 2.4; caps = []; lasers = []; Sound.fanfare();
     }
