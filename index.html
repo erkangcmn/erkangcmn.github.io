@@ -1606,11 +1606,11 @@ function BlockGame() {
   const COL = { I: "#18e0ff", O: "#ffd23f", T: "#b26bff", S: "#3dff7a", Z: "#ff4d6d", J: "#3f7bff", L: "#ff8a3d" };
   const BOX = { I: 4, O: 2, T: 3, S: 3, Z: 3, J: 3, L: 3 };
   const g = { over: false, hint: "← → kaydır · ↑ / Boşluk döndür · ↓ hızlandır · X bırak · Esc menü" };
-  const LINES_PER_LEVEL = 5, GARBAGE_FROM = 6, GARBAGE_COL = "#5a5a78";
+  const LINES_PER_LEVEL = 10, GARBAGE_FROM = 8, GARBAGE_COL = "#5a5a78";
   let grid, cur, next, bag, score, lines, level, fallT, lockT, dasT, clearRows, clearT, playT, annT, garbT, riseFl;
-  // Düşme aralığı: seviye 1 ~0.70 sn, 5 ~0.29, 10 ~0.09, tavan 0.05; ayrıca oyun süresiyle %40'a kadar hızlanır
-  const fallInterval = () => Math.max(0.05, 0.7 * Math.pow(0.8, level - 1) * Math.max(0.6, 1 - playT * 0.002));
-  // Çöp satır aralığı (sn): seviye 6'da 14, her seviye 1.5 kısalır, en az 5
+  // Düşme aralığı: seviye 1 0.80 sn, 5 ~0.42, 10 ~0.18, tavan 0.10 (her seviye %15 hızlanır)
+  const fallInterval = () => Math.max(0.1, 0.8 * Math.pow(0.85, level - 1));
+  // Çöp satır aralığı (sn): seviye 8'de 14, her seviye 1.5 kısalır, en az 5
   const garbageGap = () => Math.max(5, 14 - (level - GARBAGE_FROM) * 1.5);
   const take = () => { if (!bag.length) bag = Object.keys(SHAPES).sort(() => Math.random() - 0.5); return bag.pop(); };
   const piece = (k) => ({ k, cells: SHAPES[k].map((c) => c.slice()), x: k === "O" ? 4 : 3, y: k === "I" ? -1 : 0 });
@@ -1798,7 +1798,7 @@ const BUG_LEVELS = [
     gaps.forEach(([a, b]) => L.coinRow(a, b, 6));
     L.row(150, 156, 6, 2); L.set(153, 6, 3);
     L.stairs(164, 6);
-    [20, 28, 34, 38, 46, 56, 62, 70, 78, 88, 100, 106, 112, 114, 124, 126, 132, 136, 148, 154, 158, 172].forEach((c) => L.foe(c));
+    [20, 28, 34, 46, 56, 70, 78, 100, 106, 112, 124, 132, 136, 148, 154, 172].forEach((c) => L.foe(c));
     L.flag = 184; L.mid = 92;
     return L;
   }),
@@ -3627,7 +3627,8 @@ function SnakeGame() {
     bonusT, readyT, clearT, dyingT, cutAcc, overT, shakeT, glitchT, flashT, parts, pops, pulses, pulseT, newHi, hi;
 
   const cx = (i) => i % SNK_COLS, cy = (i) => (i / SNK_COLS) | 0;
-  const interval = () => Math.max(0.05, 0.16 * Math.pow(0.87, lvl)) * (1 - 0.015 * eaten) * (coffeeT > 0 ? 1.6 : 1);
+  // Adım aralığı: seviye başına %8 hızlanır, en hızlı 0.07 sn (saniyede ~14 kare)
+  const interval = () => Math.max(0.07, 0.16 * Math.pow(0.92, lvl) * (1 - 0.015 * eaten)) * (coffeeT > 0 ? 1.6 : 1);
   const mapOf = (l) => SNK_MAPS[l % SNK_MAPS.length];
 
   function reset() {
