@@ -108,7 +108,6 @@ a.card:hover { transform: translateY(-4px); border-color: var(--a1); box-shadow:
 .chip { font-size: .75rem; padding: .2rem .6rem; border-radius: 999px; background: #1a1f2c; color: var(--muted); }
 .chip.soon { background: rgba(250, 204, 21, .12); color: #facc15; }
 .chip.private { background: transparent; border: 1px dashed var(--border); }
-.meta { display: flex; gap: 1rem; color: var(--muted); font-size: .85rem; }
 
 .more { display: inline-block; margin-top: 1.5rem; color: var(--a2); font-weight: 600; }
 .more:hover { text-decoration: underline; }

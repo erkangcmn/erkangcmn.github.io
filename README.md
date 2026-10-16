@@ -11,8 +11,8 @@ Erkan Göçmen'in kişisel portfolyo sitesi: https://erkangcmn.github.io/
 
 ## Güncelleme
 
-- Yeni proje eklemek için `app/index.js` içindeki `PROJECTS` dizisine bir kayıt ekle.
-- Yeni GitHub rozeti için `BADGES` dizisine ekle.
+- Yeni proje eklemek için `data/site-data.js` içindeki `SITE_PROJECTS` dizisine bir kayıt ekle (3D salon ve klasik site ortak kullanır; salondaki makine görünümü `index.html` içindeki `PROJECTS`'te).
+- Yeni GitHub rozeti için `data/site-data.js` içindeki `BADGES` dizisine ekle.
 - Bio metni `index.html` içindeki `#bio` paragrafında.
 
 Saf HTML/CSS/JS, derleme adımı yok. GitHub Pages ile doğrudan yayınlanır.

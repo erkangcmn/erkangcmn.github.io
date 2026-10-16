@@ -323,64 +323,46 @@ body.touch #help { bottom: calc(196px + var(--safe-b)); }
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="data/site-data.js"></script>
 <script>
 "use strict";
 
 /* ═══════════════════════════════════════════════════════════════════
    PROJELER — salondaki makineler soldan sağa bu sırayla dizilir.
+   Ad, açıklama, etiketler, linkler ve not data/site-data.js'ten (SITE_PROJECTS) ada göre gelir;
+   burada sadece salona özgü görsel ayarlar durur.
    scene: ekranda oynayan sahne (stars, synth, bricks, snake, glitch,
           tarot, chart, blocks, code, qr)
    paint: gövde rengi · trim: T-molding rengi · c1/c2: vurgu renkleri
    scr: ekran ışığı · demo/github: link ya da null · note: küçük etiket
    secret: true ise ekranda "ARIZALI" notu olan gizli makine
    arcade: true ise gerçekten oynanan oyun makinesi (corner ile köşeye konur)
+   secret/arcade makinelerinin içeriği ortak veride yoktur, burada yazılır.
    ═══════════════════════════════════════════════════════════════════ */
 const PROJECTS = [
-  { name: "Mistik", scene: "tarot", paint: "#1b2a5c", trim: "chrome", c1: "#b26bff", c2: "#ffd166", scr: "#9b6bff",
-    desc: "Tarot, günlük burç, doğum haritası ve fal yorumu sunan, kredi/abonelik tabanlı yapay zekâ destekli mobil uygulama. Google Play Billing entegrasyonu ve modüler mimari.",
-    tags: ["React Native", "TypeScript", "Claude API", "Zustand"], demo: null, github: null, note: "Özel depo" },
-  { name: "Kapi", scene: "chart", paint: "#0f4a4a", trim: "yellow", c1: "#2ee6a6", c2: "#ffd23f", scr: "#39ffb0",
-    desc: "Türkiye odaklı bireysel ve ticari finans takip uygulaması: borç, gelir-gider, altın/döviz/kripto/BIST birikimleri. Veriler cihazda tutulur, backend gerektirmez.",
-    tags: ["Expo", "React Native", "TypeScript", "Zustand"], demo: null, github: null, note: "Özel depo" },
-  { name: "EduFlow", scene: "snake", paint: "#55585f", trim: "black", c1: "#3fa9ff", c2: "#ff8a3d", scr: "#4fb8ff",
-    desc: "Öğretmen ve veliler için eğitim yönetim uygulaması: ders programı, öğrenci listesi, kazanç raporları ve ödeme takibi.",
-    tags: ["Expo", "TypeScript", "NativeWind"], demo: null, github: null, note: "Özel depo" },
-  { name: "vitrAI", scene: "stars", paint: "#15151a", trim: "chrome", c1: "#ff3fa4", c2: "#00e5ff", scr: "#ff4fb0",
-    desc: "E-ticaret satıcıları için yapay zekâ destekli ürün açıklaması, Instagram metni, hashtag ve görsel üretici. Trendyol, Hepsiburada, Amazon ve daha fazlası için ton ayarlı içerik.",
-    tags: ["React", "Claude API", "Fal.ai"], demo: null, github: null, note: "Özel depo" },
-  { name: "Software Library", scene: "bricks", paint: "#1b2a5c", trim: "yellow", c1: "#61dafb", c2: "#ffe066", scr: "#61dafb",
-    desc: "Farklı programlama dillerindeki kütüphaneleri tek yerde toplayan, kod yazarken işinizi kolaylaştıran uygulama.",
-    tags: ["React", "Vercel"], demo: "https://developerlibs.vercel.app/", github: "https://github.com/erkangcmn/Software-Library-With-React" },
-  { name: "BlockBlast", scene: "blocks", paint: "#5c1424", trim: "chrome", c1: "#ff4d4d", c2: "#ffd23f", scr: "#ff6a3d",
-    desc: "10x10 ızgarada sürükle-bırak blok oyunu: Zen ve Blitz modları, bombalar, kombo sistemi ve koyu/açık tema.",
-    tags: ["React", "Tailwind CSS"], demo: null, github: null, note: "Özel depo" },
-  { name: "Live Editör", scene: "code", paint: "#15151a", trim: "yellow", c1: "#a8ff3e", c2: "#00e5ff", scr: "#8aff5a",
-    desc: "Önizlemede bir elemente tıklayınca kaynak koduna giden, tarayıcıdaki 'incele' mantığıyla çalışan yerel HTML/CSS/JS editörü.",
-    tags: ["Node.js", "JavaScript"], demo: null, github: null, note: "Özel depo" },
-  { name: "QR Restoran", scene: "qr", paint: "#0f4a4a", trim: "chrome", c1: "#ffb000", c2: "#ff3fa4", scr: "#ffc04d",
-    desc: "Restoranlar için QR menü web uygulaması.",
-    tags: ["React", "Node.js"], demo: null, github: null, note: "Yakında" },
-  { name: "ArtWall", scene: "synth", paint: "#55585f", trim: "chrome", c1: "#ff7ad9", c2: "#7a5cff", scr: "#c06bff",
-    desc: "Duvar kâğıdı mobil uygulaması ve React ile yazılmış yönetim paneli.",
-    tags: ["React Native", "Node.js", "React"], demo: null, github: null, note: "Yakında" },
+  { name: "Mistik", scene: "tarot", paint: "#1b2a5c", trim: "chrome", c1: "#b26bff", c2: "#ffd166", scr: "#9b6bff" },
+  { name: "Kapi", scene: "chart", paint: "#0f4a4a", trim: "yellow", c1: "#2ee6a6", c2: "#ffd23f", scr: "#39ffb0" },
+  { name: "EduFlow", scene: "snake", paint: "#55585f", trim: "black", c1: "#3fa9ff", c2: "#ff8a3d", scr: "#4fb8ff" },
+  { name: "vitrAI", scene: "stars", paint: "#15151a", trim: "chrome", c1: "#ff3fa4", c2: "#00e5ff", scr: "#ff4fb0" },
+  { name: "Software Library", scene: "bricks", paint: "#1b2a5c", trim: "yellow", c1: "#61dafb", c2: "#ffe066", scr: "#61dafb" },
+  { name: "BlockBlast", scene: "blocks", paint: "#5c1424", trim: "chrome", c1: "#ff4d4d", c2: "#ffd23f", scr: "#ff6a3d" },
+  { name: "Live Editör", scene: "code", paint: "#15151a", trim: "yellow", c1: "#a8ff3e", c2: "#00e5ff", scr: "#8aff5a" },
+  { name: "QR Restoran", scene: "qr", paint: "#0f4a4a", trim: "chrome", c1: "#ffb000", c2: "#ff3fa4", scr: "#ffc04d" },
+  { name: "ArtWall", scene: "synth", paint: "#55585f", trim: "chrome", c1: "#ff7ad9", c2: "#7a5cff", scr: "#c06bff" },
   { name: "???", scene: "glitch", paint: "#15151a", trim: "black", c1: "#ff2a2a", c2: "#ffb000", scr: "#ff3030",
     desc: "", tags: ["Sürpriz", "Gizli köşe", "+1 kredi"], demo: null, github: null, secret: true },
   // Oynanabilir makine (proje değil): sol arka köşede, jeton atınca oyun menüsü açılır
   { name: "Oyun Köşesi", arcade: true, corner: "backLeft", scene: "arcade", paint: "#15151a", trim: "yellow", c1: "#ffd23f", c2: "#ff3fa4", scr: "#ffd23f",
     desc: "", tags: [], demo: null, github: null },
-];
+].map((p) => {
+  if (p.secret || p.arcade) return p;
+  const d = SITE_PROJECTS.find((q) => q.title === p.name);
+  if (!d) throw new Error("data/site-data.js içinde proje yok: " + p.name);
+  return Object.assign(p, { desc: d.description, tags: d.tags, demo: d.link || null, github: d.github || null, note: d.note });
+});
 
-/* GitHub Achievements — sağ duvardaki "Başarımlar" panosu. GitHub bunun için API sunmadığından
-   elle girilir; yeni rozet kazanınca buraya ekleyin. tier: "x3" gibi çarpan etiketi. */
-const GITHUB_USER = "erkangcmn";
-const BADGES = [
-  { slug: "pair-extraordinaire", name: "Pair Extraordinaire", tier: "x3", img: "pair-extraordinaire-silver-a0b2b472348c", color: "#b9c4d6" },
-  { slug: "pull-shark", name: "Pull Shark", tier: "x2", img: "pull-shark-bronze-a37accb528d1", color: "#d99a5b" },
-  { slug: "quickdraw", name: "Quickdraw", img: "quickdraw-default-39c6aec8ff89", color: "#ffd23f" },
-  { slug: "yolo", name: "YOLO", img: "yolo-default-be0bbff04951", color: "#ff7ad9" },
-  { slug: "arctic-code-vault-contributor", name: "Arctic Code Vault Contributor", img: "arctic-code-vault-contributor-default-df8d74122a06", color: "#8fd8ff" },
-];
-const badgeUrl = (b) => b.url || `https://github.com/${GITHUB_USER}?achievement=${b.slug}&tab=achievements`;
+/* GitHub Achievements — sağ duvardaki "Başarımlar" panosu. GITHUB_USER, BADGES, badgeUrl ve
+   badgeImgUrl data/site-data.js'te tanımlı (klasik siteyle ortak). */
 
 /* ─────────────────────────── yardımcılar ─────────────────────────── */
 const $ = (s) => document.querySelector(s);
@@ -492,6 +474,12 @@ function mkTex(c, { repeat, nearest = false, srgb = true, aniso = 4 } = {}) {
   t.anisotropy = Math.min(aniso, renderer.capabilities.getMaxAnisotropy());
   return t;
 }
+// Bungee yazıyı maxW'ye sığana kadar step px küçült (min'in altına inme); son boyutu döndürür
+function fitFont(x, text, fs, maxW, min = 0, step = 4) {
+  x.font = `${fs}px Bungee`;
+  while (x.measureText(text).width > maxW && fs > min) { fs -= step; x.font = `${fs}px Bungee`; }
+  return fs;
+}
 function grain(ctx, w, h, amt, alpha = 1) {
   const img = ctx.getImageData(0, 0, w, h), d = img.data;
   for (let i = 0; i < d.length; i += 4) {
@@ -586,8 +574,7 @@ function marqueeTexture(p) {
     x.moveTo(sx, sy - r); x.quadraticCurveTo(sx, sy, sx + r, sy); x.quadraticCurveTo(sx, sy, sx, sy + r); x.quadraticCurveTo(sx, sy, sx - r, sy); x.quadraticCurveTo(sx, sy, sx, sy - r); x.fill();
   }
   const name = p.name.toUpperCase();
-  let fs = 170; x.font = `${fs}px Bungee`;
-  while (x.measureText(name).width > 880 && fs > 40) { fs -= 4; x.font = `${fs}px Bungee`; }
+  const fs = fitFont(x, name, 170, 880, 40);
   x.textAlign = "center"; x.textBaseline = "middle";
   const ty = cy - 6;
   for (let i = 12; i > 0; i--) { x.fillStyle = i > 9 ? "#000" : shade(p.c1, 0.22); x.fillText(name, cx + i * 1.1, ty + i * 1.5); }
@@ -605,12 +592,13 @@ function marqueeTexture(p) {
 
 // kontrol paneli: lokal (x: -0.315..0.315, y: -0.125..0.125) → piksel
 const PANEL_W = 0.63;
-const panelPx = (lx, ly, PL) => [(lx + PANEL_W / 2) / PANEL_W * 1024, (1 - (ly + PL / 2) / PL) * 406];
+const PANEL_TW = 1024, PANEL_TH = 406; // panel dokusunun piksel boyutu
+const panelPx = (lx, ly, PL) => [(lx + PANEL_W / 2) / PANEL_W * PANEL_TW, (1 - (ly + PL / 2) / PL) * PANEL_TH];
 const CTRL = { stick: [-0.17, 0.0], start: [0.245, 0.075], buttons: [[-0.02, 0.03], [0.055, 0.042], [0.13, 0.042], [-0.02, -0.04], [0.055, -0.028], [0.13, -0.028]] };
 const BTN_COLORS = ["#e3242b", "#f5c400", "#1e6cff", "#e3242b", "#f5c400", "#1e6cff"];
 
 function panelTexture(p, PL) {
-  const W = 1024, H = 406, [c, x] = mkCanvas(W, H);
+  const W = PANEL_TW, H = PANEL_TH, [c, x] = mkCanvas(W, H);
   x.fillStyle = "#121219"; x.fillRect(0, 0, W, H);
   for (let i = 0; i < 260; i++) { x.fillStyle = `rgba(255,255,255,${rand(0.01, 0.035)})`; x.fillRect(0, rand(0, H), W, 1); }
   x.save(); x.globalAlpha = 0.18;
@@ -629,11 +617,11 @@ function panelTexture(p, PL) {
 }
 
 function bezelTexture(L) {
-  const W = 512, H = Math.round(512 * L / 0.63), [c, x] = mkCanvas(W, H);
+  const W = 512, H = Math.round(512 * L / PANEL_W), [c, x] = mkCanvas(W, H);
   const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, "#1a1a20"); g.addColorStop(0.45, "#050506"); g.addColorStop(1, "#111116");
   x.fillStyle = g; x.fillRect(0, 0, W, H);
   x.fillStyle = "rgba(255,255,255,.05)"; x.beginPath(); x.moveTo(0, 0); x.lineTo(W * 0.55, 0); x.lineTo(W * 0.25, H); x.lineTo(0, H); x.fill();
-  const toPx = (lx, ly) => [(lx + 0.315) / 0.63 * W, (1 - (ly + L / 2) / L) * H];
+  const toPx = (lx, ly) => [(lx + PANEL_W / 2) / PANEL_W * W, (1 - (ly + L / 2) / L) * H];
   const [x0, y0] = toPx(-0.245, SCREEN.cy + SCREEN.h / 2 + 0.015), [x1, y1] = toPx(0.245, SCREEN.cy - SCREEN.h / 2 - 0.015);
   x.fillStyle = "#000"; x.fillRect(x0, y0, x1 - x0, y1 - y0);
   x.strokeStyle = "rgba(255,255,255,.12)"; x.lineWidth = 2; x.strokeRect(x0, y0, x1 - x0, y1 - y0);
@@ -705,8 +693,7 @@ function noteTexture() {
 
 function neonSignTexture(text, color, w = 1024, h = 256, fontPx = 150) {
   const [c, x] = mkCanvas(w, h);
-  x.font = `${fontPx}px Bungee`;
-  let fs = fontPx; while (x.measureText(text).width > w - 100) { fs -= 4; x.font = `${fs}px Bungee`; }
+  fitFont(x, text, fontPx, w - 100);
   x.textAlign = "center"; x.textBaseline = "middle";
   for (const [blur, col, lw] of [[60, color, 10], [34, color, 8], [16, color, 6], [6, "#fff", 4]]) {
     x.shadowColor = col; x.shadowBlur = blur; x.strokeStyle = col; x.lineWidth = lw; x.strokeText(text, w / 2, h / 2);
@@ -985,9 +972,17 @@ const TRIM = {
 let GLOW_TEX;
 function glowSprite(color, sx, sy, opacity) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false }));
-  s.scale.set(sx, sy, 1); s.userData.baseOpacity = opacity;
+  s.scale.set(sx, sy, 1);
   return s;
 }
+// Yere yatırılmış ışık lekesi (gerçek ışık yerine, performans için)
+function glowPool(color, w, h, opacity, fog = true) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog }));
+  m.rotation.x = -Math.PI / 2;
+  return m;
+}
+// Jeton kapısı lambaları: normal, yanıp sönerken açık ve sönük renk
+const LAMP_ON = 0xff2a2a, LAMP_FLASH = 0xff6a6a, LAMP_OFF = 0x400808;
 
 /* Makine geometrisi */
 const PROFILE = [[-0.42, 0], [0.24, 0], [0.24, 0.86], [0.50, 0.94], [0.50, 1.03], [0.26, 1.10], [0.12, 1.56], [0.22, 1.58], [0.22, 1.84], [-0.28, 1.84], [-0.42, 1.62]];
@@ -1041,8 +1036,9 @@ function buildShared() {
     blackPlastic: std({ color: 0x0c0c0e, roughness: 0.35, envMapIntensity: 0.6 }),
     metal: std({ color: 0xcfd3d8, metalness: 1, roughness: 0.25, envMapIntensity: 1.2 }),
     stickBall: std({ color: 0xd6141c, roughness: 0.25, envMapIntensity: 0.9 }),
-    lampOff: new THREE.MeshBasicMaterial({ color: 0x400808 }),
+    chrome: std({ color: 0xd8dde3, metalness: 1, roughness: 0.2, envMapIntensity: 1.2 }), // kapı kolu, masa/tabure ayakları (TRIM.chrome'dan biraz parlak)
     coinMat: std({ color: 0xffc94a, metalness: 1, roughness: 0.28, envMapIntensity: 1.6, emissive: 0x3a2400 }),
+    coinGeo: new THREE.CylinderGeometry(0.026, 0.026, 0.005, 32),
   });
 }
 
@@ -1050,7 +1046,7 @@ const machines = [];
 const hitBoxes = [];
 const doorMeshes = [];
 
-function buildMachine(p, i, n) {
+function buildMachine(p, i) {
   const g = new THREE.Group();
   const slot = p.corner === "backLeft" ? { x: -ROOM_X + 0.8, z: 0, ry: 0.45 } : slotFor(i);
   g.position.set(slot.x, 0, slot.z); g.rotation.y = slot.ry; g.updateMatrixWorld();
@@ -1076,7 +1072,7 @@ function buildMachine(p, i, n) {
   doorMesh.receiveShadow = true; doorMesh.userData.machine = i; door.add(doorMesh); doorMeshes.push(doorMesh);
   m.lamps = [];
   for (const lx of [-0.07, 0.07]) {
-    const lampMat = new THREE.MeshBasicMaterial({ color: 0xff2a2a, toneMapped: false });
+    const lampMat = new THREE.MeshBasicMaterial({ color: LAMP_ON, toneMapped: false });
     const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.011, 16), lampMat); lamp.position.set(lx, 0.155, 0.002); door.add(lamp);
     const gl = glowSprite(0xff2020, 0.09, 0.09, 0.6); gl.position.set(lx, 0.155, 0.01); door.add(gl);
     m.lamps.push({ mat: lampMat, glow: gl });
@@ -1112,7 +1108,7 @@ function buildMachine(p, i, n) {
   scrGroup.add(new THREE.Mesh(shared.screenGeo, new THREE.MeshBasicMaterial({ map: sTex, toneMapped: false })));
   const scan = new THREE.Mesh(shared.screenGeo, shared.scanMat); scan.position.z = 0.0012; scrGroup.add(scan);
   const glass = new THREE.Mesh(shared.screenGeo, shared.glassMat); glass.position.z = 0.0025; scrGroup.add(glass);
-  Object.assign(m, { sCanvas: sc, sCtx: sx, sTex, scrGroup, draw: SCENES[p.scene] ? SCENES[p.scene](p) : SCENES.glitch(p) });
+  Object.assign(m, { sCanvas: sc, sCtx: sx, sTex, scrGroup, draw: p.arcade ? null : SCENES[p.scene] ? SCENES[p.scene](p) : SCENES.glitch(p) }); // oyun makinesi kendi ekranını çizer
 
   // Tabela
   const marqMat = new THREE.MeshBasicMaterial({ map: mkTex(marqueeTexture(p)), toneMapped: false, fog: false });
@@ -1125,8 +1121,8 @@ function buildMachine(p, i, n) {
   const sgl = glowSprite(new THREE.Color(p.scr), 0.95, 0.8, 0.3); sgl.position.copy(F.screen.at(0.55, 0.12)); g.add(sgl);
   m.mGlow = mg; m.sGlow = sgl;
   // ekran ışığının halıya vurduğu leke (gerçek ışık yerine, performans için)
-  const pool = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.3), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color: new THREE.Color(p.scr), transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-  pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.004, 0.85); g.add(pool);
+  const pool = glowPool(new THREE.Color(p.scr), 1.5, 1.3, 0.32);
+  pool.position.set(0, 0.004, 0.85); g.add(pool);
   m.pool = pool;
 
   // Görünmez tıklama kutusu
@@ -1134,7 +1130,7 @@ function buildMachine(p, i, n) {
   hb.position.set(0, 0.94, 0.04); hb.userData.machine = i; g.add(hb); hitBoxes.push(hb);
 
   if (p.secret) {
-    const note = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.28), new THREE.MeshStandardMaterial({ map: mkTex(noteTexture()), transparent: true, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.2, emissive: 0xffffff, emissiveIntensity: 0.08, emissiveMap: null }));
+    const note = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.28), new THREE.MeshStandardMaterial({ map: mkTex(noteTexture()), transparent: true, roughness: 0.9, side: THREE.DoubleSide, envMapIntensity: 0.2, emissive: 0xffffff, emissiveIntensity: 0.08 }));
     note.position.set(0.01, 0.0, 0.03); note.rotation.z = 0.07; note.castShadow = true;
     scrGroup.add(note); m.note = note;
   }
@@ -1164,7 +1160,7 @@ function buildRoom() {
   const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 3.8, 12), new THREE.MeshBasicMaterial({ color: 0x9ff6ff, toneMapped: false, fog: false }));
   tube.rotation.z = Math.PI / 2; tube.position.set(NX, 3.05, -0.74); scene.add(tube);
   const tGlow = glowSprite(0x18e0ff, 4.8, 0.42, 0.55); tGlow.position.set(NX, 3.05, -0.68); scene.add(tGlow);
-  room.neon = [sign.material, sGlow, tGlow];
+  room.neon = [sign.material, sGlow];
 
   // Gizli köşe neonu (sağ duvar, başta sönük)
   const sec = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: mkTex(neonSignTexture("GİZLİ KÖŞE", "#38ff8a")), transparent: true, opacity: 0, toneMapped: false, fog: false, depthWrite: false }));
@@ -1173,8 +1169,8 @@ function buildRoom() {
   const wallZ = sm.group.rotation.y === 0 ? -0.78 : -0.45; // makinenin arkasındaki duvar (yerel z)
   sec.position.copy(sm.group.localToWorld(new V3(0, 2.32, wallZ))); sec.rotation.y = sm.group.rotation.y; scene.add(sec);
   const secGlow = glowSprite(0x38ff8a, 2.6, 0.9, 0); secGlow.position.copy(sm.group.localToWorld(new V3(0, 2.32, wallZ + 0.1))); scene.add(secGlow);
-  const secPool = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2.2), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color: 0x38ff8a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-  secPool.rotation.x = -Math.PI / 2; secPool.position.copy(sm.group.localToWorld(new V3(0, 0.006, 1.1))); scene.add(secPool);
+  const secPool = glowPool(0x38ff8a, 2.6, 2.2, 0);
+  secPool.position.copy(sm.group.localToWorld(new V3(0, 0.006, 1.1))); scene.add(secPool);
   room.secret = { sec, secGlow, secPool, on: false, t: 0 };
 
   // Işıklar
@@ -1201,7 +1197,7 @@ function buildRoom() {
     }
   }
 
-  buildBadges(ROOM_X);
+  buildBadges();
   buildDecor(ROOM_X);
   buildStorefront(ROOM_X, wc);
   renderer.shadowMap.needsUpdate = true;
@@ -1214,7 +1210,7 @@ function loadBadgeImage(b) {
   return new Promise((res) => {
     const img = new Image(); img.crossOrigin = "anonymous";
     img.onload = () => res(img); img.onerror = () => res(null);
-    img.src = `https://github.githubassets.com/assets/${b.img}.png`;
+    img.src = badgeImgUrl(b);
   });
 }
 function roundRect(x, X, Y, W, H, R) { x.beginPath(); x.moveTo(X + R, Y); x.arcTo(X + W, Y, X + W, Y + H, R); x.arcTo(X + W, Y + H, X, Y + H, R); x.arcTo(X, Y + H, X, Y, R); x.arcTo(X, Y, X + W, Y, R); x.closePath(); }
@@ -1242,7 +1238,7 @@ function drawPanoArt(x, W, H, imgs) {
     const cx = 40 + cw * (k + 0.5), cy = 300;
     x.fillStyle = hexA(b.color, 0.12); x.beginPath(); x.arc(cx, cy, cw * 0.44, 0, 7); x.fill();
     badgeArt(x, b, imgs[k], cx, cy, cw * 0.36);
-    x.fillStyle = "#e9e7f2"; let fs = 24; x.font = `${fs}px Bungee`; while (x.measureText(b.name).width > cw - 12 && fs > 12) { fs -= 1; x.font = `${fs}px Bungee`; }
+    x.fillStyle = "#e9e7f2"; fitFont(x, b.name, 24, cw - 12, 12, 1);
     x.fillText(b.name, cx, 450);
   });
   x.strokeStyle = "rgba(255,176,0,.6)"; x.lineWidth = 8; x.strokeRect(12, 12, W - 24, H - 24);
@@ -1268,7 +1264,7 @@ function makeFrame(w, h, art, badge) {
   if (art.load) art.load().then((data) => { art.draw(x, data); tex.needsUpdate = true; });
   return g;
 }
-function buildBadges(roomX) {
+function buildBadges() {
   const panoArt = { W: 1200, H: 600, draw: (x, imgs) => drawPanoArt(x, 1200, 600, imgs || []), load: () => Promise.all(BADGES.map(loadBadgeImage)) };
   const pano = makeFrame(2.2, 1.1, panoArt, { name: "Başarımlar", color: "#ffb000", lang: "tr", url: `https://github.com/${GITHUB_USER}?tab=achievements` });
   pano.position.set(-4.15, 2.3, -0.79); scene.add(pano);
@@ -1328,7 +1324,7 @@ function asphaltTexture() {
   grain(x, W, H, 18);
   return c;
 }
-function glassTexture2() { // vitrin camındaki yansıma çizgileri
+function storefrontGlassTexture() { // vitrin camındaki yansıma çizgileri
   const W = 512, H = 256, [c, x] = mkCanvas(W, H);
   x.clearRect(0, 0, W, H);
   for (let i = 0; i < 5; i++) {
@@ -1370,14 +1366,14 @@ function buildStorefront(roomX, wallCanvas) {
   box(half, 0.07, winL + half / 2, sill, frameM, 0.1); box(half, 0.07, winR - half / 2, sill, frameM, 0.1);
   box(doorW, 0.07, 0, doorH, frameM, 0.1);
   // camlar
-  const gTex = mkTex(glassTexture2(), { srgb: false });
+  const gTex = mkTex(storefrontGlassTexture(), { srgb: false });
   const glassMat = new THREE.MeshBasicMaterial({ map: gTex, color: 0xaecbff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const tint = new THREE.MeshBasicMaterial({ color: 0x0a1424, transparent: true, opacity: 0.22, depthWrite: false });
   for (const [w, h, x, y] of [[winR - winL, head - sill, 0, (head + sill) / 2], [doorW, head - doorH, 0, (head + doorH) / 2], [doorW - 0.1, doorH - 0.05, 0, doorH / 2]]) {
     for (const m of [tint, glassMat]) { const g = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); g.position.set(x, y, Z + 0.05); g.rotation.y = Math.PI; scene.add(g); }
   }
   // kapı kolu ve "ÇEKİNİZ" etiketi
-  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.9, 10), std({ color: 0xd8dde3, metalness: 1, roughness: 0.2, envMapIntensity: 1.2 }));
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.9, 10), shared.chrome);
   bar.position.set(0.45, 1.1, Z - 0.06); scene.add(bar);
   const [lc, lx] = mkCanvas(256, 64); lx.fillStyle = "#c4102c"; lx.fillRect(0, 0, 256, 64); lx.font = "30px Bungee"; lx.fillStyle = "#fff"; lx.textAlign = "center"; lx.textBaseline = "middle"; lx.fillText("ÇEKİNİZ", 128, 34);
   const lab = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.09), new THREE.MeshBasicMaterial({ map: mkTex(lc) })); lab.position.set(0, 1.45, Z + 0.03); lab.rotation.y = Math.PI; scene.add(lab);
@@ -1387,8 +1383,8 @@ function buildStorefront(roomX, wallCanvas) {
   const og = glowSprite(0xff2a4a, 2.0, 0.9, 0.4); og.position.set(-2.6, 2.35, Z - 0.3); scene.add(og);
   const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.9, 4), frameM); chain.position.set(-2.6, 2.98, Z - 0.12); scene.add(chain);
   // vitrinden içeri vuran sokak ışığı
-  const spill = new THREE.Mesh(new THREE.PlaneGeometry(11, 3.2), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color: 0x5a7cff, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-  spill.rotation.x = -Math.PI / 2; spill.position.set(0, 0.006, Z - 1.2); scene.add(spill);
+  const spill = glowPool(0x5a7cff, 11, 3.2, 0.22);
+  spill.position.set(0, 0.006, Z - 1.2); scene.add(spill);
 
   // ── dışarısı ──
   const out = (mesh) => { mesh.material.fog = false; scene.add(mesh); return mesh; };
@@ -1411,8 +1407,8 @@ function buildStorefront(roomX, wallCanvas) {
     const arm = out(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 1.2), pole)); arm.position.set(lx, 4.95, Z + 2.3);
     const head = out(new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.12, 0.25), new THREE.MeshBasicMaterial({ color: 0xffd9a0, toneMapped: false }))); head.position.set(lx, 4.88, Z + 1.75);
     const lg = glowSprite(0xffc078, 2.6, 2.6, 0.75); lg.position.set(lx, 4.7, Z + 1.75); scene.add(lg); if (lx > 0) room2.lampSprite = lg;
-    const pool = new THREE.Mesh(new THREE.PlaneGeometry(5, 4), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color: 0xffb060, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false }));
-    pool.rotation.x = -Math.PI / 2; pool.position.set(lx, 0.0, Z + 2.0); scene.add(pool);
+    const pool = glowPool(0xffb060, 5, 4, 0.55, false);
+    pool.position.set(lx, 0.0, Z + 2.0); scene.add(pool);
   }
   // sokaktan geçen arabalar
   [[0x1d3a73, 7.5, 1, Z + 7.0], [0x6a6e78, 11, -1, Z + 9.0]].forEach(([col, period, dir, z], k) => {
@@ -1456,14 +1452,14 @@ function posterTexture(kind) {
 function buildDecor(roomX) {
   // Posterler: sol duvarda iki, sağ duvarda bir
   [[0, -roomX + 0.012, 2.1, 2.2, Math.PI / 2, 0.03], [1, -roomX + 0.012, 2.05, 4.0, Math.PI / 2, -0.02], [2, roomX - 0.012, 2.0, 7.4, -Math.PI / 2, 0.02]].forEach(([k, x, y, z, ry, rz]) => {
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 1.2), std({ map: mkTex(posterTexture(k)), roughness: 0.6, emissive: 0xffffff, emissiveMap: null, emissiveIntensity: 0 }));
-    p.material.emissiveMap = p.material.map; p.material.emissiveIntensity = 0.18;
+    const tex = mkTex(posterTexture(k));
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 1.2), std({ map: tex, roughness: 0.6, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.18 }));
     p.position.set(x, y, z); p.rotation.set(0, ry, rz); scene.add(p);
   });
 
   // Sol köşe: kafe masası ve etrafında tabureler
   const vinyl = std({ color: 0xc4102c, roughness: 0.35, envMapIntensity: 0.6 });
-  const chrome = std({ color: 0xd8dde3, metalness: 1, roughness: 0.2, envMapIntensity: 1.2 });
+  const chrome = shared.chrome;
   const stoolGeo = { seat: new THREE.CylinderGeometry(0.17, 0.16, 0.08, 20), pole: new THREE.CylinderGeometry(0.025, 0.025, 0.58, 10), base: new THREE.CylinderGeometry(0.2, 0.22, 0.03, 20), ring: new THREE.TorusGeometry(0.13, 0.01, 6, 20) };
   const tables = [[-roomX + 1.3, 3.1], [-roomX + 1.3, 5.6]];
   const tableTop = std({ color: 0x1b1b22, roughness: 0.3, envMapIntensity: 0.8 });
@@ -1525,8 +1521,8 @@ function buildDecor(roomX) {
     room2.arches.push({ mat, base: new THREE.Color(col) });
   });
   const jg = glowSprite(0xff8ad0, 1.8, 2.0, 0.35); jg.position.set(0, 1.0, D / 2 + 0.25); jb.add(jg); room2.jbGlow = jg;
-  const jpool = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.8), new THREE.MeshBasicMaterial({ map: GLOW_TEX, color: 0xff6ab0, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-  jpool.rotation.x = -Math.PI / 2; jpool.position.set(0, 0.005, D / 2 + 0.6); jb.add(jpool);
+  const jpool = glowPool(0xff6ab0, 2.2, 1.8, 0.28);
+  jpool.position.set(0, 0.005, D / 2 + 0.6); jb.add(jpool);
   const jhit = new THREE.Mesh(new THREE.BoxGeometry(W + 0.1, BH + W / 2 + 0.1, D + 0.1), new THREE.MeshBasicMaterial({ visible: false }));
   jhit.position.y = (BH + W / 2) / 2; jhit.userData.badge = { name: "Müzik kutusu · çal / durdur", color: "#ff7ad9", lang: "tr", jukebox: true }; jb.add(jhit); frameMeshes.push(jhit);
   jb.position.set(-roomX + 0.6, 0, FRONT_Z - 0.8); jb.rotation.y = Math.PI / 2 + 0.5; scene.add(jb); // girişte sol köşe
@@ -1574,6 +1570,43 @@ const hiGet = (k) => +(store("js-hi-" + k) || 0);
 const hiSet = (k, v) => { if (v > hiGet(k)) store("js-hi-" + k, String(v)); };
 const pad6 = (n) => String(Math.max(0, n | 0)).padStart(6, "0");
 
+// ── Oyunlar arası ortak çizim ve efekt yardımcıları ──
+// Karartılmış yatay bant ve ortalanmış satırlar: rows = [[metin, y, renk, boyut], ...] (boş satır atlanır)
+function arcBanner(x, by, bh, rows, a = 0.78) {
+  x.fillStyle = `rgba(0,0,0,${a})`; x.fillRect(0, by, ARC_W, bh);
+  for (const r of rows) if (r) pxText(x, r[0], ARC_W / 2, r[1], r[2] || "#fff", r[3] || 8, "center");
+}
+// "Oyun bitti" bandı + yanıp sönen tekrar ipucu (hy: ipucunun y'si)
+function arcGameOver(x, t, by, bh, rows, hy, a) {
+  arcBanner(x, by, bh, rows, a);
+  if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", ARC_W / 2, hy, "#ffd23f", 8, "center");
+}
+// Ekran sarsıntısı: rastgele ±2 px titreme ya da zamana bağlı ±1 px salınım
+const shakeJitter = (x) => x.translate(((Math.random() * 5) | 0) - 2, ((Math.random() * 5) | 0) - 2);
+const shakeWobble = (x, t) => x.translate(((t * 60) | 0) % 3 - 1, ((t * 47) | 0) % 3 - 1);
+// Parçacık + uçan yazı efektleri. max/maxPops dolunca en eskisi düşer.
+// grav: yerçekimi (px/sn²) · drag: güncelleme başına hız çarpanı · rise: yazının yükselme hızı (px/sn)
+// big: kalan ömrü bundan uzun parçacık 2 px, kısa olan 1 px çizilir (0 = hep 2 px)
+function ArcFx({ max = 120, maxPops = 8, grav = 0, drag = 1, rise = 12, big = 0 } = {}) {
+  let parts = [], pops = [];
+  return {
+    spark(x, y, vx, vy, l, c) { if (parts.length >= max) parts.shift(); parts.push({ x, y, vx, vy, l, c }); },
+    pop(x, y, s, c, l = 1) { if (pops.length >= maxPops) pops.shift(); pops.push({ x, y, s, c, l }); },
+    // dy: parçacıklara eklenen ek dikey kayma (ör. akan yolun hızı)
+    update(dt, dy = 0) {
+      for (const p of parts) { p.x += p.vx * dt; p.y += (p.vy + dy) * dt; p.vy += grav * dt; p.vx *= drag; p.vy *= drag; p.l -= dt; }
+      for (const p of pops) { p.y -= rise * dt; p.l -= dt; }
+      if (parts.length && parts.some((p) => p.l <= 0)) parts = parts.filter((p) => p.l > 0);
+      if (pops.length && pops.some((p) => p.l <= 0)) pops = pops.filter((p) => p.l > 0);
+    },
+    draw(x) {
+      for (const p of parts) { const s = p.l > big ? 2 : 1; x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, s, s); }
+      for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    },
+    clear() { parts = []; pops = []; },
+  };
+}
+
 // Piksel sprite: her satır bir string, her harf paletteki bir renk ("." saydam)
 function drawSprite(x, rows, pal, px, py, flip = false, sy = 1) {
   const w = rows[0].length;
@@ -1600,14 +1633,14 @@ const BUG_TOP = ["...A......A...", "....A....A....", "...GGGGGGGG...", "..GGEGGG
 const BUG = [BUG_TOP.concat([".L.L..L..L.L..", "L.L..L..L..L.."]), BUG_TOP.concat(["..L.L..L.L.L..", ".L..L..L..L.L."])];
 
 /* ── Blok Yağmuru ── */
-function BlockGame() {
+function BlockGame(hiKey) {
   const W = 10, H = 20, C = 8, OX = 88, OY = 16;
   const SHAPES = { I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[0, 0], [1, 0], [0, 1], [1, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]], S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]] };
   const COL = { I: "#18e0ff", O: "#ffd23f", T: "#b26bff", S: "#3dff7a", Z: "#ff4d6d", J: "#3f7bff", L: "#ff8a3d" };
   const BOX = { I: 4, O: 2, T: 3, S: 3, Z: 3, J: 3, L: 3 };
   const g = { over: false, hint: "← → kaydır · ↑ / Boşluk döndür · ↓ hızlandır · X bırak · Esc menü" };
   const LINES_PER_LEVEL = 10, GARBAGE_FROM = 8, GARBAGE_COL = "#5a5a78";
-  let grid, cur, next, bag, score, lines, level, fallT, lockT, dasT, clearRows, clearT, playT, annT, garbT, riseFl;
+  let grid, cur, next, bag, score, lines, level, fallT, lockT, dasT, clearRows, clearT, annT, garbT, riseFl;
   // Düşme aralığı: seviye 1 0.80 sn, 5 ~0.42, 10 ~0.18, tavan 0.10 (her seviye %15 hızlanır)
   const fallInterval = () => Math.max(0.1, 0.8 * Math.pow(0.85, level - 1));
   // Çöp satır aralığı (sn): seviye 8'de 14, her seviye 1.5 kısalır, en az 5
@@ -1616,8 +1649,8 @@ function BlockGame() {
   const piece = (k) => ({ k, cells: SHAPES[k].map((c) => c.slice()), x: k === "O" ? 4 : 3, y: k === "I" ? -1 : 0 });
   const fits = (cells, px, py) => cells.every(([cx, cy]) => { const x = px + cx, y = py + cy; return x >= 0 && x < W && y < H && (y < 0 || !grid[y * W + x]); });
   const rot = (p) => (p.k === "O" ? p.cells : p.cells.map(([x, y]) => [BOX[p.k] - 1 - y, x]));
-  function reset() { grid = Array(W * H).fill(null); bag = []; cur = piece(take()); next = take(); score = 0; lines = 0; level = 1; fallT = 0; lockT = 0; dasT = 0; clearRows = []; clearT = 0; playT = 0; annT = 0; garbT = 0; riseFl = 0; g.over = false; }
-  function end() { g.over = true; hiSet("blok", score); Sound.fall(); }
+  function reset() { grid = Array(W * H).fill(null); bag = []; cur = piece(take()); next = take(); score = 0; lines = 0; level = 1; fallT = 0; lockT = 0; dasT = 0; clearRows = []; clearT = 0; annT = 0; garbT = 0; riseFl = 0; g.over = false; }
+  function end() { g.over = true; hiSet(hiKey, score); Sound.fall(); }
   function spawn() { cur = piece(next); next = take(); if (!fits(cur.cells, cur.x, cur.y)) end(); }
   function lock() {
     for (const [cx, cy] of cur.cells) { const y = cur.y + cy; if (y < 0) { end(); return; } grid[y * W + cur.x + cx] = COL[cur.k]; }
@@ -1654,14 +1687,13 @@ function BlockGame() {
   g._test = { // test kancası: oyunda kullanılmaz
     level(n) { lines = (n - 1) * LINES_PER_LEVEL; levelUp(n); },
     garbage() { addGarbage(); },
-    state: () => ({ level, lines, score, playT, interval: fallInterval(), garbT, annT }),
+    state: () => ({ level, lines, score, interval: fallInterval(), garbT, annT }),
   };
   g.update = (dt) => {
     if (annT > 0) annT -= dt;
     if (riseFl > 0) riseFl -= dt;
     if (g.over) { if (hit("a") || hit("start")) reset(); return; }
     if (clearT > 0) { clearT -= dt; if (clearT <= 0) finishClear(); return; }
-    playT += dt;
     if (level >= GARBAGE_FROM) { garbT -= dt; if (garbT <= 0) { garbT = garbageGap(); addGarbage(); if (g.over) return; } }
     const dir = (pad.left ? -1 : 0) + (pad.right ? 1 : 0);
     if (hit("left") || hit("right")) { tryMove(hit("left") ? -1 : 1); dasT = 0.17; }
@@ -1698,7 +1730,7 @@ function BlockGame() {
       for (const [cx, cy] of cur.cells) if (gy + cy >= 0) x.strokeRect(OX + (cur.x + cx) * C + 0.5, OY + (gy + cy) * C + 0.5, C - 2, C - 2);
       for (const [cx, cy] of cur.cells) if (cur.y + cy >= 0) cell(x, OX + (cur.x + cx) * C, OY + (cur.y + cy) * C, COL[cur.k]);
     }
-    [["SKOR", pad6(score)], ["SATIR", String(lines)], ["SEVİYE", String(level)], ["REKOR", pad6(Math.max(hiGet("blok"), score))]].forEach(([k, v], i) => {
+    [["SKOR", pad6(score)], ["SATIR", String(lines)], ["SEVİYE", String(level)], ["REKOR", pad6(Math.max(hiGet(hiKey), score))]].forEach(([k, v], i) => {
       pxText(x, k, 8, 22 + i * 36, "#8a8aa8", 8); pxText(x, v, 8, 34 + i * 36, "#ffffff", 8);
     });
     pxText(x, "SIRADAKİ", 176, 22, "#8a8aa8", 8);
@@ -1719,13 +1751,8 @@ function BlockGame() {
       }
       x.globalAlpha = 1;
     }
-    pxText(x, "X: BIRAK", 176, 150, "#55557a", 8); pxText(x, "↑: DÖNDÜR".replace("↑", "^"), 176, 164, "#55557a", 8);
-    if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
-      pxText(x, "OYUN BİTTİ", 128, 74, "#ff4d6d", 16, "center");
-      pxText(x, "SKOR " + pad6(score), 128, 98, "#fff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 112, "#ffd23f", 8, "center");
-    }
+    pxText(x, "X: BIRAK", 176, 150, "#55557a", 8); pxText(x, "^: DÖNDÜR", 176, 164, "#55557a", 8);
+    if (g.over) arcGameOver(x, t, 64, 64, [["OYUN BİTTİ", 74, "#ff4d6d", 16], ["SKOR " + pad6(score), 98]], 112);
   };
   return g;
 }
@@ -1747,10 +1774,10 @@ const BUG_THEMES = {
   firtina: { sky: ["#05040f", "#2a1a4a"], stars: false, clouds: true, storm: true, ground: ["#2a2050", "#3a2e66", "#9ad0ff"], brick: ["#7a5aff", "#3a2a8a"], bug: BUG_PAL },
   kale: { sky: ["#05000a", "#22000e"], stars: false, pillars: "#160a16", lift: true, ground: ["#1e1e26", "#2c2c38", "#ff2a4a"], brick: ["#3e3a4e", "#1a1822"], bug: Object.assign({}, BUG_PAL, { G: "#d04dff", D: "#5a1a8a" }) },
 };
+const BUG_ROWS = 12; // bölüm yüksekliği (satır)
 function bugLevel(w, theme, label) {
-  const ROWS = 12;
-  const L = { w, theme, label, map: Array.from({ length: ROWS }, () => new Uint8Array(w)), coins: new Set(), foes: [], warps: [], movers: [], flag: w - 10, mid: Math.floor(w / 2), midRow: 10, time: 200, spd: 32 };
-  L.set = (c, r, v) => { if (c >= 0 && c < w && r >= 0 && r < ROWS) L.map[r][c] = v; };
+  const L = { w, theme, label, map: Array.from({ length: BUG_ROWS }, () => new Uint8Array(w)), coins: new Set(), foes: [], warps: [], movers: [], flag: w - 10, mid: Math.floor(w / 2), midRow: 10, time: 200, spd: 32 };
+  L.set = (c, r, v) => { if (c >= 0 && c < w && r >= 0 && r < BUG_ROWS) L.map[r][c] = v; };
   L.row = (c0, c1, r, v) => { for (let c = c0; c <= c1; c++) L.set(c, r, v); };
   L.ground = (gaps = [], from = 0, to = w, v = 1) => { for (let c = from; c < to; c++) if (!gaps.some(([a, b]) => c >= a && c <= b)) { L.set(c, 10, v); L.set(c, 11, v); } };
   L.lava = (pits) => pits.forEach(([a, b]) => { L.row(a, b, 10, 11); L.row(a, b, 11, 11); });
@@ -1928,36 +1955,39 @@ const BUG_SUBS = {
     for (let r = 2; r < 10; r++) L.set(0, r, 2);
     for (let r = 4; r <= 8; r++) L.coinRow(3, 12, r);
     L.row(3, 12, 9, 2);
-    L.rack(15, 3); L.exit = { c: 15, toLevel: 0, col: 163 };
+    L.rack(15, 3); L.exit = { c: 15, col: 163 };
     L.flag = -99; L.time = 0;
     return L;
   },
 };
 // Yeni düşman sprite'ları (14x10, BUG gibi sola bakar)
-const BUG_HOP_PAL = { A: "#222222", G: "#7dff3d", D: "#2a8a10", E: "#ffffff", L: "#1a3a10" };
+const BUG_HOP_PAL = Object.assign({}, BUG_PAL, { G: "#7dff3d", D: "#2a8a10", L: "#1a3a10" });
 const BUG_HOP_TOP = ["...A......A...", "....A....A....", "....GGGGGG....", "...GEGGGGEG...", "..GGGGGGGGGG..", ".GGDDGGGGDDGG.", ".GGGGGGGGGGGG.", "..GGGGGGGGGG.."];
 const BUG_HOP = [BUG_HOP_TOP.concat([".LL..L..L..LL.", "L....L..L....L"]), BUG_HOP_TOP.concat(["..L........L..", ".L..........L."])];
-const BUG_FLY_PAL = { A: "#222222", G: "#18e0ff", D: "#0a5a7a", E: "#ffffff", L: "#222222", W: "#cfe9ff" };
+const BUG_FLY_PAL = Object.assign({}, BUG_PAL, { G: "#18e0ff", D: "#0a5a7a", W: "#cfe9ff" });
 const BUG_FLY = [
   ["WW..........WW", "WWW...AA...WWW", ".WWW.GGGG.WWW.", "..WWGEGGEGWW..", "...GGGGGGGG...", "...GDGGGGDG...", "....GGGGGG....", ".....GGGG.....", "......LL......", ".............."],
   ["..............", "......AA......", "....GGGGGG....", "...GEGGGGEG...", "WWWGGGGGGGGWWW", "WWWWGDGGDGWWWW", ".WWWWGGGGWWWW.", "..WW.GGGG.WW..", "......LL......", ".............."],
 ];
-const BUG_SPIT_PAL = { A: "#222222", G: "#e4e4ee", D: "#6a6a86", E: "#ff3fa4", L: "#222222", M: "#ff3fa4" };
+const BUG_SPIT_PAL = Object.assign({}, BUG_PAL, { G: "#e4e4ee", D: "#6a6a86", E: "#ff3fa4", M: "#ff3fa4" });
 const BUG_SPIT_TOP = ["...A......A...", "....A....A....", "...GGGGGGGG...", "..GEGGGGEGGG..", "MGGGGGGGGGGGG.", "MMMMGDGGDGGGG.", "MGGGGGGGGGGGG.", "..GGGGGGGGGG.."];
 const BUG_SPIT = [BUG_SPIT_TOP.concat([".LL.LL..LL.LL.", "L..L..LL..L..L"]), BUG_SPIT_TOP.map((s, i) => (i === 3 || i === 7 ? "M" + s.slice(1) : s)).concat([".LL.LL..LL.LL.", "L..L..LL..L..L"])];
 
-function BugGame() {
-  const T = 16, ROWS = 12, SMALL_H = 15, BIG_H = 23;
+function BugGame(hiKey) {
+  const T = 16, ROWS = BUG_ROWS, SMALL_H = 15, BIG_H = 23;
   const g = { over: false, hint: "← → yürü · ↑ / Boşluk zıpla · X koş (debugger ile fırlat) · ↓ rafa gir · Esc menü" };
   let L, li, map, coins, enemies, p, camX, score, coinCount, lives, timeLeft, state, stateT, checkpoint, bumps, popups, items, shots, debris, warpTo, savedMain = null;
   let plats = [], eshots = [], lt = 0, frozen = null; // hareketli platformlar, düşman mermileri, bölüm saati
   const stars = Array.from({ length: 50 }, () => [Math.random() * ARC_W * 3, Math.random() * 110, Math.random()]);
-  const skyline = []; for (let sx = 0; sx < 240 * T * 0.35 + ARC_W; ) { const w = 18 + Math.random() * 30, h = 30 + Math.random() * 70; skyline.push([sx, w, h]); sx += w + 2; }
-  const cloudsBg = Array.from({ length: 14 }, (_, i) => [i * 140 + Math.random() * 60, 20 + Math.random() * 90, 30 + Math.random() * 30]);
+  const maxW = Math.max(...BUG_LEVELS.map((d) => d().w)); // en geniş bölüm (sütun)
+  const skyline = []; for (let sx = 0; sx < maxW * T * 0.35 + ARC_W; ) { const w = 18 + Math.random() * 30, h = 30 + Math.random() * 70; skyline.push([sx, w, h]); sx += w + 2; }
+  const CLOUD_N = 14, CLOUD_GAP = 140, CLOUD_WRAP = CLOUD_N * CLOUD_GAP;
+  const cloudsBg = Array.from({ length: CLOUD_N }, (_, i) => [i * CLOUD_GAP + Math.random() * 60, 20 + Math.random() * 90, 30 + Math.random() * 30]);
   const solidCode = (v) => v > 0 && v !== 11;
   const isQ = (v) => v === 3 || v === 7 || v === 9;
   const th = () => BUG_THEMES[L.theme];
   const ov = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  function followCam() { camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W)); } // kamera oyuncuyu izler, bölüm sonunda durur
   function at(c, r) { if (r < 0 || r >= ROWS) return 0; if (c < 0 || c >= L.w) return 1; return map[r][c]; }
 
   function movePlats(dt) {
@@ -1986,7 +2016,7 @@ function BugGame() {
     const keepPower = p ? p.power : 0;
     p = { x: col * T, y: (row ?? 10) * T - SMALL_H, w: 12, h: SMALL_H, vx: 0, vy: 0, face: 1, onGround: false, anim: 0, inv: 0, power: 0, ride: null };
     if (L.label === "BONUS" || warpTo) { if (keepPower) { p.power = keepPower; p.h = BIG_H; p.y -= BIG_H - SMALL_H; } }
-    camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+    followCam();
   }
   function startLevel(i, fromCheckpoint) {
     li = i; warpTo = null; savedMain = null;
@@ -2031,7 +2061,7 @@ function BugGame() {
     } else if (v === 7 || v === 9) { // güçlendirme bloktan yükselir
       map[r][c] = 4;
       const type = v === 9 ? "disk" : p.power === 0 ? "kahve" : "debug";
-      items.push({ type, x: c * T + 1, y: r * T, w: 14, h: 14, vx: type === "debug" ? 0 : 55, vy: 0, rise: r * T - 14, out: false, t: 0 });
+      items.push({ type, x: c * T + 1, y: r * T, w: 14, h: 14, vx: type === "debug" ? 0 : 55, vy: 0, rise: r * T - 14, out: false });
       [262, 330, 392, 523].forEach((f, i) => Sound.tone(f, i * 0.05, 0.08, "square", 0.035));
     } else if (v === 2 && p.power > 0) { // büyükken tuğla kırılır
       map[r][c] = 0; score += 50;
@@ -2115,7 +2145,7 @@ function BugGame() {
     debris = debris.filter((d) => { d.t += dt; d.vy += 900 * dt; d.x += d.vx * dt; d.y += d.vy * dt; return d.t < 1.2; });
     if (state === "over" || state === "win") { if (stateT > 0.8 && (hit("a") || hit("start"))) reset(); return; }
     if (state === "intro") { if (stateT > 1.8) { state = "play"; stateT = 0; } return; }
-    if (state === "clear") { if (stateT > 2.6) { if (li + 1 < BUG_LEVELS.length) startLevel(li + 1, false); else { state = "win"; stateT = 0; g.over = true; hiSet("bug", score); Sound.fanfare(); } } return; }
+    if (state === "clear") { if (stateT > 2.6) { if (li + 1 < BUG_LEVELS.length) startLevel(li + 1, false); else { state = "win"; stateT = 0; g.over = true; hiSet(hiKey, score); Sound.fanfare(); } } return; }
     if (state === "warp") { // rafa girme / raftan çıkma animasyonu
       p.y += (warpTo.dir === "down" ? 30 : 0) * dt; p.x += (warpTo.dir === "right" ? 30 : 0) * dt;
       if (stateT > 0.9) {
@@ -2126,7 +2156,7 @@ function BugGame() {
           ({ L, map, coins, enemies, plats, lt } = savedMain); savedMain = null;
           items = []; shots = []; bumps = []; popups = []; eshots = [];
           p.x = w.col * T; p.y = 10 * T - p.h; p.vx = 0; p.vy = 0; p.power = keep; p.ride = null;
-          camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+          followCam();
           warpTo = null; state = "play";
         }
         stateT = 0; p.inv = 0.6;
@@ -2135,7 +2165,7 @@ function BugGame() {
     }
     if (state === "dead") {
       p.vy += 900 * dt; p.y += p.vy * dt;
-      if (stateT > 1.8) { if (lives <= 0) { state = "over"; stateT = 0; g.over = true; hiSet("bug", score); } else startLevel(li, true); }
+      if (stateT > 1.8) { if (lives <= 0) { state = "over"; stateT = 0; g.over = true; hiSet(hiKey, score); } else startLevel(li, true); }
       return;
     }
     if (L.time) { timeLeft -= dt; if (timeLeft <= 0) { timeLeft = 0; die(); return; } }
@@ -2153,7 +2183,7 @@ function BugGame() {
       }
     }
     if (L.exit && p.onGround && pad.right && p.x + p.w >= L.exit.c * T - 1) {
-      warpTo = { level: L.exit.toLevel, col: L.exit.col, dir: "right" }; state = "warp"; stateT = 0; p.vx = 0; Sound.tone(400, 0, 0.6, "square", 0.04, 90);
+      warpTo = { col: L.exit.col, dir: "right" }; state = "warp"; stateT = 0; p.vx = 0; Sound.tone(400, 0, 0.6, "square", 0.04, 90);
     }
     for (const e of enemies) {
       if (e.dead) { e.t += dt; continue; }
@@ -2176,7 +2206,6 @@ function BugGame() {
     }
     eshots = eshots.filter((s) => !s.dead);
     for (const it of items) {
-      it.t += dt;
       if (!it.out) { it.y -= 30 * dt; if (it.y <= it.rise) { it.y = it.rise; it.out = true; } continue; } // bloktan çıkış
       it.x += it.vx * dt; if (boxHitsSolid(it)) { it.x -= it.vx * dt; it.vx *= -1; }
       it.vy = Math.min(500, it.vy + 1200 * dt); it.y += it.vy * dt;
@@ -2211,7 +2240,7 @@ function BugGame() {
     if (state === "play" && L.flag > 0 && p.x + p.w >= L.flag * T + 6) {
       state = "clear"; stateT = 0; score += Math.floor(timeLeft) * 10; p.ride = null; Sound.fanfare();
     }
-    camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W));
+    followCam();
   };
   function drawTile(x, v, px, py, c, r, t) {
     const TH = th();
@@ -2255,7 +2284,7 @@ function BugGame() {
       x.fillStyle = TH.skyline; x.fillRect(px | 0, ARC_H - 32 - h, w | 0, h);
       if (TH.windows) { x.fillStyle = TH.windows; for (let wy = 5; wy < h - 8; wy += 7) for (let wx = 3; wx < w - 4; wx += 6) if (((sx | 0) * 13 + wx * 7 + wy * 3) % 5 === 0) x.fillRect((px + wx) | 0, ARC_H - 32 - h + wy, 2, 2); }
     }
-    if (TH.clouds) { x.fillStyle = TH.storm ? "rgba(150,140,200,.10)" : "rgba(255,255,255,.12)"; for (const [cx, cy, r] of cloudsBg) { const px = ((cx - camX * 0.25) % 1960 + 1960) % 1960 - 60; if (px < ARC_W + 60) { x.beginPath(); x.ellipse(px, cy, r * 1.6, r * 0.6, 0, 0, 7); x.fill(); } } }
+    if (TH.clouds) { x.fillStyle = TH.storm ? "rgba(150,140,200,.10)" : "rgba(255,255,255,.12)"; for (const [cx, cy, r] of cloudsBg) { const px = ((cx - camX * 0.25) % CLOUD_WRAP + CLOUD_WRAP) % CLOUD_WRAP - 60; if (px < ARC_W + 60) { x.beginPath(); x.ellipse(px, cy, r * 1.6, r * 0.6, 0, 0, 7); x.fill(); } } }
     if (TH.embers) for (let i = 0; i < 26; i++) { // yükselen kıvılcımlar
       const [sx, sy, ph] = stars[i], px = ((sx - camX * 0.3) % ARC_W + ARC_W) % ARC_W, py = ((sy * 1.7 - t * (14 + ph * 20)) % ARC_H + ARC_H) % ARC_H;
       x.fillStyle = ph > 0.5 ? "#ff8a1a" : "#ffd23f"; x.fillRect(px | 0, py | 0, 1, ph > 0.7 ? 2 : 1);
@@ -2299,7 +2328,7 @@ function BugGame() {
     if (L.flag > 0 && fx > -40 && fx < ARC_W + 10) {
       x.fillStyle = "#cfd3d8"; x.fillRect(fx + 7, 2 * T, 2, 8 * T);
       x.fillStyle = "#3dff7a"; x.fillRect(fx + 9, 2 * T + 2, 30, 14);
-      x.font = '6px "Press Start 2P"'; x.fillStyle = "#08300f"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("DEPLOY", fx + 11, 2 * T + 6);
+      pxText(x, "DEPLOY", fx + 11, 2 * T + 6, "#08300f", 6);
     }
     for (const it of items) {
       const px = (it.x - camX) | 0, py = it.y | 0;
@@ -2311,7 +2340,7 @@ function BugGame() {
       } else if (it.type === "debug") { // debugger çipi
         x.fillStyle = "#22b35a"; x.fillRect(px + 1, py + 1, 12, 12);
         x.fillStyle = "#0b3a1c"; for (let k = 0; k < 4; k++) { x.fillRect(px + 2 + k * 3, py - 1, 1, 2); x.fillRect(px + 2 + k * 3, py + 13, 1, 2); }
-        x.font = '6px "Press Start 2P"'; x.fillStyle = "#fff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("{}", px + 2, py + 4);
+        pxText(x, "{}", px + 2, py + 4, "#fff", 6);
       } else { // disket: +1 can
         x.fillStyle = "#2f6bff"; x.fillRect(px + 1, py + 1, 12, 12);
         x.fillStyle = "#cfd3d8"; x.fillRect(px + 4, py + 1, 6, 4);
@@ -2331,7 +2360,7 @@ function BugGame() {
       x.fillStyle = ((t * 14) | 0) % 2 ? "#ff3fa4" : "#ffd23f"; x.fillRect(px, py + 1, 6, 4); x.fillRect(px + 1, py, 4, 6);
       x.fillStyle = "#fff"; x.fillRect(px + 2, py + 2, 2, 2);
     }
-    for (const sh of shots) { const px = (sh.x - camX) | 0; x.font = '6px "Press Start 2P"'; x.fillStyle = ((t * 12) | 0) % 2 ? "#3dff7a" : "#ffffff"; x.textAlign = "left"; x.textBaseline = "top"; x.fillText("{}", px - 2, sh.y | 0); }
+    for (const sh of shots) pxText(x, "{}", ((sh.x - camX) | 0) - 2, sh.y | 0, ((t * 12) | 0) % 2 ? "#3dff7a" : "#ffffff", 6);
     for (const d of debris) { x.fillStyle = TH.brick[0]; x.fillRect((d.x - camX) | 0, d.y | 0, 4, 4); }
     if (state !== "over" && state !== "win" && !(p.inv > 0 && ((t * 16) | 0) % 2)) {
       const fr = !p.onGround || state === "dead" ? HERO.jump : Math.abs(p.vx) > 5 ? ((p.anim / 10) | 0) % 2 ? HERO.walk1 : HERO.walk2 : HERO.stand;
@@ -2365,11 +2394,8 @@ function BugGame() {
       pxText(x, nx ? (nx.label[0] !== L.label[0] ? "DÜNYA " + nx.label[0] + " BAŞLIYOR!" : "SIRADAKİ: BÖLÜM " + nx.label) : "SON BÖLÜM BİTTİ", 128, 96, nx && nx.label[0] !== L.label[0] ? "#ff4d6d" : "#fff", 8, "center");
     }
     if (state === "over" || state === "win") {
-      x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 56, ARC_W, 80);
-      pxText(x, state === "win" ? "TEBRİKLER!" : "OYUN BİTTİ", 128, 64, state === "win" ? "#3dff7a" : "#ff4d6d", 16, "center");
-      if (state === "win") pxText(x, "TÜM BÖLÜMLER CANLIDA", 128, 86, "#fff", 8, "center");
-      pxText(x, "SKOR " + pad6(score) + "  REKOR " + pad6(hiGet("bug")), 128, 102, "#fff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
+      const win = state === "win";
+      arcGameOver(x, t, 56, 80, [[win ? "TEBRİKLER!" : "OYUN BİTTİ", 64, win ? "#3dff7a" : "#ff4d6d", 16], win && ["TÜM BÖLÜMLER CANLIDA", 86], ["SKOR " + pad6(score) + "  REKOR " + pad6(hiGet(hiKey)), 102]], 118, 0.8);
     }
   };
   g._test = { // test kancası (konsoldan bölüm atlamak / erişilebilirlik taraması için)
@@ -2377,9 +2403,9 @@ function BugGame() {
     level: (i) => startLevel(i, false), st: () => ({ state, li, label: L.label, x: p.x | 0, y: p.y | 0, power: p.power, lives, foes: enemies.filter((e) => !e.dead).length, coins: coins.size, ride: !!p.ride }),
     put: (x, y) => { p.x = x; p.y = y; p.vy = 0; }, bump: (c, r) => bump(c, r), items: () => items.map((i) => i.type + "@" + (i.x | 0) + "," + (i.y | 0)), kill: () => { state = "play"; die(); },
     play: () => { state = "play"; stateT = 0; }, // duyuruyu atla
-    goto: (col, row = 10) => { state = "play"; p.x = col * T; p.y = row * T - p.h - 0.001; p.vx = 0; p.vy = 0; p.ride = null; camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W)); },
+    goto: (col, row = 10) => { state = "play"; p.x = col * T; p.y = row * T - p.h - 0.001; p.vx = 0; p.vy = 0; p.ride = null; followCam(); },
     // tarayıcı için: oyuncuyu küçük/ölümsüz koyar, düşman ve eşyaları temizler, platformları sabitler
-    place: (x, y, vx) => { state = "play"; p.x = x; p.y = y; p.vx = vx; p.vy = 0; p.onGround = true; p.ride = null; p.power = 0; p.h = SMALL_H; p.inv = 99; timeLeft = 999; enemies = []; items = []; eshots = []; shots = []; camX = clamp(p.x - 110, 0, Math.max(0, L.w * T - ARC_W)); },
+    place: (x, y, vx) => { state = "play"; p.x = x; p.y = y; p.vx = vx; p.vy = 0; p.onGround = true; p.ride = null; p.power = 0; p.h = SMALL_H; p.inv = 99; timeLeft = 999; enemies = []; items = []; eshots = []; shots = []; followCam(); },
     clr: () => { items = []; enemies = []; eshots = []; p.power = 0; p.h = SMALL_H; },
     freeze: (f) => { frozen = f; movePlats(0); plats.forEach((m) => { m.dx = 0; m.dy = 0; }); },
     raw: () => ({ L, map, coins, p, plats, state, camX }),
@@ -2388,12 +2414,9 @@ function BugGame() {
 }
 
 /* ── Gece Sürüşü (yarış) ── */
-/* ── Gece Sürüşü ── */
 // Yukarıdan görünüşlü gece yarışı: yol aşağı akar, trafikten kaç, yakıt topla
-const RACE_PY = 160, RACE_TOP = 22, RACE_LANES = [-0.62, 0, 0.62];
-// Bölümler: her RACE_LEN metrede yeni ortam (8 ortam sırayla döner, zorluk artmaya devam eder)
+// Bölümler: her L (4500) metrede yeni ortam (8 ortam sırayla döner, zorluk artmaya devam eder)
 // w: yol genişliği çarpanı, cv: viraj sertliği, dec: kenar süsleri, trucks: ek tır olasılığı
-const RACE_LEN = 4500;
 const RACE_ZONES = [
   { name: "ŞEHİR", g1: "#06120c", g2: "#0a1a12", as: "#15151f", ed: "#18e0ff", kr: "#ff4d6d", kw: "#d8d8e8", dash: "#8a8aa8", w: 1, cv: 0.55, dec: [0, 0, 1, 1, 2, 3] },
   { name: "OTOYOL", g1: "#0b0b13", g2: "#0f0f19", as: "#1a1a25", ed: "#ffd23f", kr: "#55557a", kw: "#d8d8e8", dash: "#d8d8e8", w: 1.06, cv: 0.45, dec: [1, 1, 10, 3], trucks: 0.12 },
@@ -2405,8 +2428,8 @@ const RACE_ZONES = [
   { name: "NEON BULVARI", g1: "#10061a", g2: "#160822", as: "#140c1c", ed: "#ff3fa4", kr: "#ff3fa4", kw: "#18e0ff", dash: "#b26bff", w: 0.82, cv: 1.25, dec: [2, 2, 1, 2] },
 ];
 const RACE_TIPS = { 2: "DİKKAT: YAĞ BİRİKİNTİSİ", 3: "ŞERİT DEĞİŞTİREN ARAÇLAR", 4: "YOL ÇALIŞMASI: BARİYER", 5: "DAR VİRAJLI YOL", 7: "KAYGAN YOL" };
-function RaceGame() {
-  const PY = RACE_PY, TOP = RACE_TOP, LANES = RACE_LANES, L = RACE_LEN, ZONES = RACE_ZONES, NZ = RACE_ZONES.length;
+function RaceGame(hiKey) {
+  const PY = 160, TOP = 22, LANES = [-0.62, 0, 0.62], L = 4500, ZONES = RACE_ZONES, NZ = ZONES.length; // PY: oyuncu y'si · TOP: üst bilgi yüksekliği · L: bölüm uzunluğu
   const g = { over: false, hint: "← → direksiyon · ↑ gaz · ↓ fren · Esc menü" };
   const mk = (col, w, h, truck) => ({ col, dark: shade(col, 0.5), light: shade(col, 1.4), w, h, truck: !!truck });
   const TYPES = [mk("#18e0ff", 10, 16), mk("#3dff7a", 10, 16), mk("#b26bff", 10, 15), mk("#ff8a3d", 10, 17), mk("#3f7bff", 11, 17)];
@@ -2434,8 +2457,7 @@ function RaceGame() {
   let dist, spd, px, vx, fuel, bonus, stage, state, readyT, lastN, goT, crashT, invT, shakeT, flashT, bannerT, outT, engT, warnT, slipT, plane;
   let nextCar, nextFuel, nextCoin, nextOil, nextBar, nextDecor, hi, blinkOn = false;
   const cars = [], items = [], decor = [];
-  const parts = Array.from({ length: 16 }, () => ({ x: 0, y: 0, vx: 0, vy: 0, l: 0, c: "" }));
-  const pops = Array.from({ length: 4 }, () => ({ x: 0, y: 0, l: 0, s: "", c: "" }));
+  const fx = ArcFx({ max: 16, maxPops: 4, grav: 200, rise: 24 }); // kaza kıvılcımları + uçan yazılar
   const score = () => Math.floor(dist / 10) + bonus;
   const maxSpd = () => Math.min(270, 178 + stage * 11);
 
@@ -2444,17 +2466,12 @@ function RaceGame() {
     crashT = 0; invT = 0; shakeT = 0; flashT = 0; bannerT = 0; outT = 0; engT = 0; warnT = 0; slipT = 0; plane = 1;
     nextCar = 120; nextFuel = 700; nextCoin = 400; nextOil = L + 300; nextBar = 3 * L + 400; nextDecor = -80;
     cars.length = 0; items.length = 0; decor.length = 0;
-    for (const p of parts) p.l = 0;
-    for (const p of pops) p.l = 0;
+    fx.clear();
     road(8); px = rc;
-    hi = hiGet("yaris"); g.over = false;
+    hi = hiGet(hiKey); g.over = false;
     updDecor();
   }
-  function popup(s, c, x, y) {
-    let p = pops[0];
-    for (const q of pops) if (q.l < p.l) p = q;
-    p.s = s; p.c = c; p.x = x; p.y = y; p.l = 0.9;
-  }
+  const popup = (s, c, x, y) => fx.pop(x, y, s, c, 0.9);
   function updDecor() {
     while (nextDecor < dist + PY + 40) {
       const Z = zoneAt(nextDecor), type = pick(Z.dec);
@@ -2499,7 +2516,7 @@ function RaceGame() {
   function crash(side) {
     crashT = 0.9; invT = 1.9; spd *= 0.3; shakeT = 0.35; flashT = 0.12; vx = side * 110; slipT = 0;
     if (stage >= 3) fuel = Math.max(0, fuel - (2 + stage)); // ileri bölümlerde kaza yakıt da yakar
-    for (const p of parts) { p.x = px; p.y = PY + 8; p.vx = rand(-70, 70); p.vy = rand(-90, 30); p.l = rand(0.3, 0.7); p.c = pick(SPARK); }
+    for (let i = 0; i < 16; i++) fx.spark(px, PY + 8, rand(-70, 70), rand(-90, 30), rand(0.3, 0.7), pick(SPARK));
     Sound.noise(0, 0.5, 0.14, 700, 0.7, "lowpass", 120);
     Sound.tone(320, 0, 0.45, "square", 0.04, 60);
   }
@@ -2544,7 +2561,7 @@ function RaceGame() {
       if (fuel <= 0) { fuel = 0; state = 2; outT = 1.6; Sound.fall(); }
     } else if (state === 2) {
       outT -= dt;
-      if (outT <= 0) { g.over = true; hiSet("yaris", score()); hi = Math.max(hi, score()); return; }
+      if (outT <= 0) { g.over = true; hiSet(hiKey, score()); hi = Math.max(hi, score()); return; }
     }
     engT -= dt;
     if (engT <= 0) { engT = 0.13; if (state === 1) Sound.tone(48 + spd * 0.55, 0, 0.12, "sawtooth", off ? 0.02 : 0.012); }
@@ -2616,8 +2633,7 @@ function RaceGame() {
         else { bonus += 500; popup("+500", "#ffd23f", ix, iy); Sound.tone(1319, 0, 0.06, "square", 0.04); Sound.tone(1760, 0.06, 0.14, "square", 0.04); }
       }
     }
-    for (const p of parts) if (p.l > 0) { p.l -= dt; p.x += p.vx * dt; p.y += (p.vy + spd) * dt; p.vy += 200 * dt; }
-    for (const p of pops) if (p.l > 0) { p.l -= dt; p.y -= 24 * dt; }
+    fx.update(dt, spd);
   };
 
   // araba: birkaç dikdörtgen (sprite yerine, çağrı sayısı düşük kalsın)
@@ -2717,7 +2733,7 @@ function RaceGame() {
     blinkOn = ((t * 4) | 0) % 2 === 0;
     x.fillStyle = Zp.g1; x.fillRect(0, 0, ARC_W, ARC_H);
     x.save();
-    if (shakeT > 0) x.translate(((t * 60) | 0) % 3 - 1, ((t * 47) | 0) % 3 - 1);
+    if (shakeT > 0) shakeWobble(x, t);
     const zLo = dist - (ARC_H - PY) - 16, zHi = dist + PY - TOP + 16;
     for (let s = Math.floor(zLo / 8); s * 8 < zHi; s++) { // zemin (bölüme göre) + kırmızı/beyaz bordür
       const z = s * 8, Z = zoneAt(z + 4); road(z + 4);
@@ -2793,8 +2809,7 @@ function RaceGame() {
       if (slipT > 0) { x.save(); x.translate(pxi, PY + 8); x.rotate(Math.sin(t * 28) * 0.35); car(x, PLAYER, -5, -8, true); x.restore(); }
       else car(x, PLAYER, pxi - 5, PY, true);
     }
-    for (const p of parts) if (p.l > 0) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, 2, 2); }
-    for (const p of pops) if (p.l > 0) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    fx.draw(x);
     x.restore();
     if (Zp.rain) { // yağmur çizgileri + ara sıra şimşek
       x.fillStyle = RAIN;
@@ -2837,13 +2852,7 @@ function RaceGame() {
       pxText(x, RACE_TIPS[stage] || "HIZ ARTIYOR", 128, 95, "#ff4d6d", 6, "center");
       pxText(x, "+YAKIT  +1000", 128, 106, "#ffd23f", 6, "center");
     }
-    if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 56, ARC_W, 80);
-      pxText(x, "YAKIT BİTTİ", 128, 64, "#ff4d6d", 16, "center");
-      pxText(x, "SKOR " + pad6(sc), 128, 88, "#fff", 8, "center");
-      pxText(x, (dist / 1000).toFixed(1) + " KM  BÖLÜM " + stage, 128, 100, "#18e0ff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
-    }
+    if (g.over) arcGameOver(x, t, 56, 80, [["YAKIT BİTTİ", 64, "#ff4d6d", 16], ["SKOR " + pad6(sc), 88], [(dist / 1000).toFixed(1) + " KM  BÖLÜM " + stage, 100, "#18e0ff"]], 118);
   };
 
   // test kancası: g._test.stage(n) n. bölümün hemen öncesine ışınlar; g._test.info() durum özeti
@@ -2862,7 +2871,6 @@ function RaceGame() {
 }
 
 /* ── Bug İstilası (uzay atıcı) ── */
-/* ── Bug İstilası ── */
 // Sprite'ı yatay şeritlere çevir; tarayıcıda OffscreenCanvas'a bir kez çiz (her karede tek drawImage)
 function SHOOT_bake(rows, pal) {
   const w = rows[0].length, h = rows.length, runs = [];
@@ -2892,7 +2900,7 @@ function SHOOT_put(x, s, px, py) {
 // Sol yarıdan simetrik sprite üret
 const SHOOT_mirror = (rows) => rows.map((r) => r + [...r].reverse().join(""));
 
-function ShooterGame() {
+function ShooterGame(hiKey) {
   const COLS = 8, ROWS = 5, SX = 16, SY = 13, EW = 11, EH = 8, PY = 168, PW = 13, GROUND = 179, BOSS_EVERY = 4;
   const CY = "#18e0ff", PK = "#ff3fa4", YE = "#ffd23f", GR = "#3dff7a", RD = "#ff4d6d", OR = "#ff8a3d", PU = "#b26bff", ARM = "#9aa4c8", SLIME = "#b6ff3d";
   // Üç böcek türü: güve (40), örümcek (20), böcek (10) — iki kare kanat/bacak animasyonu
@@ -2909,6 +2917,7 @@ function ShooterGame() {
   const DISK_ROWS = ["....PPPPPP....", "..PPWWWWWWPP..", ".PPPPPPPPPPPP.", "PPKPPKPPKPPKPP", ".PPPPPPPPPPPP.", "...PP....PP..."];
   const LIFE_ROWS = ["...C...", "..CCC..", "CCCCCCC", "C.....C"];
   const SHIELD_MASK = ["..######..", ".########.", "##########", "##########", "###....###", "##......##"];
+  const SHC = 2, SHN = SHIELD_MASK[0].length, SHR = SHIELD_MASK.length, SHW = SHN * SHC, SHH = SHR * SHC; // hücre boyu, sütun/satır, piksel boyutu
   // Boss'lar: DEV BUG (dev kırmızı böcek) ve BELLEK SIZINTISI (damlayan, kendini onaran RAM modülü)
   const BOSS_ROWS = [
     SHOOT_mirror(["....a.........", ".....a........", "......a...GGGG", ".......GGGGGGG", "......GGGGGGGG", ".....GGwwGGGGG", "....GGGwkGGGGG",
@@ -2926,8 +2935,9 @@ function ShooterGame() {
   const MARCH = [98, 87, 78, 73]; // 4 notalık bas yürüyüşü
   const g = { over: false, hint: "← → hareket · Boşluk / ↑ ateş · Esc menü" };
   let SPR, SPR_ARM, SHIP, DISK, LIFE, BOSS_SPR, BOSS_HIT;
-  let score, lives, wave, en, fx, fy, dir, dropNext, stepT, noteAcc, noteI, anim, shots, ebul, shields, parts, pops;
-  let px, fireCd, deadT, invT, flashT, bannerT, diveT, shootT, ufo, ufoT, overT, time, boss, god = false;
+  let score, lives, wave, en, fx, fy, dir, dropNext, stepT, noteAcc, noteI, anim, shots, ebul, shields;
+  let px, fireCd, deadT, invT, flashT, bannerT, diveT, shootT, ufo, ufoT, overT, boss, god = false;
+  const efx = ArcFx({ max: 160, grav: 60, rise: 12, big: 0.4 });
   const stars = [];
   for (let i = 0; i < 48; i++) stars.push({ x: rand(0, ARC_W), y: rand(0, ARC_H), l: (Math.random() * 3) | 0 });
 
@@ -2960,28 +2970,28 @@ function ShooterGame() {
     }
     fx = 64; fy = 26 + Math.min(wave - 1, 6) * 5; dir = 1; dropNext = false; stepT = 0.3; noteAcc = 0; anim = 0;
     for (const e of en) { e.x = slotX(e); e.y = slotY(e); }
-    shields = (boss ? [] : [32, 96, 160, 224]).map((cx) => ({ x: cx - 10, y: 146, cells: SHIELD_MASK.join("").split("").map((ch) => (ch === "#" ? 1 : 0)) }));
+    shields = (boss ? [] : [32, 96, 160, 224]).map((cx) => ({ x: cx - SHW / 2, y: 146, cells: SHIELD_MASK.join("").split("").map((ch) => (ch === "#" ? 1 : 0)) }));
     shots = []; ebul = []; ufo = null; ufoT = rand(12, 20);
     bannerT = boss ? 2.6 : 1.8; diveT = rand(2, 3.5); shootT = 1.0;
   }
   function reset() {
     bake();
-    score = 0; lives = 3; wave = 1; noteI = 0; parts = []; pops = [];
-    px = 122; fireCd = 0; deadT = 0; invT = 0; flashT = 0; overT = 0; time = 0; g.over = false;
+    score = 0; lives = 3; wave = 1; noteI = 0; efx.clear();
+    px = 122; fireCd = 0; deadT = 0; invT = 0; flashT = 0; overT = 0; g.over = false;
     setupWave();
   }
-  function end() { g.over = true; overT = 0; hiSet("istila", score); Sound.fall(); }
+  function end() { g.over = true; overT = 0; hiSet(hiKey, score); Sound.fall(); }
   function burst(x0, y0, col, n, sp) {
-    for (let i = 0; i < n && parts.length < 160; i++) {
+    for (let i = 0; i < n; i++) {
       const a = rand(0, Math.PI * 2), v = rand(sp * 0.3, sp);
-      parts.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(0.3, 0.7), c: Math.random() < 0.3 ? "#ffffff" : col });
+      efx.spark(x0, y0, Math.cos(a) * v, Math.sin(a) * v, rand(0.3, 0.7), Math.random() < 0.3 ? "#ffffff" : col);
     }
   }
   function killEnemy(e) {
     e.alive = false;
     const pts = TYPE_PTS[e.t] * (e.st ? 2 : 1);
     score += pts;
-    if (e.st) pops.push({ x: e.x + 5, y: e.y, s: String(pts), c: YE, life: 0.8 });
+    if (e.st) efx.pop(e.x + 5, e.y, String(pts), YE, 0.8);
     burst(e.x + 5, e.y + 4, TYPE_COL[e.t], 10, 60);
     Sound.noise(0, 0.12, 0.05, 2200, 1.2, "bandpass", 500);
   }
@@ -2995,8 +3005,8 @@ function ShooterGame() {
     const b = boss, pts = 2000 * b.lvl, cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     score += pts; boss = null; flashT = 0.3;
     for (let i = 0; i < 4; i++) burst(cx + rand(-10, 10), cy + rand(-6, 6), i % 2 ? YE : b.kind ? SLIME : RD, 18, 90);
-    pops.push({ x: cx, y: cy - 8, s: String(pts), c: YE, life: 1.6 });
-    if (lives < 5) { lives++; pops.push({ x: cx, y: cy + 4, s: "+1 CAN", c: CY, life: 1.6 }); }
+    efx.pop(cx, cy - 8, String(pts), YE, 1.6);
+    if (lives < 5) { lives++; efx.pop(cx, cy + 4, "+1 CAN", CY, 1.6); }
     for (const e of en) if (e.alive) { e.alive = false; burst(e.x + 5, e.y + 4, TYPE_COL[e.t], 6, 40); }
     ebul = [];
     Sound.noise(0, 0.9, 0.1, 600, 0.6, "lowpass", 80); Sound.fanfare();
@@ -3004,16 +3014,16 @@ function ShooterGame() {
   // Güvenlik duvarı: x sütununda [y0,y1] aralığındaki ilk dolu bloğu sil
   function shieldHit(x, y0, y1, down) {
     for (const s of shields) {
-      if (x < s.x || x >= s.x + 20 || y1 < s.y || y0 >= s.y + 12) continue;
-      const c = ((x - s.x) / 2) | 0, ra = clamp(((y0 - s.y) / 2) | 0, 0, 5), rb = clamp(((y1 - s.y) / 2) | 0, 0, 5);
+      if (x < s.x || x >= s.x + SHW || y1 < s.y || y0 >= s.y + SHH) continue;
+      const c = ((x - s.x) / SHC) | 0, ra = clamp(((y0 - s.y) / SHC) | 0, 0, SHR - 1), rb = clamp(((y1 - s.y) / SHC) | 0, 0, SHR - 1);
       for (let k = 0; k <= rb - ra; k++) {
         const r = down ? ra + k : rb - k;
-        if (s.cells[r * 10 + c]) {
-          s.cells[r * 10 + c] = 0;
+        if (s.cells[r * SHN + c]) {
+          s.cells[r * SHN + c] = 0;
           const nc = c + (Math.random() < 0.5 ? -1 : 1), nr = r + (down ? 1 : -1);
-          if (Math.random() < 0.6 && nc >= 0 && nc < 10) s.cells[r * 10 + nc] = 0;
-          if (Math.random() < 0.4 && nr >= 0 && nr < 6) s.cells[nr * 10 + c] = 0;
-          burst(s.x + c * 2 + 1, s.y + r * 2 + 1, OR, 3, 30);
+          if (Math.random() < 0.6 && nc >= 0 && nc < SHN) s.cells[r * SHN + nc] = 0;
+          if (Math.random() < 0.4 && nr >= 0 && nr < SHR) s.cells[nr * SHN + c] = 0;
+          burst(s.x + c * SHC + SHC / 2, s.y + r * SHC + SHC / 2, OR, 3, 30);
           return true;
         }
       }
@@ -3022,10 +3032,10 @@ function ShooterGame() {
   }
   function shieldErase(x0, y0, w, h) {
     for (const s of shields) {
-      if (x0 + w <= s.x || x0 >= s.x + 20 || y0 + h <= s.y || y0 >= s.y + 12) continue;
-      for (let i = 0; i < 60; i++) {
-        const cx = s.x + (i % 10) * 2, cy = s.y + ((i / 10) | 0) * 2;
-        if (cx + 2 > x0 && cx < x0 + w && cy + 2 > y0 && cy < y0 + h) s.cells[i] = 0;
+      if (x0 + w <= s.x || x0 >= s.x + SHW || y0 + h <= s.y || y0 >= s.y + SHH) continue;
+      for (let i = 0; i < SHN * SHR; i++) {
+        const cx = s.x + (i % SHN) * SHC, cy = s.y + ((i / SHN) | 0) * SHC;
+        if (cx + SHC > x0 && cx < x0 + w && cy + SHC > y0 && cy < y0 + h) s.cells[i] = 0;
       }
     }
   }
@@ -3095,12 +3105,8 @@ function ShooterGame() {
 
   reset();
   g.update = (dt) => {
-    time += dt;
     for (const s of stars) { s.y += (6 + s.l * 10) * dt; if (s.y > ARC_H) { s.y -= ARC_H; s.x = rand(0, ARC_W); } }
-    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt; p.life -= dt; }
-    parts = parts.filter((p) => p.life > 0);
-    for (const p of pops) { p.y -= 12 * dt; p.life -= dt; }
-    pops = pops.filter((p) => p.life > 0);
+    efx.update(dt);
     flashT = Math.max(0, flashT - dt);
     if (g.over) { overT += dt; if (overT > 0.4 && (hit("a") || hit("start"))) reset(); return; }
 
@@ -3206,7 +3212,7 @@ function ShooterGame() {
       }
       if (!sh.dead && ufo && sh.x >= ufo.x && sh.x < ufo.x + 14 && sh.y < 24 && y0 + 4 > 17) {
         const pts = pick([50, 100, 150, 300]); score += pts; sh.dead = true;
-        pops.push({ x: ufo.x + 7, y: 18, s: String(pts), c: PU, life: 1.2 });
+        efx.pop(ufo.x + 7, 18, String(pts), PU, 1.2);
         burst(ufo.x + 7, 20, PU, 16, 60); ufo = null;
         [880, 1175, 1568].forEach((f, i) => Sound.tone(f, i * 0.06, 0.1, "square", 0.035));
       }
@@ -3243,13 +3249,13 @@ function ShooterGame() {
     x.fillStyle = "#1a3a2a"; x.fillRect(0, GROUND, ARC_W, 1);
     // Güvenlik duvarları: satır bazında birleşik şeritler
     for (const s of shields) {
-      for (let r = 0; r < 6; r++) {
+      for (let r = 0; r < SHR; r++) {
         x.fillStyle = r === 0 ? "#ffb070" : OR;
         let c = 0;
-        while (c < 10) {
-          if (!s.cells[r * 10 + c]) { c++; continue; }
-          let e = c; while (e < 10 && s.cells[r * 10 + e]) e++;
-          x.fillRect(s.x + c * 2, s.y + r * 2, (e - c) * 2, 2); c = e;
+        while (c < SHN) {
+          if (!s.cells[r * SHN + c]) { c++; continue; }
+          let e = c; while (e < SHN && s.cells[r * SHN + e]) e++;
+          x.fillRect(s.x + c * SHC, s.y + r * SHC, (e - c) * SHC, SHC); c = e;
         }
       }
     }
@@ -3268,14 +3274,13 @@ function ShooterGame() {
       const k = ((b.y / 3) | 0) % 2;
       x.fillStyle = RD; x.fillRect(bx - k, by, 1, 2); x.fillRect(bx - 1 + k, by + 2, 1, 2);
     }
-    for (const p of parts) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, p.life > 0.4 ? 2 : 1, p.life > 0.4 ? 2 : 1); }
-    for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    efx.draw(x);
 
     // HUD
     x.fillStyle = "#05050f"; x.fillRect(0, 0, ARC_W, 13);
     x.fillStyle = "#1a1a3a"; x.fillRect(0, 13, ARC_W, 1);
     pxText(x, "SKOR", 4, 4, "#8a8aa8", 6); pxText(x, pad6(score), 32, 3, "#ffffff", 8);
-    pxText(x, "REKOR", 150, 4, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet("istila"), score)), 186, 3, YE, 8);
+    pxText(x, "REKOR", 150, 4, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet(hiKey), score)), 186, 3, YE, 8);
     for (let i = 0; i < lives; i++) SHOOT_put(x, LIFE, 4 + i * 10, 183);
     pxText(x, "DALGA " + wave, 252, 183, GR, 6, "right");
     if (boss && boss.in > 0.3) { // boss can çubuğu
@@ -3296,10 +3301,7 @@ function ShooterGame() {
     }
     if (flashT > 0) { x.fillStyle = hexA("#ffffff", flashT * 2); x.fillRect(0, 0, ARC_W, ARC_H); }
     if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
-      pxText(x, "SUNUCU ÇÖKTÜ", 128, 74, RD, 16, "center");
-      pxText(x, "SKOR " + pad6(score) + "  DALGA " + wave, 128, 98, "#fff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 112, YE, 8, "center");
+      arcGameOver(x, t, 64, 64, [["SUNUCU ÇÖKTÜ", 74, RD, 16], ["SKOR " + pad6(score) + "  DALGA " + wave, 98]], 112);
     }
   };
 
@@ -3314,7 +3316,6 @@ function ShooterGame() {
 }
 
 /* ── Duvar Kırıcı (tuğla kırma) ── */
-/* ── Duvar Kırıcı ── */
 // Tuğla haritaları: küçük harf 1 vuruş, büyük harf 2 vuruş (2. turdan itibaren 3), A zırhlı 3 vuruş,
 // M kırılmaz metal, "." boş
 const BRK_COLS = 12, BRK_BW = 20, BRK_BH = 8, BRK_X0 = 8, BRK_Y0 = 26;
@@ -3341,13 +3342,14 @@ const BRK_PW = {
 };
 const BRK_DROP = ["G", "G", "Ç", "Ç", "Y", "Y", "L", "L", "+"];
 
-function BreakoutGame() {
+function BreakoutGame(hiKey) {
   const L = 8, R = 248, TOP = 14, PY = 178, PH = 4, BR = 1.5;
   const g = { over: false, hint: "← → raket · Boşluk / ↑ fırlat · Boşluk lazer · Esc menü" };
   const stars = Array.from({ length: 26 }, (_, i) => ({ x: L + ((i * 97) % 240), y: (i * 53) % 178, s: 3 + (i % 5) * 3 }));
   const FRAME = hexA("#18e0ff", 0.35);
-  let bricks, rows, left, balls, caps, lasers, parts, pops, score, lives, lvl, loop, px, pv, pw, wideT, slowT, laserT, sp, readyT, clearT, shakeT, overT, snd;
+  let bricks, rows, left, balls, caps, lasers, score, lives, lvl, loop, px, pv, pw, wideT, slowT, laserT, sp, readyT, clearT, shakeT, overT, snd;
   const NL = BRK_LEVELS.length;
+  const efx = ArcFx({ max: 90, grav: 160, rise: 14, big: 0.3 });
   const li = () => lvl % NL; // tur içindeki bölüm (0..NL-1)
   // Top hızı: ilk bölüm yavaş başlar, bölüm başına +7 başlangıç / +12 tavan, her tur +%25;
   // bölüm içinde saniyede 1+0.3*bölüm artar (B1: 80→125, B11: 150→245)
@@ -3357,9 +3359,9 @@ function BreakoutGame() {
   // Raket: B1'de 42 px, bölüm başına ~1.2 px, her tur 4 px küçülür (en az 22)
   const basePw = () => Math.max(22, 42 - Math.round(li() * 1.2) - loop * 4);
 
-  function reset() { score = 0; lives = 3; lvl = 0; loop = 0; px = 128; pv = 0; pw = 42; parts = []; pops = []; shakeT = 0; overT = 0; g.over = false; loadLevel(); }
+  function reset() { score = 0; lives = 3; lvl = 0; loop = 0; px = 128; pv = 0; pw = basePw(); efx.clear(); shakeT = 0; overT = 0; g.over = false; loadLevel(); }
   function loadLevel() {
-    const m = BRK_LEVELS[lvl % BRK_LEVELS.length].map;
+    const m = BRK_LEVELS[li()].map;
     rows = m.length; bricks = []; left = 0;
     for (let r = 0; r < rows; r++) for (let c = 0; c < BRK_COLS; c++) {
       const ch = m[r][c];
@@ -3380,11 +3382,11 @@ function BreakoutGame() {
   }
   function launch(b) { b.stuck = false; setDir(b, clamp(b.off / (pw / 2), -1, 1) * 0.9 || 0.2); }
   function burst(cx, cy, col, n) {
-    for (let i = 0; i < n && parts.length < 90; i++) parts.push({ x: cx + rand(-8, 8), y: cy + rand(-3, 3), vx: rand(-60, 60), vy: rand(-70, 10), l: rand(0.3, 0.6), c: col });
+    for (let i = 0; i < n; i++) efx.spark(cx + rand(-8, 8), cy + rand(-3, 3), rand(-60, 60), rand(-70, 10), rand(0.3, 0.6), col);
   }
   function damage(i) {
     const b = bricks[i];
-    const r = (i / BRK_COLS) | 0, c = i % BRK_COLS, cx = BRK_X0 + c * BRK_BW + 10, cy = BRK_Y0 + r * BRK_BH + 4;
+    const r = (i / BRK_COLS) | 0, c = i % BRK_COLS, cx = BRK_X0 + c * BRK_BW + BRK_BW / 2, cy = BRK_Y0 + r * BRK_BH + BRK_BH / 2;
     b.fl = 0.1;
     if (b.metal) { if (!snd) { snd = 1; Sound.tone(1900, 0, 0.05, "square", 0.02); Sound.noise(0, 0.05, 0.04, 5200, 5); } return; }
     if (--b.hp > 0) { score += 5; burst(cx, cy, BRK_DARK[b.k], 3); if (!snd) { snd = 1; Sound.tone(240, 0, 0.06, "triangle", 0.06); } return; }
@@ -3420,7 +3422,7 @@ function BreakoutGame() {
     }
   }
   function catchCap(k) {
-    score += 50; pops.push({ x: px, y: PY - 10, s: BRK_PW[k].name, c: BRK_PW[k].col, l: 1 });
+    score += 50; efx.pop(px, PY - 10, BRK_PW[k].name, BRK_PW[k].col);
     [784, 1047, 1319].forEach((f, i) => Sound.tone(f, i * 0.05, 0.08, "square", 0.035));
     if (k === "G") wideT = 12;
     else if (k === "Y") slowT = 8;
@@ -3445,10 +3447,7 @@ function BreakoutGame() {
 
   g.update = (dt) => {
     snd = 0;
-    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; p.l -= dt; }
-    parts = parts.filter((p) => p.l > 0);
-    for (const p of pops) { p.y -= 14 * dt; p.l -= dt; }
-    pops = pops.filter((p) => p.l > 0);
+    efx.update(dt);
     if (shakeT > 0) shakeT -= dt;
     if (g.over) { overT += dt; if (overT > 0.6 && (hit("a") || hit("start"))) reset(); return; }
     if (clearT > 0) { clearT -= dt; if (clearT <= 0) { lvl++; if (lvl % NL === 0) loop++; loadLevel(); } return; }
@@ -3493,31 +3492,32 @@ function BreakoutGame() {
     caps = caps.filter((c) => !c.dead);
     if (!balls.length) {
       lives--; shakeT = 0.4; Sound.fall();
-      if (lives <= 0) { g.over = true; overT = 0; hiSet("duvar", score); } else { sp = baseSp(); newLife(); }
+      if (lives <= 0) { g.over = true; overT = 0; hiSet(hiKey, score); } else { sp = baseSp(); newLife(); }
     } else if (left <= 0) {
       score += 100 * (lvl + 1); clearT = 2.4; caps = []; lasers = []; Sound.fanfare();
     }
   };
 
+  const BW = BRK_BW - 1, BH = BRK_BH - 1; // 1 px aralıklı tuğla gövdesi
   const brick = (x, b, bx, by) => {
     if (b.metal) {
-      x.fillStyle = b.fl > 0 ? "#ffffff" : "#6a7090"; x.fillRect(bx, by, 19, 7);
-      x.fillStyle = "#c8cce0"; x.fillRect(bx, by, 19, 1);
-      x.fillStyle = "#2a2e40"; x.fillRect(bx, by + 6, 19, 1); x.fillRect(bx + 2, by + 3, 1, 1); x.fillRect(bx + 16, by + 3, 1, 1);
+      x.fillStyle = b.fl > 0 ? "#ffffff" : "#6a7090"; x.fillRect(bx, by, BW, BH);
+      x.fillStyle = "#c8cce0"; x.fillRect(bx, by, BW, 1);
+      x.fillStyle = "#2a2e40"; x.fillRect(bx, by + BH - 1, BW, 1); x.fillRect(bx + 2, by + 3, 1, 1); x.fillRect(bx + BW - 3, by + 3, 1, 1);
       return;
     }
     const dmg = b.hp < b.max;
-    x.fillStyle = b.fl > 0 ? "#ffffff" : dmg ? BRK_DARK[b.k] : BRK_COL[b.k]; x.fillRect(bx, by, 19, 7);
-    x.fillStyle = dmg ? BRK_COL[b.k] : BRK_LIGHT[b.k]; x.fillRect(bx, by, 19, 1);
-    x.fillStyle = "rgba(0,0,0,.4)"; x.fillRect(bx, by + 6, 19, 1);
+    x.fillStyle = b.fl > 0 ? "#ffffff" : dmg ? BRK_DARK[b.k] : BRK_COL[b.k]; x.fillRect(bx, by, BW, BH);
+    x.fillStyle = dmg ? BRK_COL[b.k] : BRK_LIGHT[b.k]; x.fillRect(bx, by, BW, 1);
+    x.fillStyle = "rgba(0,0,0,.4)"; x.fillRect(bx, by + BH - 1, BW, 1);
     if (dmg) { x.fillStyle = "#05050c"; x.fillRect(bx + 6, by + 1, 1, 3); x.fillRect(bx + 7, by + 3, 3, 1); x.fillRect(bx + 10, by + 4, 1, 2); x.fillRect(bx + 14, by + 1, 1, 2); }
-    else if (b.k === "a") { x.fillStyle = BRK_DARK.a; x.fillRect(bx + 1, by + 2, 17, 3); x.fillStyle = "#ffffff"; x.fillRect(bx + 3, by + 3, 1, 1); x.fillRect(bx + 9, by + 3, 1, 1); x.fillRect(bx + 15, by + 3, 1, 1); }
-    else if (b.max > 1) { x.fillStyle = BRK_DARK[b.k]; x.fillRect(bx + 2, by + 2, 15, 3); x.fillStyle = BRK_LIGHT[b.k]; x.fillRect(bx + 4, by + 3, 11, 1); }
+    else if (b.k === "a") { x.fillStyle = BRK_DARK.a; x.fillRect(bx + 1, by + 2, BW - 2, 3); x.fillStyle = "#ffffff"; x.fillRect(bx + 3, by + 3, 1, 1); x.fillRect(bx + 9, by + 3, 1, 1); x.fillRect(bx + 15, by + 3, 1, 1); }
+    else if (b.max > 1) { x.fillStyle = BRK_DARK[b.k]; x.fillRect(bx + 2, by + 2, BW - 4, 3); x.fillStyle = BRK_LIGHT[b.k]; x.fillRect(bx + 4, by + 3, BW - 8, 1); }
     else { x.fillStyle = BRK_DARK[b.k]; x.fillRect(bx + 3, by + 3, 4 + ((bx * 3 + by) % 9), 1); } // kod satırı süsü
   };
   g.draw = (x, t) => {
     x.save();
-    if (shakeT > 0) x.translate(((Math.random() * 5) | 0) - 2, ((Math.random() * 5) | 0) - 2);
+    if (shakeT > 0) shakeJitter(x);
     x.fillStyle = "#070712"; x.fillRect(-4, -4, ARC_W + 8, ARC_H + 8);
     x.fillStyle = "#0e0e24";
     for (let i = L; i <= R; i += 16) x.fillRect(i, TOP, 1, ARC_H);
@@ -3546,12 +3546,11 @@ function BreakoutGame() {
       x.fillStyle = slowT > 0 ? "rgba(255,210,63,.3)" : "rgba(24,224,255,.3)"; x.fillRect(bx - 1, by - 1, 5, 5);
       x.fillStyle = "#ffffff"; x.fillRect(bx, by, 3, 3);
     }
-    for (const p of parts) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, p.l > 0.3 ? 2 : 1, p.l > 0.3 ? 2 : 1); }
-    for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    efx.draw(x);
     // HUD
     x.fillStyle = "#0b0b1e"; x.fillRect(-4, -4, ARC_W + 8, 15);
     pxText(x, "SKOR", 3, 3, "#8a8aa8", 6); pxText(x, pad6(score), 30, 3, "#ffffff", 6);
-    pxText(x, "REKOR", 74, 3, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet("duvar"), score)), 106, 3, "#ffd23f", 6);
+    pxText(x, "REKOR", 74, 3, "#8a8aa8", 6); pxText(x, pad6(Math.max(hiGet(hiKey), score)), 106, 3, "#ffd23f", 6);
     pxText(x, "BÖLÜM", 148, 3, "#8a8aa8", 6); pxText(x, String(lvl + 1), 182, 3, "#3dff7a", 6);
     x.fillStyle = "#ff3fa4";
     for (let i = 0; i < Math.min(lives, 5); i++) { x.fillRect(212 + i * 9, 4, 7, 3); }
@@ -3570,16 +3569,11 @@ function BreakoutGame() {
     if (!g.over && clearT <= 0 && balls.some((b) => b.stuck) && ((t * 2) | 0) % 2) pxText(x, "A: FIRLAT", 128, 160, "#ffffff", 6, "center");
     if (laserT > 0 && !g.over) pxText(x, "LAZER " + Math.ceil(laserT), 244, 168, "#ff4d6d", 6, "right");
     if (clearT > 0) {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 76, ARC_W, 44);
       const fin = li() === NL - 1;
-      pxText(x, fin ? "TÜM DUVARLAR AŞILDI!" : "DUVAR AŞILDI!", 128, 82, "#3dff7a", fin ? 8 : 12, "center");
-      pxText(x, fin ? "TUR " + (loop + 2) + " DAHA HIZLI!" : "BONUS +" + 100 * (lvl + 1), 128, 104, fin ? "#ff4d6d" : "#ffd23f", 8, "center");
+      arcBanner(x, 76, 44, [[fin ? "TÜM DUVARLAR AŞILDI!" : "DUVAR AŞILDI!", 82, "#3dff7a", fin ? 8 : 12], [fin ? "TUR " + (loop + 2) + " DAHA HIZLI!" : "BONUS +" + 100 * (lvl + 1), 104, fin ? "#ff4d6d" : "#ffd23f"]]);
     }
     if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
-      pxText(x, "DUVAR DAYANDI!", 128, 72, "#ff4d6d", 16, "center");
-      pxText(x, "SKOR " + pad6(score), 128, 94, "#fff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 110, "#ffd23f", 8, "center");
+      arcGameOver(x, t, 64, 64, [["DUVAR DAYANDI!", 72, "#ff4d6d", 16], ["SKOR " + pad6(score), 94]], 110);
     }
     x.restore();
   };
@@ -3617,14 +3611,15 @@ function snkRamp(a, b, n) {
 }
 const SNK_RAMP = snkRamp("#18e0ff", "#ff3fa4", 24), SNK_RAMP_K = snkRamp("#ffd23f", "#ff6a2a", 24);
 
-function SnakeGame() {
+function SnakeGame(hiKey) {
   const N = SNK_COLS * SNK_ROWS;
   const g = { over: false, hint: "Oklar / WASD yön · Boşluk duraklat · Esc menü" };
-  const wall = new Uint8Array(N), occ = new Uint8Array(N), reach = new Uint8Array(N), seen = new Uint8Array(N);
+  const wall = new Uint8Array(N), occ = new Uint8Array(N), reach = new Uint8Array(N);
   const bfsQ = new Int16Array(N);
   const rain = Array.from({ length: 16 }, (_, i) => ({ x: SNK_X0 + 4 + ((i * 61) % 232), y: (i * 37) % 170, s: 8 + (i % 4) * 5, ch: i % 2 ? "1" : "0" }));
   let state = "title", paused = false, body, dir, queue, grow, food, coffee, bug, score, lvl, eaten, total, stepAcc, coffeeT,
-    bonusT, readyT, clearT, dyingT, cutAcc, overT, shakeT, glitchT, flashT, parts, pops, pulses, pulseT, newHi, hi;
+    bonusT, readyT, clearT, dyingT, cutAcc, overT, shakeT, glitchT, flashT, pulses, pulseT, newHi, hi;
+  const efx = ArcFx({ max: 140, drag: 0.96, rise: 12, big: 0.35 });
 
   const cx = (i) => i % SNK_COLS, cy = (i) => (i / SNK_COLS) | 0;
   // Adım aralığı: seviye başına %8 hızlanır, en hızlı 0.07 sn (saniyede ~14 kare)
@@ -3632,8 +3627,8 @@ function SnakeGame() {
   const mapOf = (l) => SNK_MAPS[l % SNK_MAPS.length];
 
   function reset() {
-    score = 0; lvl = 0; total = 0; parts = []; pops = []; shakeT = 0; glitchT = 0; flashT = 0; overT = 0; newHi = false;
-    hi = hiGet("yilan"); g.over = false; paused = false; loadLevel();
+    score = 0; lvl = 0; total = 0; efx.clear(); shakeT = 0; glitchT = 0; flashT = 0; overT = 0; newHi = false;
+    hi = hiGet(hiKey); g.over = false; paused = false; loadLevel();
   }
   function loadLevel() {
     wall.fill(0); occ.fill(0);
@@ -3671,12 +3666,12 @@ function SnakeGame() {
   }
   function burst(i, col, n, sp = 50) {
     const px = SNK_X0 + cx(i) * SNK_C + 4, py = SNK_Y0 + cy(i) * SNK_C + 4;
-    for (let k = 0; k < n && parts.length < 140; k++) {
+    for (let k = 0; k < n; k++) {
       const a = rand(0, 6.283), v = rand(sp * 0.3, sp);
-      parts.push({ x: px, y: py, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: rand(0.3, 0.7), c: col });
+      efx.spark(px, py, Math.cos(a) * v, Math.sin(a) * v, rand(0.3, 0.7), col);
     }
   }
-  const pop = (i, s, c) => pops.push({ x: SNK_X0 + cx(i) * SNK_C + 4, y: SNK_Y0 + cy(i) * SNK_C - 4, s, c, l: 1 });
+  const pop = (i, s, c) => efx.pop(SNK_X0 + cx(i) * SNK_C + 4, SNK_Y0 + cy(i) * SNK_C - 4, s, c);
   function enqueue(d) {
     const last = queue.length ? queue[queue.length - 1] : dir;
     if (d === last || (d + 2) % 4 === last || queue.length >= 2) return;
@@ -3746,10 +3741,7 @@ function SnakeGame() {
   };
 
   g.update = (dt) => {
-    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; p.l -= dt; }
-    if (parts.length && parts[0].l <= 0) parts = parts.filter((p) => p.l > 0);
-    for (const p of pops) { p.y -= 12 * dt; p.l -= dt; }
-    if (pops.length && pops[0].l <= 0) pops = pops.filter((p) => p.l > 0);
+    efx.update(dt);
     if (shakeT > 0) shakeT -= dt;
     if (glitchT > 0) glitchT -= dt;
     if (flashT > 0) flashT -= dt;
@@ -3766,7 +3758,7 @@ function SnakeGame() {
         }
       }
       if (dyingT > 1.8 || (!body.length && dyingT > 1)) {
-        g.over = true; overT = 0; newHi = score > hi && score > 0; hiSet("yilan", score); hi = Math.max(hi, score);
+        g.over = true; overT = 0; newHi = score > hi && score > 0; hiSet(hiKey, score); hi = Math.max(hi, score);
       }
       return;
     }
@@ -3801,7 +3793,7 @@ function SnakeGame() {
     }
     stepAcc += dt;
     let n = 0;
-    while (state === "play" && stepAcc >= interval() && n++ < 3) { stepAcc -= interval(); step(); }
+    while (state === "play" && n++ < 3) { const iv = interval(); if (stepAcc < iv) break; stepAcc -= iv; step(); }
     if (state !== "play") stepAcc = 0;
   };
 
@@ -3818,7 +3810,7 @@ function SnakeGame() {
     x.fillStyle = on ? "#3dff7a" : "#1a5a30"; x.fillRect(px + 2, py + 5, 1, 1);
     x.fillStyle = on === 2 ? "#ffd23f" : "#5a4a10"; x.fillRect(px + 5, py + 5, 1, 1);
   }
-  function drawCable(x, t) {
+  function drawCable(x, body, dir) {
     const R = coffeeT > 0 ? SNK_RAMP_K : SNK_RAMP, L = body.length, sc = (k) => Math.min(23, ((k / Math.max(1, L - 1)) * 23) | 0);
     // Parlama (2 katman), ardından 4px kablo çekirdeği ve üst parlak şerit
     for (let pass = 0; pass < 3; pass++) {
@@ -3923,10 +3915,9 @@ function SnakeGame() {
       k -= SNK_ROWS - 1; if (k < SNK_COLS - 1) return (SNK_ROWS - 1) * SNK_COLS + SNK_COLS - 2 - k;
       k -= SNK_COLS - 1; return (SNK_ROWS - 2 - k) * SNK_COLS;
     };
-    const saved = body, sd = dir;
-    body = []; for (let k = 0; k < 18; k++) body.push(perim(head - k));
-    const d0 = body[0] - body[1]; dir = d0 === 1 ? 0 : d0 === -1 ? 2 : d0 > 0 ? 1 : 3;
-    drawCable(x, t); body = saved; dir = sd;
+    const demo = []; for (let k = 0; k < 18; k++) demo.push(perim(head - k));
+    const d0 = demo[0] - demo[1];
+    drawCable(x, demo, d0 === 1 ? 0 : d0 === -1 ? 2 : d0 > 0 ? 1 : 3);
     drawPacket(x, perim(head + 6), t);
     x.fillStyle = "rgba(0,0,0,.6)"; x.fillRect(24, 40, 208, 112);
     pxText(x, "KABLO", 128, 50, "#18e0ff", 16, "center");
@@ -3942,15 +3933,14 @@ function SnakeGame() {
   g.draw = (x, t) => {
     x.save();
     if (state === "title" && !g.over) { title(x, t); crt(x, t); x.restore(); return; }
-    if (shakeT > 0) x.translate(((Math.random() * 5) | 0) - 2, ((Math.random() * 5) | 0) - 2);
+    if (shakeT > 0) shakeJitter(x);
     background(x, t);
     for (let i = 0; i < N; i++) if (wall[i]) drawRack(x, i, t);
     if (food >= 0 && state !== "clear") drawPacket(x, food, t);
     if (coffee) drawCoffee(x, t);
     if (bug) drawBug(x, t);
-    if (body.length) drawCable(x, t);
-    for (const p of parts) { x.fillStyle = p.c; const s = p.l > 0.35 ? 2 : 1; x.fillRect(p.x | 0, p.y | 0, s, s); }
-    for (const p of pops) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    if (body.length) drawCable(x, body, dir);
+    efx.draw(x);
     if (glitchT > 0) {
       for (let k = 0; k < 5; k++) {
         x.fillStyle = k % 2 ? "rgba(255,77,109,.22)" : "rgba(24,224,255,.18)";
@@ -3965,9 +3955,7 @@ function SnakeGame() {
       pxText(x, mapOf(lvl).name, 128, 66, "#18e0ff", 6, "center");
     }
     if (state === "clear") {
-      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 76, ARC_W, 44);
-      pxText(x, "AKTARIM TAMAM!", 128, 82, "#3dff7a", 12, "center");
-      pxText(x, "BONUS +" + 100 * (lvl + 1), 128, 104, "#ffd23f", 8, "center");
+      arcBanner(x, 76, 44, [["AKTARIM TAMAM!", 82, "#3dff7a", 12], ["BONUS +" + 100 * (lvl + 1), 104, "#ffd23f"]]);
     }
     if (paused && state === "play" && !g.over) {
       x.fillStyle = "rgba(0,0,0,.72)"; x.fillRect(0, 78, ARC_W, 36);
@@ -3975,12 +3963,8 @@ function SnakeGame() {
       if (((t * 2) | 0) % 2) pxText(x, "A: DEVAM", 128, 102, "#ffffff", 6, "center");
     }
     if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 56, ARC_W, 80);
-      pxText(x, "BAĞLANTI KOPTU", 128, 62, "#ff4d6d", 16, "center");
-      pxText(x, "SKOR " + pad6(score), 128, 84, "#fff", 8, "center");
-      pxText(x, "SEVİYE " + (lvl + 1) + "  PAKET " + total, 128, 96, "#18e0ff", 6, "center");
-      if (newHi) pxText(x, "YENİ REKOR!", 128, 106, ((t * 6) | 0) % 2 ? "#ffd23f" : "#ff3fa4", 6, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
+      arcGameOver(x, t, 56, 80, [["BAĞLANTI KOPTU", 62, "#ff4d6d", 16], ["SKOR " + pad6(score), 84], ["SEVİYE " + (lvl + 1) + "  PAKET " + total, 96, "#18e0ff", 6],
+        newHi && ["YENİ REKOR!", 106, ((t * 6) | 0) % 2 ? "#ffd23f" : "#ff3fa4", 6]], 118, 0.8);
     }
     crt(x, t);
     x.restore();
@@ -3994,7 +3978,7 @@ function SnakeGame() {
 const CROSS_NAMES = ["SABAH TRAFİĞİ", "SCOOTER SAATİ", "SUNUCULAR ÇÖKÜYOR", "KAPIDA BUG VAR", "KABLODA BUG", "YAĞMURLU PAZARTESİ", "SPRİNT SONU", "DEADLINE GÜNÜ"];
 const CROSS_TIPS = ["5 KAPIYI DA DOLDUR", "KURYELER ÇOK HIZLI!", "KIRMIZI YANAN KART BATAR", "BUG OLAN KAPIYA GİRME", "KABLODAKİ BUGLARA DİKKAT", "TRAFİK DALGA DALGA AKIYOR", "HER ŞEY HIZLANDI", "SON SÜRAT!"];
 
-function CrossGame() {
+function CrossGame(hiKey) {
   const ROW = 13, TOPY = 13, BARY = 183, MARGIN = 80;
   const rowY = (r) => TOPY + (12 - r) * ROW;
   const DOORS = [24, 76, 128, 180, 232];
@@ -4010,9 +3994,8 @@ function CrossGame() {
   const DEATH_MSG = { car: "EZİLDİN!", water: "VERİYE DÜŞTÜN!", drift: "AKINTIYA KAPILDIN!", bug: "BUG ISIRDI!", time: "GEÇ KALDIN!" };
 
   let state, lvl, score, lives, hi, lanes, doors, doorEv, evT, hx, hr, maxR, hopT, hopDX, hopDY, face, holdT;
-  let timeLeft, timeMax, lvT, gt, deadT, deadKind, deadX, deadR, bannerT, clearT, enterT, shakeT, flashT, coffeeT, mbug, tickT;
-  const parts = Array.from({ length: 28 }, () => ({ x: 0, y: 0, vx: 0, vy: 0, l: 0, c: "" }));
-  const pops = Array.from({ length: 5 }, () => ({ x: 0, y: 0, l: 0, s: "", c: "" }));
+  let timeLeft, timeMax, lvT, gt, deadT, deadKind, deadX, deadR, bannerT, clearT, enterT, shakeT, flashT, coffeeT, mbug, tickT, overT;
+  const efx = ArcFx({ max: 28, maxPops: 5, grav: 160, rise: 16 });
 
   // Hız: seviye başına +%20 (en çok 2.8x); seviye içinde 20. saniyeden sonra yavaşça +%25'e kadar
   const ramp = () => 1 + Math.min(0.25, Math.max(0, lvT - 20) / 240);
@@ -4054,18 +4037,9 @@ function CrossGame() {
   const sunk = (o) => o.sink >= 0 && mod(gt + o.sink, 5) >= 4.2;
   const warn = (o) => o.sink >= 0 && mod(gt + o.sink, 5) >= 3.1;
 
-  function popup(s, c, px, py) {
-    let p = pops[0];
-    for (const q of pops) if (q.l < p.l) p = q;
-    p.s = s; p.c = c; p.x = clamp(px, 30, 226); p.y = py; p.l = 1;
-  }
+  const popup = (s, c, px, py) => efx.pop(clamp(px, 30, 226), py, s, c);
   function burst(n, px, py, cols, sp, up) {
-    let k = 0;
-    for (const p of parts) {
-      if (p.l > 0) continue;
-      p.x = px; p.y = py; p.vx = rand(-sp, sp); p.vy = rand(-sp, sp * 0.4) - up; p.l = rand(0.35, 0.8); p.c = pick(cols);
-      if (++k >= n) break;
-    }
+    for (let k = 0; k < n; k++) efx.spark(px, py, rand(-sp, sp), rand(-sp, sp * 0.4) - up, rand(0.35, 0.8), pick(cols));
   }
   function respawn() {
     hr = 0; hx = 128; maxR = 0; hopT = 0; hopDX = 0; hopDY = 0; face = 1; holdT = 0;
@@ -4073,17 +4047,16 @@ function CrossGame() {
   }
   function startLevel() {
     buildLanes();
-    doors = [0, 0, 0, 0, 0]; doorEv = [null, null, null, null, null]; evT = rand(3, 5);
+    doors = DOORS.map(() => 0); doorEv = DOORS.map(() => null); evT = rand(3, 5);
     timeMax = Math.max(16, 32 - (lvl - 1) * 2.5);
     lvT = 0; bannerT = 2.6; clearT = 0; enterT = 0; coffeeT = 6;
     mbug = lvl >= 5 ? { x: rand(30, 226), d: Math.random() < 0.5 ? -1 : 1 } : null;
     respawn();
   }
   function reset(play) {
-    score = 0; lives = 3; lvl = 1; gt = 0; deadT = 0; shakeT = 0; flashT = 0;
-    for (const p of parts) p.l = 0;
-    for (const p of pops) p.l = 0;
-    hi = hiGet("ofis"); g.over = false;
+    score = 0; lives = 3; lvl = 1; gt = 0; deadT = 0; shakeT = 0; flashT = 0; overT = 0;
+    efx.clear();
+    hi = hiGet(hiKey); g.over = false;
     startLevel();
     state = play ? "play" : "title";
     if (!play) bannerT = 0;
@@ -4125,7 +4098,7 @@ function CrossGame() {
   function tryMove(dx, dr) {
     if (dr > 0 && hr === 11) {
       let di = -1;
-      for (let i = 0; i < 5; i++) if (Math.abs(hx - DOORS[i]) <= 9) di = i;
+      for (let i = 0; i < DOORS.length; i++) if (Math.abs(hx - DOORS[i]) <= 9) di = i;
       if (di < 0 || doors[di]) { Sound.tone(140, 0, 0.06, "square", 0.04); popup(di < 0 ? "DUVAR" : "DOLU", "#8a8aa8", hx, rowY(12) + 14); return; }
       enterDoor(di); return;
     }
@@ -4153,7 +4126,7 @@ function CrossGame() {
       if (!ln) continue;
       let v = ln.v * (ln.river ? rm : m);
       if (ln.wave >= 0) v *= 1 + 0.5 * Math.sin(gt * 0.9 + ln.wave);
-      ln.vel = v * ln.dir; ln.dx = ln.vel * dt; ln.s = mod(ln.s + ln.dx, ln.L);
+      ln.dx = v * ln.dir * dt; ln.s = mod(ln.s + ln.dx, ln.L);
       for (const o of ln.objs) if (o.bug) {
         o.bug.p += o.bug.d * 12 * dt;
         if (o.bug.p < 0) { o.bug.p = 0; o.bug.d = 1; }
@@ -4168,11 +4141,11 @@ function CrossGame() {
   }
   function updEvents(dt) {
     evT -= dt;
-    for (let i = 0; i < 5; i++) { const e = doorEv[i]; if (e) { e.t -= dt; if (e.t <= 0) doorEv[i] = null; } }
+    for (let i = 0; i < DOORS.length; i++) { const e = doorEv[i]; if (e) { e.t -= dt; if (e.t <= 0) doorEv[i] = null; } }
     if (evT <= 0) {
       evT = rand(3.5, 6.5) - Math.min(1.5, lvl * 0.15);
       const free = [];
-      for (let i = 0; i < 5; i++) if (!doors[i] && !doorEv[i]) free.push(i);
+      for (let i = 0; i < DOORS.length; i++) if (!doors[i] && !doorEv[i]) free.push(i);
       if (free.length > 1 || (free.length === 1 && lvl < 4)) {
         const i = pick(free), bug = lvl >= 4 && Math.random() < (lvl >= 7 ? 0.6 : 0.45);
         doorEv[i] = { k: bug ? "bug" : "cof", t: bug ? 3.5 : 4.5 };
@@ -4215,22 +4188,21 @@ function CrossGame() {
   g._test = {
     level(n) { lvl = n; startLevel(); state = "play"; g.over = false; },
     lives(n) { lives = n; },
-    fill(n) { for (let i = 0; i < Math.min(4, n); i++) doors[i] = 1; },
+    fill(n) { for (let i = 0; i < Math.min(DOORS.length - 1, n); i++) doors[i] = 1; },
     peek: () => ({ lanes, hr, hx, hopT, gt, doors, doorEv, mbug, state, MARGIN, DOORS }),
     info: () => ({ state, lvl, score, lives, hr, hx, timeLeft: +timeLeft.toFixed(1), doors: doors.join(""), mul: +spdMul().toFixed(2) }),
   };
 
   g.update = (dt) => {
     gt += dt; shakeT -= dt; flashT -= dt; bannerT -= dt;
-    for (const p of parts) if (p.l > 0) { p.l -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; }
-    for (const p of pops) if (p.l > 0) { p.l -= dt; p.y -= 16 * dt; }
-    if (g.over) { updLanes(dt); if (hit("a") || hit("start")) reset(true); return; }
+    efx.update(dt);
+    if (g.over) { updLanes(dt); overT += dt; if (overT > 0.6 && (hit("a") || hit("start"))) reset(true); return; } // kazara anında yeniden başlamasın
     if (state === "title") { updLanes(dt); if (hit("a") || hit("start")) { reset(true); Sound.credit(); } return; }
     updLanes(dt);
     if (state === "dead") {
       deadT -= dt;
       if (deadT <= 0) {
-        if (lives <= 0) { state = "over"; g.over = true; hiSet("ofis", score); hi = Math.max(hi, score); Sound.fall(); }
+        if (lives <= 0) { state = "over"; g.over = true; overT = 0; hiSet(hiKey, score); hi = Math.max(hi, score); Sound.fall(); }
         else { state = "play"; respawn(); }
       }
       return;
@@ -4347,28 +4319,28 @@ function CrossGame() {
     x.fillRect(0, y + 6, ARC_W, 1);
     x.fillStyle = curb; x.fillRect(0, y, ARC_W, 1);
   }
-  function heroAt(x, X, Y, frame, flip, pal, sy) {
+  function heroAt(x, X, Y, frame, flip) {
     x.fillStyle = SHADOW; x.fillRect((X - 5) | 0, (Y + 13) | 0, 10, 2);
-    drawSprite(x, frame, pal || HERO_PAL, (X - 6) | 0, Y | 0, flip, sy || 1);
+    drawSprite(x, frame, HERO_PAL, (X - 6) | 0, Y | 0, flip);
   }
 
   g.draw = (x, t) => {
     x.fillStyle = "#05050c"; x.fillRect(0, 0, ARC_W, ARC_H);
     x.save();
-    if (shakeT > 0) x.translate(((t * 60) | 0) % 3 - 1, ((t * 47) | 0) % 3 - 1);
+    if (shakeT > 0) shakeWobble(x, t);
 
     // ofis cephesi + kapılar
     const yD = rowY(12);
     x.fillStyle = "#2a1f45"; x.fillRect(0, yD, ARC_W, ROW);
     x.fillStyle = "#35295a"; x.fillRect(0, yD + 4, ARC_W, 1); x.fillRect(0, yD + 9, ARC_W, 1);
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < DOORS.length - 1; i++) {
       const mx = (DOORS[i] + DOORS[i + 1]) / 2;
       for (let j = -1; j <= 1; j += 2) {
         x.fillStyle = (i + j + ((t * 0.5) | 0)) % 3 ? WIN_LIT : WIN_DIM;
         x.fillRect(mx + j * 9 - 3, yD + 3, 6, 6);
       }
     }
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < DOORS.length; i++) {
       const X = DOORS[i] - 9, ev = doorEv[i];
       x.fillStyle = doors[i] ? "#3dff7a" : ev && ev.k === "bug" ? "#ff4d6d" : "#18e0ff"; x.fillRect(X - 1, yD, 20, ROW);
       x.fillStyle = doors[i] ? "#0f3a22" : "#081020"; x.fillRect(X + 1, yD + 2, 16, ROW - 2);
@@ -4443,8 +4415,7 @@ function CrossGame() {
       const fr = hopT > 0 ? HERO.jump : ((gt * 2) | 0) % 6 === 0 ? HERO.walk1 : HERO.stand;
       if (!(state === "enter" && enterT < 0.25)) heroAt(x, X, Y, fr, face < 0);
     }
-    for (const p of parts) if (p.l > 0) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, 2, 2); }
-    for (const p of pops) if (p.l > 0) pxText(x, p.s, p.x | 0, p.y | 0, p.c, 6, "center");
+    efx.draw(x);
     // yağmur
     if (lvl === 6 || lvl >= 8) {
       x.fillStyle = RAIN;
@@ -4482,11 +4453,7 @@ function CrossGame() {
       if (((t * 2) | 0) % 2) pxText(x, "A: BAŞLA", 128, 130, "#ffd23f", 8, "center");
       pxText(x, "REKOR " + pad6(hi), 128, 143, "#18e0ff", 6, "center");
     } else if (g.over) {
-      x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 56, ARC_W, 80);
-      pxText(x, "MESAİ BİTTİ", 128, 64, "#ff4d6d", 16, "center");
-      pxText(x, "SKOR " + pad6(score), 128, 88, "#fff", 8, "center");
-      pxText(x, "SEVİYE " + lvl, 128, 100, "#18e0ff", 8, "center");
-      if (((t * 2) | 0) % 2) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 118, "#ffd23f", 8, "center");
+      arcGameOver(x, t, 56, 80, [["MESAİ BİTTİ", 64, "#ff4d6d", 16], ["SKOR " + pad6(score), 88], ["SEVİYE " + lvl, 100, "#18e0ff"]], 118, 0.8);
     } else if (state === "dead") {
       x.fillStyle = "rgba(0,0,0,.7)"; x.fillRect(0, 86, ARC_W, 22);
       pxText(x, DEATH_MSG[deadKind], 128, 89, "#ff4d6d", 8, "center");
@@ -4527,7 +4494,7 @@ function Arcade() {
     const n = ARC_GAMES.length;
     if (hit("up") || hit("left")) { a.sel = (a.sel + n - 1) % n; Sound.blip(); }
     if (hit("down") || hit("right")) { a.sel = (a.sel + 1) % n; Sound.blip(); }
-    if (hit("a") || hit("start")) { a.game = ARC_GAMES[a.sel].make(); Sound.credit(); updateGameHint(); }
+    if (hit("a") || hit("start")) { a.game = ARC_GAMES[a.sel].make(ARC_GAMES[a.sel].hi); Sound.credit(); updateGameHint(); }
   };
   a.draw = (x) => (a.game ? a.game.draw(x, a.t) : arcadeMenu(x, a.t, a.sel));
   a.back = () => { if (!a.game) return false; a.game = null; updateGameHint(); return true; };
@@ -4541,10 +4508,24 @@ function arcadeBackdrop(x, t) {
     x.fillStyle = hexA(cols[i % cols.length], 0.35); x.fillRect(i * 16 + 4, y | 0, 7, 7); x.fillRect(i * 16 + 4, (y + 8) | 0, 7, 7);
   }
 }
+// Menü ve bekleme ekranında ortak: başlık (y1) + "N OYUN 1 ARADA" (y2)
+function arcadeTitle(x, y1, y2) {
+  pxText(x, "OYUN KÖŞESİ", 128, y1, "#ffd23f", 16, "center");
+  pxText(x, ARC_GAMES.length + " OYUN 1 ARADA", 128, y2, "#ff3fa4", 8, "center");
+}
+// Ortak: yürüyen kahraman ve alt şerit (by: şeridin y'si, bh: yüksekliği; kahraman şeridin hemen üstünde)
+function arcadeFloor(x, t, by, bh) {
+  drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, by - 16);
+  x.fillStyle = "#2b1d4a"; x.fillRect(0, by, ARC_W, bh); x.fillStyle = "#ff3fa4"; x.fillRect(0, by, ARC_W, 2);
+}
+// Jeton sonrası yükleme yazıları: yanıp sönen "KREDİ 01" (cx, ky) ve "YÜKLENİYOR..." (lx, ly, align)
+function loadingText(x, t, cx, ky, lx, ly, align) {
+  if (((t * 3) | 0) % 2) pxText(x, "KREDİ 01", cx, ky, "#ffb000", 8, "center");
+  pxText(x, "YÜKLENİYOR" + ".".repeat(((t * 4) | 0) % 4), lx, ly, "#fff", 8, align);
+}
 function arcadeMenu(x, t, sel) {
   arcadeBackdrop(x, t);
-  pxText(x, "OYUN KÖŞESİ", 128, 18, "#ffd23f", 16, "center");
-  pxText(x, ARC_GAMES.length + " OYUN 1 ARADA", 128, 40, "#ff3fa4", 8, "center");
+  arcadeTitle(x, 18, 40);
   const gap = Math.min(30, 112 / ARC_GAMES.length);
   ARC_GAMES.forEach((gm, i) => {
     const y = 60 + i * gap, on = i === sel;
@@ -4553,9 +4534,8 @@ function arcadeMenu(x, t, sel) {
     pxText(x, gm.name, 60, y, on ? "#ffffff" : "#8a8aa8", 8);
     pxText(x, pad6(hiGet(gm.hi)), 212, y + 2, "#55557a", 6, "right");
   });
-  drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, 158);
-  x.fillStyle = "#2b1d4a"; x.fillRect(0, 174, ARC_W, 18); x.fillStyle = "#ff3fa4"; x.fillRect(0, 174, ARC_W, 2);
-  pxText(x, "↑↓ SEÇ  ·  A BAŞLA".replace(/↑↓/, "^v"), 128, 180, "#fff", 6, "center");
+  arcadeFloor(x, t, 174, 18);
+  pxText(x, "^v SEÇ  ·  A BAŞLA", 128, 180, "#fff", 6, "center");
 }
 function drawArcadeScreen(m, t) {
   const x = m.sCtx; x.imageSmoothingEnabled = false;
@@ -4563,15 +4543,12 @@ function drawArcadeScreen(m, t) {
   arcadeBackdrop(x, t);
   if (m.mode === "loading") {
     x.fillStyle = "rgba(0,0,0,.8)"; x.fillRect(0, 0, ARC_W, ARC_H);
-    if (((t * 3) | 0) % 2) pxText(x, "KREDİ 01", 128, 70, "#ffb000", 8, "center");
-    pxText(x, "YÜKLENİYOR" + ".".repeat(((t * 4) | 0) % 4), 128, 96, "#fff", 8, "center");
+    loadingText(x, t, 128, 70, 128, 96, "center");
     return;
   }
-  pxText(x, "OYUN KÖŞESİ", 128, 34, "#ffd23f", 16, "center");
-  pxText(x, ARC_GAMES.length + " OYUN 1 ARADA", 128, 58, "#ff3fa4", 8, "center");
+  arcadeTitle(x, 34, 58);
   ARC_GAMES.forEach((gm, i) => pxText(x, gm.name, 128, 76 + i * Math.min(16, 64 / ARC_GAMES.length), "#e9e7f2", ARC_GAMES.length > 3 ? 6 : 8, "center"));
-  drawSprite(x, ((t * 8) | 0) % 2 ? HERO.walk1 : HERO.walk2, HERO_PAL, ((t * 40) % (ARC_W + 24)) - 12, 150);
-  x.fillStyle = "#2b1d4a"; x.fillRect(0, 166, ARC_W, 26); x.fillStyle = "#ff3fa4"; x.fillRect(0, 166, ARC_W, 2);
+  arcadeFloor(x, t, 166, 26);
   if (((t * 2) | 0) % 2) pxText(x, "JETON AT", 128, 175, "#fff", 8, "center");
 }
 
@@ -4616,8 +4593,7 @@ function drawScreen(m, t, dt) {
   x.imageSmoothingEnabled = false;
   if (m.mode === "loading") {
     x.fillStyle = "#000"; x.fillRect(0, 0, SW, SH);
-    if ((t * 3 | 0) % 2) pxText(x, "KREDİ 01", 80, 34, "#ffb000", 8, "center");
-    pxText(x, "YÜKLENİYOR" + ".".repeat((t * 4 | 0) % 4), 24, 62, "#fff", 8);
+    loadingText(x, t, 80, 34, 24, 62, "left");
     x.strokeStyle = "#444"; x.strokeRect(24.5, 82.5, 111, 7);
     x.fillStyle = p.c1; x.fillRect(26, 84, 108 * clamp(m.modeT / 1.4, 0, 1), 4);
     return;
@@ -4654,12 +4630,13 @@ function drawScreen(m, t, dt) {
 }
 
 /* ─────────────────────────── kamera ─────────────────────────── */
+const EYE_Y = 1.62; // yürürken göz yüksekliği
 const cam = {
   mode: "paper", // paper | intro | walk | focus
   pos: new V3(), look: new V3(), yaw: 0, pitch: 0,
-  tween: null, focus: -1, idle: 0, eyeY: 1.62,
+  tween: null, focus: -1, eyeY: EYE_Y,
 };
-const SPAWN = { pos: new V3(-0.6, 1.62, FRONT_Z - 1.0), look: new V3(2.6, 1.25, 1.6) }; // giriş kapısının hemen içi
+const SPAWN = { pos: new V3(-0.6, EYE_Y, FRONT_Z - 1.0), look: new V3(2.6, 1.25, 1.6) }; // giriş kapısının hemen içi
 cam.walkPose = null; // makineye geçmeden önceki yürüme konumu
 
 function layout() {
@@ -4772,21 +4749,17 @@ function openPanel(i) {
   $("#panel").classList.add("show"); $("#focusBar").classList.add("panelOpen");
   refocus();
 }
-function closePanel() {
-  if (!ui.panelOpen) return;
+// Panel(ler)i gizle; soft: sadece gizle (makine modu sıfırlanmaz, kamera yeniden odaklanmaz)
+function hidePanels(sels, { soft = false } = {}) {
   ui.panelOpen = false;
-  $("#panel").classList.remove("show"); $("#focusBar").classList.remove("panelOpen");
+  sels.forEach((s) => $(s).classList.remove("show")); $("#focusBar").classList.remove("panelOpen");
+  if (soft) return;
   if (cam.focus >= 0) machines[cam.focus].mode = "attract";
   refocus();
 }
+function closePanel() { if (ui.panelOpen) hidePanels(["#panel"]); }
 function openSecret() { ui.secretOpen = true; ui.panelOpen = true; $("#secret").classList.add("show"); $("#focusBar").classList.add("panelOpen"); refocus(); }
-function closeSecret() {
-  if (!ui.secretOpen) return;
-  ui.secretOpen = false; ui.panelOpen = false;
-  $("#secret").classList.remove("show"); $("#focusBar").classList.remove("panelOpen");
-  if (cam.focus >= 0) machines[cam.focus].mode = "attract";
-  refocus();
-}
+function closeSecret() { if (ui.secretOpen) { ui.secretOpen = false; hidePanels(["#secret"]); } }
 function refocus() { if (cam.mode === "focus" && cam.focus >= 0) { const f = focusPose(cam.focus); tweenTo(f.pos, f.look, 0.6); } }
 
 /* ─────────────────────────── akışlar ─────────────────────────── */
@@ -4795,7 +4768,7 @@ function focusMachine(i) {
   if (document.pointerLockElement) document.exitPointerLock();
   i = (i + machines.length) % machines.length;
   if (cam.focus >= 0 && cam.focus !== i) machines[cam.focus].mode = "attract";
-  if (ui.panelOpen) { $("#panel").classList.remove("show"); $("#secret").classList.remove("show"); $("#focusBar").classList.remove("panelOpen"); ui.panelOpen = ui.secretOpen = false; }
+  if (ui.panelOpen) { ui.secretOpen = false; hidePanels(["#panel", "#secret"], { soft: true }); }
   if (cam.focus !== i || cam.mode !== "focus") Sound.whoosh();
   if (cam.mode === "walk" && !cam.tween) cam.walkPose = { pos: cam.pos.clone(), look: cam.look.clone() };
   cam.mode = "focus"; cam.focus = i;
@@ -4821,7 +4794,7 @@ function insertCoin() {
   const m = machines[cam.focus];
   if (ui.panelOpen) { ui.secretOpen ? closeSecret() : closePanel(); }
   ui.busy = true;
-  const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.005, 32), shared.coinMat);
+  const coin = new THREE.Mesh(shared.coinGeo, shared.coinMat);
   const fwd = new V3(); camera.getWorldDirection(fwd);
   const right = new V3().crossVectors(fwd, camera.up).normalize();
   const start = camera.position.clone().addScaledVector(fwd, 0.35).addScaledVector(right, 0.12).add(new V3(0, -0.2, 0));
@@ -4910,7 +4883,7 @@ const cv = renderer.domElement;
 // Dokunmatikte ve kilit yokken sürükleyerek bakılır (yine sağa sürükle = sağa bak).
 const LOOK_K = 0.0024;
 const mouseLocked = () => document.pointerLockElement === cv;
-function lookBy(dx, dy) { cam.yaw += dx; cam.pitch = clamp(cam.pitch - dy, -0.7, 0.55); cam.idle = 0; }
+function lookBy(dx, dy) { cam.yaw += dx; cam.pitch = clamp(cam.pitch - dy, -0.7, 0.55); }
 function hoverAt(cx, cy) {
   const h = pick3D(cx, cy);
   if (h && h.badge) { setHover(-1); setBadgeHover(h.badge); return; }
@@ -5058,7 +5031,6 @@ function moveBy(fwd, side) {
     const dx = cam.pos.x - o.x, dz = cam.pos.z - o.z, d = Math.hypot(dx, dz);
     if (d < o.r && d > 1e-4) { cam.pos.x = o.x + dx / d * o.r; cam.pos.z = o.z + dz / d * o.r; }
   }
-  cam.idle = 0;
 }
 
 /* ─────────────────────────── döngü ─────────────────────────── */
@@ -5084,7 +5056,6 @@ function frame() {
     }
     setLookFromYawPitch();
   }
-  cam.idle += dt;
 
   // kamera geçişi
   if (cam.tween) {
@@ -5115,7 +5086,7 @@ function frame() {
       c.mesh.position.lerpVectors(pre, c.slot.clone().addScaledVector(c.normal, -0.03), v);
       c.mesh.rotation.set(0, 0, Math.PI / 2);
     }
-    if (u >= 1) { scene.remove(c.mesh); c.mesh.geometry.dispose(); coins.splice(k, 1); coinEntered(c.m); }
+    if (u >= 1) { scene.remove(c.mesh); coins.splice(k, 1); coinEntered(c.m); }
   }
 
   if (mouseLocked() && cam.mode === "walk" && ((elapsed * 12) | 0) !== ((elapsed - dt) * 12 | 0)) hoverAt(...center());
@@ -5149,8 +5120,8 @@ function frame() {
     m.sGlow.material.opacity = (0.26 + Math.sin(elapsed * 11 + m.i) * 0.03) * near;
     if (m.blink > 0) {
       m.blink -= dt; const on = (m.blink * 10 | 0) % 2 === 0;
-      m.lamps.forEach((l) => { l.mat.color.set(on ? 0xff6a6a : 0x400808); l.glow.material.opacity = on ? 1 : 0.05; });
-      if (m.blink <= 0) m.lamps.forEach((l) => { l.mat.color.set(0xff2a2a); l.glow.material.opacity = 0.6; });
+      m.lamps.forEach((l) => { l.mat.color.set(on ? LAMP_FLASH : LAMP_OFF); l.glow.material.opacity = on ? 1 : 0.05; });
+      if (m.blink <= 0) m.lamps.forEach((l) => { l.mat.color.set(LAMP_ON); l.glow.material.opacity = 0.6; });
     }
     if (m.noteFall && m.noteFall.t < m.noteFall.dur) {
       const nf = m.noteFall; nf.t += rawDt; const u = clamp(nf.t / nf.dur, 0, 1);
@@ -5180,10 +5151,8 @@ function frame() {
     c.g.visible = u < 0.98;
   }
   if (room2.lampSprite) room2.lampSprite.material.opacity = Math.random() < 0.006 ? 0.3 : 0.75;
-  if (Jukebox.playing || room2.arches.length) {
-    room2.arches.forEach((a, k) => { const on = Jukebox.playing ? 0.55 + 0.45 * Math.sin(elapsed * 8 + k * 2.1) : 0.75; a.mat.color.copy(a.base).multiplyScalar(on); });
-    if (room2.jbGlow) room2.jbGlow.material.opacity = Jukebox.playing ? 0.35 + Math.sin(elapsed * 8) * 0.12 : 0.3;
-  }
+  room2.arches.forEach((a, k) => { const on = Jukebox.playing ? 0.55 + 0.45 * Math.sin(elapsed * 8 + k * 2.1) : 0.75; a.mat.color.copy(a.base).multiplyScalar(on); });
+  if (room2.jbGlow) room2.jbGlow.material.opacity = Jukebox.playing ? 0.35 + Math.sin(elapsed * 8) * 0.12 : 0.3;
   if (m_noteDone()) renderer.shadowMap.needsUpdate = true;
 
   renderer.render(scene, camera);
@@ -5212,14 +5181,14 @@ function m_noteDone() {
 function warmUp() {
   const culled = [];
   scene.traverse((o) => { if (o.frustumCulled) { culled.push(o); o.frustumCulled = false; } });
-  const coin = new THREE.Mesh(new THREE.CylinderGeometry(0.026, 0.026, 0.005, 32), shared.coinMat);
+  const coin = new THREE.Mesh(shared.coinGeo, shared.coinMat);
   coin.position.copy(cam.look); scene.add(coin);
   machines.forEach((m) => { drawScreen(m, 0, 0); m.sTex.needsUpdate = true; });
   camera.position.copy(cam.pos); camera.lookAt(cam.look);
   renderer.compile(scene, camera);
   renderer.shadowMap.needsUpdate = true;
   renderer.render(scene, camera);
-  scene.remove(coin); coin.geometry.dispose();
+  scene.remove(coin);
   culled.forEach((o) => (o.frustumCulled = true));
 }
 
@@ -5240,8 +5209,7 @@ function warmUp() {
 
   try {
     buildShared();
-    const n = PROJECTS.length;
-    PROJECTS.forEach((p, i) => buildMachine(p, i, n));
+    PROJECTS.forEach((p, i) => buildMachine(p, i));
     buildRoom();
   } catch (e) {
     console.error(e);
