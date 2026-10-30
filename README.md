@@ -8,6 +8,7 @@ Erkan Göçmen'in kişisel portfolyo sitesi: https://erkangcmn.github.io/
 - `css/style.css` — tüm stiller
 - `app/index.js` — projeler ve GitHub rozetleri (veri burada, kartlar JS ile üretilir)
 - `app/bg.js` — fareyi takip eden parçacık arka planı
+- `oyunlar/yildiz-pilotu.js` — Oyun Köşesi'ndeki tam ekran pinball (bağımsız modül, kendi ses motoru ve müziği)
 
 ## Güncelleme
 
