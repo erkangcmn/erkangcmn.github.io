@@ -1554,7 +1554,7 @@ const Jukebox = {
 };
 
 /* ─────────────────────────── oyun köşesi: oynanabilir makine ─────────────────────────── */
-// Makinenin ekranında gerçekten oynanan yedi özgün oyun (liste: ARC_GAMES).
+// Makinenin ekranında gerçekten oynanan sekiz özgün oyun (liste: ARC_GAMES).
 // Tüm görseller ve sesler burada üretilir; dış dosya yok.
 const ARC_W = 256, ARC_H = 192;
 const pad = { left: false, right: false, up: false, down: false, a: false, b: false, start: false };
@@ -4475,6 +4475,527 @@ function CrossGame(hiKey) {
   return g;
 }
 
+/* ── Yıldız Pilotu (pinball) ── */
+// Uzay temalı özgün pinball masası: solda masa, sağda skor/görev paneli.
+// Fizik masa koordinatlarında (x 0..136, y 0..190) çalışır; ekrana (OX, OY) kaydırılarak çizilir.
+// Görev akışı: kara deliğe gir → görev başlar → hedefi tamamla → her 2 görevde rütbe atla (bazı rütbelerde ekstra top).
+const PB_MISSIONS = [
+  { k: "bumper", name: "BUMPER FIRTINASI", how: "BUMPERLARA VUR", need: 15 },
+  { k: "orbit", name: "YÖRÜNGE TURU", how: "SAĞ KANALA AT", need: 3 },
+  { k: "target", name: "HEDEF TEMİZLİĞİ", how: "HEDEFLERİ DÜŞÜR", need: 2 },
+  { k: "lane", name: "ŞERİT TARAMA", how: "ÜST ŞERİTLERİ YAK", need: 2 },
+  { k: "sling", name: "SAPAN ATIŞI", how: "SAPANLARA VUR", need: 12 },
+  { k: "hole", name: "KARA DELİK", how: "DELİĞE GERİ DÖN", need: 2 },
+];
+const PB_RANKS = ["ÇAYLAK", "KADET", "PİLOT", "TEĞMEN", "KAPTAN", "KOMUTAN", "AMİRAL", "YILDIZ AMİRALİ"];
+const PB_ROCKET = ["....W....", "...WWW...", "...WBW...", "..WWWWW..", "..WWBWW..", "..WWWWW..", ".RWWWWWR.", "RR.WWW.RR", "R..O.O..R"];
+const PB_ROCKET_PAL = { W: "#e8e8f0", B: "#18e0ff", R: "#ff4d6d", O: "#ff8a3d" };
+
+function PinballGame() {
+  const OX = 4, OY = 2, BR = 2.6, GRAV = 290, SUB = 10, VMAX = 640, FL = 19;
+  const g = { over: false, hint: "← → paletler · Boşluk / ↓ basılı tut, bırak: fırlat · X sars · Esc menü" };
+  const mir = (pts) => pts.map(([px, py]) => [126 - px, py]);
+
+  // ── masa geometrisi ──
+  const walls = [];
+  const poly = (pts, e = 0.45, rad = 0.8, outer = false) => {
+    for (let i = 0; i < pts.length - 1; i++) walls.push({ ax: pts[i][0], ay: pts[i][1], bx: pts[i + 1][0], by: pts[i + 1][1], e, rad, outer });
+  };
+  const rim = [[4, 190], [4, 66]];
+  for (let i = 1; i < 24; i++) { const a = Math.PI + (Math.PI * i) / 24; rim.push([68 + Math.cos(a) * 64, 66 + Math.sin(a) * 64]); }
+  rim.push([132, 66], [132, 190]);
+  poly(rim, 0.4, 0.8, true);
+  poly([[122, 60], [122, 190]]); // fırlatma kanalı duvarı
+  poly([[16, 48], [16, 90]]); // sol dönüş kanalı
+  poly([[4, 92], [20, 104]], 0.3);
+  for (const sx of [33, 53, 73, 93]) poly([[sx, 20], [sx, 32]], 0.5, 1);
+  const GUIDE_L = [[11, 136], [11, 152], [42, 162.6]], SLING_L = [[19, 124], [19, 142], [32, 150]];
+  poly(GUIDE_L, 0.3); poly(mir(GUIDE_L), 0.3);
+  poly(SLING_L.slice(0, 2).concat([SLING_L[2]]), 0.3); poly(mir(SLING_L), 0.3);
+  const slings = [
+    { ax: 19, ay: 124, bx: 32, by: 150, fl: 0 },
+    { ax: 107, ay: 124, bx: 94, by: 150, fl: 0 },
+  ];
+  const bumpers = [
+    { x: 43, y: 52, r: 6.5, c: "#ff3fa4", fl: 0 },
+    { x: 83, y: 52, r: 6.5, c: "#18e0ff", fl: 0 },
+    { x: 63, y: 74, r: 6.5, c: "#ffd23f", fl: 0 },
+  ];
+  const LANES = [43, 63, 83], LANE_Y = 26;
+  const TGT_Y = 118, targets = [51, 63, 75].map((tx) => ({ x: tx, up: true, fl: 0 }));
+  const HOLE = { x: 110, y: 92 }, ORBIT = { x: 10, y: 62 };
+  const flips = [
+    { px: 41, py: 165, rest: 0.5, up: -0.45, key: "left", a: 0.5, w: 0 },
+    { px: 85, py: 165, rest: Math.PI - 0.5, up: Math.PI + 0.45, key: "right", a: Math.PI - 0.5, w: 0 },
+  ];
+
+  // ── durum ──
+  let b, state, score, ballNo, extra, mult, lanes, skillLane, skillT, saveT, launched, charge, floorY, holeT, holeCD, orbitCD;
+  let tilt, tilted, shakeT, mission, mLast, mProg, done, rank, bonus, bonusT, tgtResetT, msg, parts, musT, step, tickCD, noA, laneIn, chargeTick, overT;
+
+  function reset() {
+    score = 0; ballNo = 1; extra = 0; rank = 0; done = 0; mission = null; mLast = -1; mProg = 0;
+    parts = []; musT = 0; step = 0; tickCD = 0; overT = 0; g.over = false; noA = true;
+    serve();
+    say("YILDIZ PİLOTU", "BOŞLUK BASILI TUT", "BIRAK: FIRLAT", 6);
+  }
+  function serve() {
+    b = { x: 127, y: 186 - BR, vx: 0, vy: 0, on: true };
+    state = "play"; mult = 1; lanes = [false, false, false]; skillLane = (Math.random() * 3) | 0; skillT = 0;
+    saveT = 0; launched = false; charge = 0; floorY = 186; holeT = 0; holeCD = 0; orbitCD = 0;
+    tilt = 0; tilted = false; shakeT = 0; bonus = 0; bonusT = 0; tgtResetT = 0; laneIn = [false, false, false]; chargeTick = 0;
+    for (const t of targets) t.up = true;
+  }
+  function say(a, c, d, dur = 2.6) { msg = { l: [a, c || "", d || ""], t: dur }; }
+  const add = (n) => { score += n; };
+  function burst(px, py, col, n = 6, sp = 60) {
+    for (let i = 0; i < n && parts.length < 80; i++) { const a = rand(0, Math.PI * 2), v = rand(sp * 0.4, sp); parts.push({ x: px, y: py, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: rand(0.2, 0.45), c: col }); }
+  }
+
+  // ── sesler (hepsi burada üretilir) ──
+  const sfx = {
+    flip() { Sound.noise(0, 0.04, 0.08, 1800, 1.5); Sound.tone(150, 0, 0.05, "square", 0.03, 70); },
+    flipDown() { Sound.noise(0, 0.03, 0.035, 900, 1); },
+    bumper(i) { Sound.tone([196, 247, 294][i], 0, 0.14, "square", 0.045, 98); Sound.tone(1568, 0, 0.07, "sine", 0.035); Sound.noise(0, 0.05, 0.06, 700, 0.8, "lowpass"); },
+    sling() { Sound.tone(420, 0, 0.05, "square", 0.04, 200); Sound.noise(0, 0.05, 0.06, 2600, 2); },
+    lane() { Sound.tone(1568, 0, 0.07, "sine", 0.05); Sound.tone(2093, 0.05, 0.1, "sine", 0.04); },
+    target() { Sound.noise(0, 0.06, 0.08, 600, 1, "lowpass"); Sound.tone(180, 0, 0.08, "triangle", 0.07, 120); },
+    bank() { [659, 784, 988, 1319].forEach((f, i) => Sound.tone(f, i * 0.06, 0.1, "square", 0.04)); },
+    hole() { Sound.tone(1400, 0, 0.9, "sine", 0.05, 60); Sound.noise(0, 0.9, 0.05, 3000, 1, "bandpass", 150); },
+    eject() { Sound.noise(0, 0.15, 0.1, 400, 0.7, "lowpass"); Sound.tone(90, 0, 0.2, "square", 0.05, 45); },
+    orbit() { [523, 659, 784, 1047, 1319].forEach((f, i) => Sound.tone(f, i * 0.04, 0.08, "sine", 0.045)); },
+    launch(p) { Sound.noise(0, 0.3, 0.06 + p * 0.05, 500, 0.8, "bandpass", 2600); Sound.tone(120, 0, 0.08, "square", 0.04, 60); },
+    drain() { Sound.tone(600, 0, 0.9, "sawtooth", 0.035, 70); Sound.tone(606, 0, 0.9, "sawtooth", 0.025, 72); },
+    mStart() { [392, 523, 659, 784, 1047].forEach((f, i) => Sound.tone(f, i * 0.08, i === 4 ? 0.3 : 0.1, "square", 0.04)); },
+    mDone() { [523, 659, 784, 1047, 784, 1047, 1319, 1568].forEach((f, i) => Sound.tone(f, i * 0.07, i === 7 ? 0.4 : 0.1, "square", 0.045)); },
+    extra() { [784, 988, 1175, 1568, 1175, 1568].forEach((f, i) => Sound.tone(f, i * 0.09, 0.12, "triangle", 0.06)); },
+    save() { [1047, 1319, 1047, 1319].forEach((f, i) => Sound.tone(f, i * 0.08, 0.08, "square", 0.035)); },
+    tiltWarn() { Sound.tone(220, 0, 0.25, "square", 0.05); Sound.tone(233, 0, 0.25, "square", 0.04); },
+    tilt() { Sound.tone(110, 0, 0.9, "sawtooth", 0.06, 55); Sound.tone(116, 0, 0.9, "sawtooth", 0.05, 58); },
+    nudge() { Sound.noise(0, 0.12, 0.09, 250, 0.7, "lowpass"); },
+    wall(v) { Sound.tone(900 + Math.min(v, 400), 0, 0.02, "square", 0.012); },
+    skill() { [1047, 1319, 1568, 2093, 1568, 2093].forEach((f, i) => Sound.tone(f, i * 0.06, 0.09, "square", 0.04)); },
+  };
+  // Arka plan müziği: alçak sesli bas + seyrek parıltılar (yalnızca top oyundayken çalar)
+  const BASS = [110, 0, 165, 0, 131, 0, 165, 0, 98, 0, 147, 0, 123, 0, 147, 0];
+  const SPARK = [880, 988, 1175, 1319, 1568];
+  function music(dt) {
+    musT -= dt;
+    while (musT <= 0) {
+      musT += mission ? 0.16 : 0.2;
+      const s = step++ % 16, f = BASS[s];
+      if (f) Sound.tone(f, 0, 0.18, "triangle", 0.03);
+      if (s % 4 === 2 && Math.random() < 0.6) Sound.tone(pick(SPARK), 0, 0.25, "sine", 0.008);
+      if (mission && s % 2 === 1) Sound.tone(f ? f * 4 : BASS[(s + 15) % 16] * 4, 0, 0.06, "square", 0.006);
+    }
+  }
+
+  // ── görevler ──
+  function startMission() {
+    let i; do i = (Math.random() * PB_MISSIONS.length) | 0; while (i === mLast);
+    mLast = i; const m = PB_MISSIONS[i];
+    mission = Object.assign({}, m, { need: Math.round(m.need * (1 + Math.floor(rank / 2) * 0.5)) }); mProg = 0;
+    say("YENİ GÖREV", m.name, m.how); sfx.mStart();
+  }
+  function progress(k, n = 1) {
+    if (!mission || mission.k !== k || tilted) return;
+    mProg += n;
+    if (mProg < mission.need) return;
+    const pts = 5000 + rank * 2500;
+    add(pts); bonus += 1000; done++; mission = null;
+    say("GÖREV TAMAM", "+" + pts, done % 2 === 0 ? "" : "BİR GÖREV DAHA"); sfx.mDone();
+    if (done % 2 === 0 && rank < PB_RANKS.length - 1) {
+      rank++; add(10000 * rank);
+      const eb = rank % 2 === 0;
+      if (eb) extra++;
+      setTimeout(() => { say("RÜTBE ATLADIN", PB_RANKS[rank], eb ? "EKSTRA TOP!" : "+" + 10000 * rank, 3); eb ? sfx.extra() : Sound.fanfare(); }, 900);
+    }
+  }
+
+  // ── çarpışma ──
+  function hitSeg(ax, ay, bx, by, rad, e) {
+    const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+    const t = clamp(((b.x - ax) * ex + (b.y - ay) * ey) / l2, 0, 1);
+    const px = ax + ex * t, py = ay + ey * t, dx = b.x - px, dy = b.y - py, d2 = dx * dx + dy * dy, rr = BR + rad;
+    if (d2 >= rr * rr || d2 === 0) return 0;
+    const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+    b.x = px + nx * rr; b.y = py + ny * rr;
+    const vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; }
+    hitSeg.nx = nx; hitSeg.ny = ny;
+    return Math.max(0.001, -vn);
+  }
+  function hitCircle(cx, cy, r) {
+    const dx = b.x - cx, dy = b.y - cy, d2 = dx * dx + dy * dy, rr = BR + r;
+    if (d2 >= rr * rr || d2 === 0) return null;
+    const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+    b.x = cx + nx * rr; b.y = cy + ny * rr;
+    return { nx, ny, vn: b.vx * nx + b.vy * ny };
+  }
+  function hitFlipper(f) {
+    const ex = Math.cos(f.a) * FL, ey = Math.sin(f.a) * FL;
+    const t = clamp(((b.x - f.px) * ex + (b.y - f.py) * ey) / (FL * FL), 0, 1);
+    const cx = f.px + ex * t, cy = f.py + ey * t, rad = 2.8 - t;
+    const dx = b.x - cx, dy = b.y - cy, d2 = dx * dx + dy * dy, rr = BR + rad;
+    if (d2 >= rr * rr || d2 === 0) return;
+    const d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+    b.x = cx + nx * rr; b.y = cy + ny * rr;
+    const fvx = -(cy - f.py) * f.w, fvy = (cx - f.px) * f.w; // palet yüzeyinin o noktadaki hızı
+    const vn = (b.vx - fvx) * nx + (b.vy - fvy) * ny;
+    if (vn < 0) {
+      b.vx -= 1.35 * vn * nx; b.vy -= 1.35 * vn * ny;
+      if (vn < -150 && tickCD <= 0) { tickCD = 0.08; Sound.tone(260, 0, 0.04, "triangle", 0.04); }
+    }
+  }
+  const inLane = () => b.x > 122;
+
+  function physics(h) {
+    for (const f of flips) {
+      const tgt = pad[f.key] && !tilted && state !== "over" ? f.up : f.rest;
+      const d = tgt - f.a;
+      if (Math.abs(d) < 1e-5) { f.w = 0; continue; }
+      const sp = (tgt === f.up ? 26 : 15) * Math.sign(d);
+      let na = f.a + sp * h;
+      if ((tgt - na) * Math.sign(d) <= 0) na = tgt;
+      f.w = (na - f.a) / h; f.a = na;
+    }
+    if (state !== "play") return;
+    b.vy += GRAV * h;
+    const sp = Math.hypot(b.vx, b.vy);
+    if (sp > VMAX) { b.vx *= VMAX / sp; b.vy *= VMAX / sp; }
+    b.x += b.vx * h; b.y += b.vy * h;
+    for (const w of walls) {
+      const v = hitSeg(w.ax, w.ay, w.bx, w.by, w.rad, w.e);
+      if (v > 140 && tickCD <= 0) { tickCD = 0.07; sfx.wall(v); }
+    }
+    slings.forEach((s) => {
+      const v = hitSeg(s.ax, s.ay, s.bx, s.by, 1, 0.3);
+      if (v > 30) {
+        b.vx += hitSeg.nx * 170; b.vy += hitSeg.ny * 170; s.fl = 0.12;
+        add(10); bonus += 10; sfx.sling(); progress("sling");
+      }
+    });
+    bumpers.forEach((u, i) => {
+      const c = hitCircle(u.x, u.y, u.r);
+      if (!c) return;
+      const out = Math.max(Math.abs(c.vn), 60) + 150; // bumper topu daima dışarı iter
+      b.vx = b.vx - c.vn * c.nx + c.nx * out; b.vy = b.vy - c.vn * c.ny + c.ny * out;
+      if (u.fl <= 0.05) { add(100 * (1 + Math.floor(rank / 2))); bonus += 20; sfx.bumper(i); burst(u.x + c.nx * 7, u.y + c.ny * 7, u.c, 5); progress("bumper"); }
+      u.fl = 0.12;
+    });
+    targets.forEach((t) => {
+      if (!t.up) return;
+      const v = hitSeg(t.x - 5, TGT_Y, t.x + 5, TGT_Y, 1.5, 0.35);
+      if (v > 25) {
+        t.up = false; t.fl = 0.3; add(250); bonus += 150; sfx.target(); burst(t.x, TGT_Y, "#ff8a3d", 4, 40);
+        if (targets.every((q) => !q.up)) { add(2500 * mult); bonus += 500; tgtResetT = 1.2; sfx.bank(); say("HEDEFLER", "TEMİZLENDİ", "+" + 2500 * mult, 1.6); progress("target"); }
+      }
+    });
+    for (const f of flips) hitFlipper(f);
+    // fırlatma tıpası (hareketli zemin)
+    if (inLane() && b.y > floorY - BR) { b.y = floorY - BR; if (b.vy > 0) b.vy = b.vy > 30 ? -b.vy * 0.25 : 0; }
+    // sensörler
+    LANES.forEach((lx, i) => {
+      const inside = Math.abs(b.x - lx) < 5 && Math.abs(b.y - LANE_Y) < 5;
+      if (inside && !laneIn[i]) {
+        add(500); bonus += 100; sfx.lane();
+        if (skillT > 0) { skillT = 0; if (i === skillLane) { add(5000); say("SÜPER ATIŞ!", "+5000", "", 2); sfx.skill(); } }
+        if (!lanes[i]) {
+          lanes[i] = true;
+          if (lanes.every(Boolean)) {
+            lanes = [false, false, false];
+            if (mult < 5) mult++;
+            add(2000); say("ŞERİTLER TAMAM", "ÇARPAN x" + mult, "", 1.8); progress("lane");
+          }
+        }
+      }
+      laneIn[i] = inside;
+    });
+    if (orbitCD <= 0 && b.vy > 0 && Math.hypot(b.x - ORBIT.x, b.y - ORBIT.y) < 6) {
+      orbitCD = 1; const pts = 1500 * mult; add(pts); bonus += 500; sfx.orbit(); say("YÖRÜNGE", "+" + pts, "", 1.4); progress("orbit");
+    }
+    if (holeCD <= 0 && Math.hypot(b.x - HOLE.x, b.y - HOLE.y) < 5 && Math.hypot(b.vx, b.vy) < 420) capture();
+  }
+
+  function capture() {
+    state = "hole"; holeT = 1.5; b.on = false; sfx.hole(); burst(HOLE.x, HOLE.y, "#b26bff", 10, 50);
+    add(1000); bonus += 300;
+    if (tilted) return;
+    if (!mission) startMission();
+    else if (mission.k === "hole") progress("hole");
+    else say(mission.name, "GÖREV SÜRÜYOR", "KALAN " + (mission.need - mProg), 1.8);
+  }
+  function eject() {
+    state = "play"; b.on = true; holeCD = 1;
+    b.x = HOLE.x - 3; b.y = HOLE.y + 4; b.vx = -rand(80, 130); b.vy = rand(10, 50);
+    sfx.eject(); burst(HOLE.x, HOLE.y, "#18e0ff", 8, 70);
+  }
+  function drain() {
+    if (saveT > 0 && !tilted) {
+      say("TOP KURTARILDI", "TEKRAR FIRLAT", "", 2); sfx.save();
+      b = { x: 127, y: 186 - BR, vx: 0, vy: 0, on: true }; launched = false; saveT = 0; return;
+    }
+    state = "bonus"; b.on = false; bonusT = 2.4; sfx.drain();
+    const total = tilted ? 0 : bonus * mult;
+    add(total);
+    say("TOP KAYBI", "BONUS " + bonus, tilted ? "TILT: BONUS YOK" : "x" + mult + " = " + total, 2.4);
+  }
+  function nextBall() {
+    if (extra > 0) { extra--; serve(); say("EKSTRA TOP", "TEKRAR AT", "", 2.4); return; }
+    ballNo++;
+    if (ballNo > 3) { state = "over"; g.over = true; overT = 0; hiSet("pinbal", score); Sound.fall(); return; }
+    serve(); say("TOP " + ballNo, mission ? mission.name : "KARA DELİĞE GİR", mission ? "KALAN " + (mission.need - mProg) : "GÖREV AL", 2.4);
+  }
+
+  reset();
+
+  g._test = { // test kancası: oyunda kullanılmaz
+    state: () => ({ state, b, score, ballNo, extra, mult, lanes, mission, mProg, rank, done, tilted, flips, targets }),
+    place(x, y, vx = 0, vy = 0) { b.x = x; b.y = y; b.vx = vx; b.vy = vy; b.on = true; state = "play"; launched = true; },
+    mission(i) { mLast = (i + 1) % PB_MISSIONS.length; mission = Object.assign({}, PB_MISSIONS[i]); mProg = 0; },
+    step(dt) { for (let k = 0; k < SUB; k++) physics(dt / SUB); },
+  };
+
+  g.update = (dt) => {
+    dt = Math.min(dt, 1 / 30);
+    for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.l -= dt; }
+    parts = parts.filter((p) => p.l > 0);
+    if (msg && msg.t > 0) msg.t -= dt;
+    if (g.over) {
+      overT += dt;
+      if (!pad.a) noA = false;
+      if ((hit("a") || hit("start")) && overT > 0.8) { reset(); }
+      return;
+    }
+    tickCD -= dt; holeCD -= dt; orbitCD -= dt; shakeT -= dt; skillT -= dt;
+    if (launched && saveT > 0) saveT -= dt;
+    tilt = Math.max(0, tilt - dt * 0.45);
+    bumpers.forEach((u) => (u.fl -= dt)); slings.forEach((s) => (s.fl -= dt)); targets.forEach((t) => (t.fl -= dt));
+    if (tgtResetT > 0) { tgtResetT -= dt; if (tgtResetT <= 0) { for (const t of targets) t.up = true; Sound.tone(300, 0, 0.1, "square", 0.03, 600); } }
+    if (state === "play" || state === "hole") music(dt);
+
+    // paletler: ses + üst şerit ışıklarını kaydırma
+    if (!tilted) {
+      if (hit("left")) { sfx.flip(); lanes.push(lanes.shift()); }
+      if (hit("right")) { sfx.flip(); lanes.unshift(lanes.pop()); }
+    }
+    // fırlatıcı
+    if (!pad.a && !pad.down) noA = false;
+    const pull = (pad.a || pad.down) && !noA && state === "play";
+    if (pull && inLane()) {
+      charge = Math.min(1, charge + dt * 1.1); floorY = 186 + charge * 6;
+      chargeTick -= dt; if (chargeTick <= 0) { chargeTick = 0.07; Sound.tone(180 + charge * 700, 0, 0.03, "square", 0.012); }
+    } else if (charge > 0) {
+      if (inLane() && b.y > 170) {
+        b.vy = -(150 + 450 * charge); sfx.launch(charge);
+        if (!launched) { launched = true; saveT = 8; skillT = 4; }
+      }
+      charge = 0; floorY = 186;
+    }
+    // sarsma / tilt
+    if ((hit("b") || hit("up")) && !tilted) {
+      shakeT = 0.15; tilt += 1; sfx.nudge();
+      if (state === "play" && !inLane()) { b.vx += (Math.random() < 0.5 ? -1 : 1) * rand(25, 55); b.vy -= 75; }
+      if (tilt >= 3) { tilted = true; say("TILT", "PALETLER KİLİTLİ", "", 3); sfx.tilt(); }
+      else if (tilt >= 2) { say("DİKKAT!", "MASAYI SARSMA", "", 1.2); sfx.tiltWarn(); }
+    }
+
+    if (state === "hole") { holeT -= dt; if (holeT <= 0) eject(); }
+    if (state === "bonus") { bonusT -= dt; if (bonusT <= 0) nextBall(); }
+    const h = dt / SUB;
+    for (let k = 0; k < SUB; k++) physics(h);
+    if (state === "play") {
+      if (b.y > 198) drain();
+      else if (b.x < 0 || b.x > 136 || b.y < -6 || !isFinite(b.x + b.y)) { b = { x: 127, y: 186 - BR, vx: 0, vy: 0, on: true }; } // güvenlik: masadan kaçarsa
+    }
+  };
+
+  // ── çizim ──
+  const bed = document.createElement("canvas");
+  bed.width = ARC_W; bed.height = ARC_H;
+  const rimPath = (x) => { x.beginPath(); x.moveTo(4, 190); x.lineTo(4, 66); x.arc(68, 66, 64, Math.PI, Math.PI * 2); x.lineTo(132, 190); x.closePath(); };
+  function bevelBox(x, bx, by, bw, bh) {
+    x.fillStyle = "#5a5a70"; x.fillRect(bx, by, bw, bh);
+    x.fillStyle = "#b8b8cc"; x.fillRect(bx, by, bw, 1); x.fillRect(bx, by, 1, bh);
+    x.fillStyle = "#2a2a38"; x.fillRect(bx, by + bh - 1, bw, 1); x.fillRect(bx + bw - 1, by, 1, bh);
+    x.fillStyle = "#03030a"; x.fillRect(bx + 2, by + 2, bw - 4, bh - 4);
+  }
+  (function paintBed() {
+    const x = bed.getContext("2d");
+    x.fillStyle = "#000"; x.fillRect(0, 0, ARC_W, ARC_H);
+    x.save(); x.translate(OX, OY);
+    rimPath(x); x.lineJoin = "round";
+    x.strokeStyle = "#2c2840"; x.lineWidth = 8; x.stroke();
+    x.strokeStyle = "#7a76a0"; x.lineWidth = 4; x.stroke();
+    const gr = x.createLinearGradient(0, 0, 0, 190);
+    gr.addColorStop(0, "#1d1150"); gr.addColorStop(0.55, "#0e1444"); gr.addColorStop(1, "#090720");
+    rimPath(x); x.fillStyle = gr; x.fill();
+    x.save(); rimPath(x); x.clip();
+    for (const [nx, ny, nr, col] of [[30, 112, 60, "rgba(178,107,255,.30)"], [104, 58, 52, "rgba(24,224,255,.16)"], [70, 165, 48, "rgba(255,63,164,.18)"]]) {
+      const rg = x.createRadialGradient(nx, ny, 0, nx, ny, nr); rg.addColorStop(0, col); rg.addColorStop(1, "rgba(0,0,0,0)");
+      x.fillStyle = rg; x.fillRect(0, 0, 136, 190);
+    }
+    let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,255,255,${0.25 + rnd() * 0.6})`; x.fillRect((rnd() * 136) | 0, (rnd() * 190) | 0, 1, 1); }
+    // takımyıldız çizgileri
+    x.strokeStyle = "rgba(24,224,255,.18)"; x.lineWidth = 1; x.beginPath();
+    [[24, 40], [30, 60], [22, 78]].forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py)));
+    [[96, 128], [104, 112], [98, 100]].forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py)));
+    x.stroke();
+    // halkalı gezegen çıkartması
+    const pg = x.createRadialGradient(60, 95, 1, 63, 98, 9); pg.addColorStop(0, "#7ad0ff"); pg.addColorStop(1, "#1a2a7a");
+    x.fillStyle = pg; x.beginPath(); x.arc(63, 98, 8, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = "rgba(255,210,63,.7)"; x.beginPath(); x.ellipse(63, 98, 14, 3.5, -0.3, 0, Math.PI * 2); x.stroke();
+    // paletler arası rampa ışınları
+    x.fillStyle = "rgba(178,107,255,.35)";
+    for (let k = -3; k <= 3; k++) { x.beginPath(); x.moveTo(63, 150); x.lineTo(63 + k * 7 - 2, 190); x.lineTo(63 + k * 7 + 2, 190); x.fill(); }
+    // kanallar
+    x.fillStyle = "rgba(0,0,0,.45)"; x.fillRect(122, 30, 10, 160); x.fillRect(4, 40, 12, 52);
+    x.fillStyle = "rgba(255,138,61,.35)";
+    for (let y = 172; y > 70; y -= 16) { x.beginPath(); x.moveTo(127, y - 4); x.lineTo(130, y); x.lineTo(124, y); x.fill(); }
+    x.restore();
+    // duvarlar
+    x.lineCap = "round";
+    for (const w of walls) {
+      if (w.outer) continue;
+      x.strokeStyle = "#3a3658"; x.lineWidth = 3; x.beginPath(); x.moveTo(w.ax, w.ay + 0.5); x.lineTo(w.bx, w.by + 0.5); x.stroke();
+      x.strokeStyle = "#cfcbea"; x.lineWidth = 1.4; x.beginPath(); x.moveTo(w.ax, w.ay); x.lineTo(w.bx, w.by); x.stroke();
+    }
+    rimPath(x); x.strokeStyle = "#d8d4f0"; x.lineWidth = 1; x.stroke();
+    // sapan gövdeleri
+    for (const tri of [SLING_L, mir(SLING_L)]) {
+      x.fillStyle = "#3a1470"; x.beginPath(); tri.forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py))); x.closePath(); x.fill();
+      x.fillStyle = "#b26bff"; x.beginPath(); x.arc((tri[0][0] * 2 + tri[2][0]) / 3, (tri[0][1] + tri[1][1] + tri[2][1]) / 3, 1.5, 0, Math.PI * 2); x.fill();
+    }
+    // kara delik yuvası
+    x.fillStyle = "#1a0e30"; x.beginPath(); x.arc(HOLE.x, HOLE.y, 7, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = "#5a3a9a"; x.lineWidth = 1; x.stroke();
+    x.restore();
+    // panel çerçeveleri
+    bevelBox(x, 144, 0, 112, 60); bevelBox(x, 144, 62, 18, 20); bevelBox(x, 162, 62, 94, 20);
+    bevelBox(x, 144, 84, 112, 52); bevelBox(x, 144, 138, 112, 54);
+    // logo kutusu: yıldızlar + gezegen
+    for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(255,255,255,${0.2 + rnd01(i) * 0.6})`; x.fillRect(147 + ((rnd01(i + 50) * 106) | 0), 3 + ((rnd01(i + 99) * 54) | 0), 1, 1); }
+    const lg = x.createRadialGradient(158, 48, 1, 160, 50, 9); lg.addColorStop(0, "#9aff8a"); lg.addColorStop(1, "#1a5a2a");
+    x.fillStyle = lg; x.beginPath(); x.arc(160, 50, 8, 0, Math.PI * 2); x.fill();
+  })();
+  function rnd01(i) { const s = Math.sin(i * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
+
+  const blink = (t, hz = 4) => ((t * hz) | 0) % 2 === 0;
+  function arrow(x, ax, ay, ang, col) {
+    x.save(); x.translate(ax, ay); x.rotate(ang); x.fillStyle = col;
+    x.beginPath(); x.moveTo(3, 0); x.lineTo(-2, -2.5); x.lineTo(-2, 2.5); x.closePath(); x.fill(); x.restore();
+  }
+  function drawFlipper(x, f) {
+    const c = Math.cos(f.a), s = Math.sin(f.a), tx = f.px + c * FL, ty = f.py + s * FL;
+    x.fillStyle = tilted ? "#6a6a7a" : "#f2ecd8";
+    x.beginPath();
+    x.moveTo(f.px - s * 2.8, f.py + c * 2.8); x.lineTo(tx - s * 1.8, ty + c * 1.8);
+    x.arc(tx, ty, 1.8, f.a + Math.PI / 2, f.a - Math.PI / 2, true);
+    x.lineTo(f.px + s * 2.8, f.py - c * 2.8);
+    x.arc(f.px, f.py, 2.8, f.a - Math.PI / 2, f.a + Math.PI / 2, true);
+    x.fill();
+    x.strokeStyle = "#ff4d6d"; x.lineWidth = 1; x.beginPath(); x.moveTo(f.px + c * 2, f.py + s * 2); x.lineTo(tx - c * 1.5, ty - s * 1.5); x.stroke();
+    x.fillStyle = "#3a3a4a"; x.beginPath(); x.arc(f.px, f.py, 1, 0, Math.PI * 2); x.fill();
+  }
+
+  g.draw = (x, t) => {
+    const sx = shakeT > 0 ? (Math.random() < 0.5 ? -1 : 1) : 0;
+    x.drawImage(bed, sx, 0);
+    x.save(); x.translate(OX + sx, OY);
+    const hk = mission && !tilted ? mission.k : null, on = blink(t, 3);
+    // üst şeritler
+    LANES.forEach((lx, i) => {
+      const lit = lanes[i], sk = skillT > 0 && i === skillLane;
+      x.fillStyle = sk && blink(t, 8) ? "#ffffff" : lit ? "#3dff7a" : hk === "lane" && on ? "#2a8a4a" : "#14381f";
+      x.beginPath(); x.arc(lx, 37, 2, 0, Math.PI * 2); x.fill();
+      x.fillStyle = "rgba(200,200,230,.5)"; x.fillRect(lx - 2, LANE_Y, 5, 1);
+    });
+    for (const sx2 of [33, 53, 73, 93]) { x.fillStyle = "#e0dcf8"; x.beginPath(); x.arc(sx2, 20, 1.3, 0, Math.PI * 2); x.fill(); }
+    // bumperlar
+    bumpers.forEach((u) => {
+      const f = u.fl > 0;
+      if (f) { x.fillStyle = hexA(u.c, 0.35); x.beginPath(); x.arc(u.x, u.y, 10, 0, Math.PI * 2); x.fill(); }
+      x.fillStyle = "#14121e"; x.beginPath(); x.arc(u.x, u.y + 1, 7, 0, Math.PI * 2); x.fill();
+      x.strokeStyle = hk === "bumper" && on ? "#ffffff" : u.c; x.lineWidth = 1.2; x.beginPath(); x.arc(u.x, u.y, 6.2, 0, Math.PI * 2); x.stroke();
+      x.fillStyle = f ? "#ffffff" : shade(u.c, 0.55); x.beginPath(); x.arc(u.x, u.y, 4.3, 0, Math.PI * 2); x.fill();
+      x.fillStyle = f ? u.c : shade(u.c, 1.3); x.beginPath(); x.arc(u.x - 0.8, u.y - 0.8, 1.8, 0, Math.PI * 2); x.fill();
+    });
+    // hedefler
+    targets.forEach((tg) => {
+      if (tg.up) {
+        x.fillStyle = tg.fl > 0 ? "#ffffff" : "#ff8a3d"; x.fillRect(tg.x - 5, TGT_Y - 1.5, 10, 3);
+        x.fillStyle = "#ffd0a0"; x.fillRect(tg.x - 5, TGT_Y - 1.5, 10, 1);
+      } else { x.fillStyle = "#3a2410"; x.fillRect(tg.x - 5, TGT_Y - 0.5, 10, 1); }
+      x.fillStyle = !tg.up ? "#ffd23f" : hk === "target" && on ? "#a08020" : "#3a3010";
+      x.beginPath(); x.arc(tg.x, TGT_Y + 6, 1.4, 0, Math.PI * 2); x.fill();
+    });
+    // kara delik: dönen sarmal
+    const hr = state === "hole" ? 1.6 : 1;
+    for (let k = 0; k < 4; k++) {
+      x.strokeStyle = hexA(k % 2 ? "#b26bff" : "#18e0ff", 0.5 + 0.12 * k); x.lineWidth = 1;
+      x.beginPath(); x.arc(HOLE.x, HOLE.y, (2 + k * 1.3) * hr, -t * (3 + k) + k, -t * (3 + k) + k + 2.2); x.stroke();
+    }
+    x.fillStyle = "#000"; x.beginPath(); x.arc(HOLE.x, HOLE.y, 2.2, 0, Math.PI * 2); x.fill();
+    if ((!mission && !tilted) || hk === "hole") { if (on) arrow(x, 103, 102, -0.85, "#ffd23f"); }
+    if (hk === "orbit" && on) { arrow(x, 117, 112, -Math.PI / 2, "#18e0ff"); arrow(x, 117, 104, -Math.PI / 2, "#18e0ff"); }
+    // sapan lastikleri
+    slings.forEach((s) => {
+      x.strokeStyle = s.fl > 0 ? "#ffffff" : hk === "sling" && on ? "#ffd23f" : "#e8e0ff"; x.lineWidth = s.fl > 0 ? 2 : 1.2;
+      x.beginPath(); x.moveTo(s.ax, s.ay); x.lineTo(s.bx, s.by); x.stroke();
+    });
+    // çarpan ve kurtarma ışıkları
+    for (let k = 0; k < 4; k++) { x.fillStyle = mult >= k + 2 ? "#ff3fa4" : "#3a1028"; x.fillRect(54 + k * 6, 136, 3, 3); }
+    x.fillStyle = saveT > 0 && launched ? (blink(t, 6) ? "#3dff7a" : "#1a5a2a") : "#122a18";
+    x.beginPath(); x.moveTo(63, 183); x.lineTo(60, 188); x.lineTo(66, 188); x.fill();
+    // fırlatıcı
+    x.fillStyle = "#9a9ab0"; x.fillRect(126, floorY + 2, 2, 192 - floorY);
+    x.strokeStyle = "#5a5a70"; x.lineWidth = 1; x.beginPath();
+    for (let y = floorY + 3; y < 190; y += 1.5) { x.moveTo(124, y); x.lineTo(130, y + 0.75); }
+    x.stroke();
+    x.fillStyle = "#ff4d6d"; x.fillRect(123, floorY, 8, 2);
+    flips.forEach((f) => drawFlipper(x, f));
+    // top
+    if (b.on && state !== "bonus") {
+      const bg = x.createRadialGradient(b.x - 0.9, b.y - 0.9, 0.2, b.x, b.y, BR);
+      bg.addColorStop(0, "#ffffff"); bg.addColorStop(0.5, "#b8b8cc"); bg.addColorStop(1, "#3a3a4e");
+      x.fillStyle = bg; x.beginPath(); x.arc(b.x, b.y, BR, 0, Math.PI * 2); x.fill();
+    }
+    for (const p of parts) { x.fillStyle = p.c; x.fillRect(p.x | 0, p.y | 0, 1, 1); }
+    if (tilted && blink(t, 2)) pxText(x, "TILT", 63, 84, "#ff4d6d", 16, "center");
+    x.restore();
+
+    // ── panel ──
+    pxText(x, "YILDIZ", 150, 7, "#b26bff", 8);
+    pxText(x, "PİLOTU", 158, 18, "#ffd23f", 8);
+    const ry = 22 + Math.sin(t * 2) * 2;
+    drawSprite(x, PB_ROCKET, PB_ROCKET_PAL, 230, ry | 0);
+    x.fillStyle = blink(t, 12) ? "#ffd23f" : "#ff8a3d"; x.fillRect(233, (ry + 9) | 0, 1, 2); x.fillRect(235, (ry + 9) | 0, 1, 2);
+    pxText(x, "TOP", 186, 44, "#ff4d6d", 8);
+    x.fillStyle = "#5a5a70"; x.fillRect(214, 40, 16, 16); x.fillStyle = "#03030a"; x.fillRect(215, 41, 14, 14);
+    pxText(x, String(Math.min(ballNo, 3)), 222, 45, "#ff4d6d", 8, "center");
+    pxText(x, "1", 153, 68, "#9ab0ff", 8, "center");
+    pxText(x, String(score), 250, 68, "#9ab0ff", 8, "right");
+    const lines = msg && msg.t > 0 ? msg.l
+      : mission ? [mission.name, mission.how, "KALAN " + Math.max(0, mission.need - mProg)]
+      : launched ? ["GÖREV YOK", "KARA DELİĞE GİR", "GÖREV AL"] : ["TOP " + Math.min(ballNo, 3), "BOŞLUK BASILI TUT", "BIRAK: FIRLAT"];
+    ["#ffd23f", "#e9e7f2", "#18e0ff"].forEach((col, i) => lines[i] && pxText(x, lines[i], 200, 92 + i * 14, col, 6, "center"));
+    pxText(x, "RÜTBE", 150, 144, "#8a8aa8", 6);
+    pxText(x, PB_RANKS[rank], 150, 154, "#ffffff", 6);
+    pxText(x, "ÇARPAN x" + mult, 150, 166, "#ff3fa4", 6);
+    if (extra) pxText(x, "+" + extra + " TOP", 250, 166, "#3dff7a", 6, "right");
+    pxText(x, "REKOR " + Math.max(hiGet("pinbal"), score), 150, 178, "#8a8aa8", 6);
+
+    if (g.over) {
+      x.fillStyle = "rgba(0,0,0,.78)"; x.fillRect(0, 64, ARC_W, 64);
+      pxText(x, "OYUN BİTTİ", 128, 74, "#ff4d6d", 16, "center");
+      pxText(x, "SKOR " + score + " - " + PB_RANKS[rank], 128, 98, "#fff", 6, "center");
+      if (blink(t, 2)) pxText(x, "A: TEKRAR  ESC: MENÜ", 128, 112, "#ffd23f", 8, "center");
+    }
+  };
+  return g;
+}
+
 /* ── menü, bekleme ekranı ve makine kontrolü ── */
 const ARC_GAMES = [
   { name: "BLOK YAĞMURU", make: BlockGame, hi: "blok" },
@@ -4484,6 +5005,7 @@ const ARC_GAMES = [
   { name: "DUVAR KIRICI", make: BreakoutGame, hi: "duvar" },
   { name: "KABLO YILANI", make: SnakeGame, hi: "yilan" },
   { name: "OFİSE YETİŞ", make: CrossGame, hi: "ofis" },
+  { name: "YILDIZ PİLOTU", make: PinballGame, hi: "pinbal" },
 ];
 function Arcade() {
   const a = { sel: 0, game: null, t: 0 };
